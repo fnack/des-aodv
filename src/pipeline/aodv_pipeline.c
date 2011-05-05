@@ -182,8 +182,9 @@ void rlfile_log(const u_int8_t src_addr[ETH_ALEN],
 	pthread_rwlock_unlock(&rlflock);
 }
 
-void aodv_send_packets_from_buffer(u_int8_t ether_dhost[ETH_ALEN], u_int8_t next_hop[ETH_ALEN],
-		const dessert_meshif_t* iface) {
+void aodv_send_packets_from_buffer(u_int8_t ether_dhost[ETH_ALEN],
+                                   u_int8_t next_hop[ETH_ALEN],
+                                   const dessert_meshif_t* iface) {
 	// drop RREQ schedule, since we already know the route to destination
 	aodv_db_dropschedule(ether_dhost, AODV_SC_REPEAT_RREQ);
 	// send out packets from buffer
@@ -215,8 +216,11 @@ void aodv_send_packets_from_buffer(u_int8_t ether_dhost[ETH_ALEN], u_int8_t next
 
 // ---------------------------- pipeline callbacks ---------------------------------------------
 
-int aodv_drop_errors(dessert_msg_t* msg, size_t len,
-		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id){
+int aodv_drop_errors(dessert_msg_t* msg,
+                     size_t len,
+                     dessert_msg_proc_t *proc,
+                     const dessert_meshif_t *iface,
+                     dessert_frameid_t id) {
 	// drop packets sent by myself.
 	if (proc->lflags & DESSERT_LFLAG_PREVHOP_SELF) {
 		return DESSERT_MSG_DROP;
@@ -509,26 +513,26 @@ int aodv_fwd2dest(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, cons
 	} else {
 		u_int32_t rerr_count;
 		aodv_db_getrerrcount(&timestamp, &rerr_count);
-		if (rerr_count < RERR_RATELIMIT) {
-			// route unknown -> send rerr towards source
-			_onlb_element_t *head, *curr_el;
-			head = NULL;
-			curr_el = malloc(sizeof(_onlb_element_t));
-			memcpy(curr_el->dhost_ether, l25h->ether_dhost, ETH_ALEN);
-			curr_el->next = curr_el->prev = NULL;
-			DL_APPEND(head, curr_el);
-			dessert_msg_t* rerr_msg = aodv_create_rerr(&head, 1);
-			if (rerr_msg != NULL) {
-				dessert_meshsend_fast(rerr_msg, NULL);
-				dessert_msg_destroy(rerr_msg);
-				aodv_db_putrerr(&timestamp);
-			}
-			if (routing_log_file) {
-				rlfile_log(l25h->ether_shost, l25h->ether_dhost, rl_seq_num, rl_hop_count, iface->hwaddr, NULL, NULL);
-			}
+		if (!(rerr_count < RERR_RATELIMIT))
+			goto end;
+			
+		// route unknown -> send rerr towards source
+		_onlb_element_t *head, *curr_el;
+		head = NULL;
+		curr_el = malloc(sizeof(_onlb_element_t));
+		memcpy(curr_el->dhost_ether, l25h->ether_dhost, ETH_ALEN);
+		curr_el->next = curr_el->prev = NULL;
+		DL_APPEND(head, curr_el);
+		dessert_msg_t* rerr_msg = aodv_create_rerr(&head, 1);
+		if (rerr_msg != NULL) {
+			dessert_meshsend_fast(rerr_msg, NULL);
+			dessert_msg_destroy(rerr_msg);
+			aodv_db_putrerr(&timestamp);
 		}
+		if (routing_log_file)
+			rlfile_log(l25h->ether_shost, l25h->ether_dhost, rl_seq_num, rl_hop_count, iface->hwaddr, NULL, NULL);
 	}
-	return DESSERT_MSG_DROP;
+end:	return DESSERT_MSG_DROP;
 }
 // --------------------------- TUN ----------------------------------------------------------
 
