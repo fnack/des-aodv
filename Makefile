@@ -14,12 +14,12 @@ MODULES = src/aodv src/helper src/cli/aodv_cli src/database/aodv_database src/da
 UNAME = $(shell uname | tr 'a-z' 'A-Z')
 TARFILES = *.c *.h Makefile *.conf *.init *.default *.sh build version major_version ChangeLog *.lua
 
-FILE_DEFAULT = ./$(DAEMONNAME).default
-FILE_ETC = ./$(DAEMONNAME).conf
-FILE_INIT = ./$(DAEMONNAME).init
+FILE_DEFAULT = ./etc/$(DAEMONNAME).default
+FILE_ETC = ./etc/$(DAEMONNAME).conf
+FILE_INIT = ./etc/$(DAEMONNAME).init
 
 LIBS = dessert dessert-extra
-CFLAGS += -ggdb -Wall -DTARGET_$(UNAME) -D_GNU_SOURCE -I/usr/include
+CFLAGS += -g -ggdb -W -Wall -O0 -DTARGET_$(UNAME) -D_GNU_SOURCE -I/usr/include
 LDFLAGS += $(addprefix -l,$(LIBS)) -L/usr/lib
 
 all: build
