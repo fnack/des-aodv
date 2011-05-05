@@ -158,9 +158,13 @@ void aodv_send_rreq(u_int8_t dhost_ether[ETH_ALEN], struct timeval* ts, u_int8_t
 pthread_rwlock_t rlflock = PTHREAD_RWLOCK_INITIALIZER;
 pthread_rwlock_t rlseqlock = PTHREAD_RWLOCK_INITIALIZER;
 
-void rlfile_log(const u_int8_t src_addr[ETH_ALEN], const u_int8_t dest_addr[ETH_ALEN],
-		const u_int32_t seq_num, const u_int8_t hop_count, const u_int8_t in_iface[ETH_ALEN],
-		const u_int8_t out_iface[ETH_ALEN], const u_int8_t next_hop_addr[ETH_ALEN]) {
+void rlfile_log(const u_int8_t src_addr[ETH_ALEN],
+                const u_int8_t dest_addr[ETH_ALEN],
+                const u_int32_t seq_num,
+                const u_int8_t hop_count,
+                const u_int8_t in_iface[ETH_ALEN],
+		const u_int8_t out_iface[ETH_ALEN],
+		const u_int8_t next_hop_addr[ETH_ALEN]) {
 	pthread_rwlock_wrlock(&rlflock);
 	FILE* f = fopen(routing_log_file, "a+");
 	if (f == NULL) dessert_debug("file = 0");
@@ -351,7 +355,12 @@ int aodv_handle_rreq(dessert_msg_t* msg,
 	return DESSERT_MSG_DROP;
 }
 
-int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
+int aodv_handle_rerr(dessert_msg_t* msg,
+                     size_t len,
+                     dessert_msg_proc_t *proc,
+                     const dessert_meshif_t *iface_org, //TODO unused?!?!?
+                     dessert_frameid_t id) {
+
 	dessert_ext_t* rerr_ext;
 
 	if (dessert_msg_getext(msg, &rerr_ext, RERR_EXT_TYPE, 0) == FALSE)
@@ -388,20 +397,23 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 		}
 	}
 
-	if (rebroadcast_rerr) { // write addresses of all my mesh interfaces
-		dessert_meshif_t* iface = dessert_meshiflist_get();
-		rerr_msg->iface_addr_count = 0;
-		void* iface_addr_pointer = rerr_msg->ifaces;
+	if (rebroadcast_rerr == FALSE)
+		goto end;
+		
+	// write addresses of all my mesh interfaces
+	dessert_meshif_t* iface = dessert_meshiflist_get();
+	rerr_msg->iface_addr_count = 0;
+	void* iface_addr_pointer = rerr_msg->ifaces;
 
-		while (iface != NULL && rerr_msg->iface_addr_count < MAX_MESH_IFACES_COUNT) {
-			memcpy(iface_addr_pointer, iface->hwaddr, ETH_ALEN);
-			iface_addr_pointer += ETH_ALEN;
-			iface = iface->next;
-			rerr_msg->iface_addr_count++;
-		}
-		dessert_meshsend_fast(msg, NULL);
+	while (iface != NULL && rerr_msg->iface_addr_count < MAX_MESH_IFACES_COUNT) {
+		memcpy(iface_addr_pointer, iface->hwaddr, ETH_ALEN);
+		iface_addr_pointer += ETH_ALEN;
+		iface = iface->next;
+		rerr_msg->iface_addr_count++;
 	}
-	return DESSERT_MSG_DROP;
+	dessert_meshsend_fast(msg, NULL);
+	
+end:	return DESSERT_MSG_DROP;
 }
 
 int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id){
@@ -423,32 +435,33 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 	// capture and re-send only if route is unknown OR
 	// sequence number is greater then that in database OR
 	// if seq_nums are equals and known hop count is greater than that in RREP
-	if (aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->seq_num_dest, rrep_msg->hop_count, &ts)) {
-		// send RREP to RREQ originator if TTL > 0 and RREP is not for me
-		if (memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) != 0 && msg->ttl > 0) {
+	if (aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->seq_num_dest, rrep_msg->hop_count, &ts))
+		goto end;
+		
+	// send RREP to RREQ originator if TTL > 0 and RREP is not for me
+	if (memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) != 0 && msg->ttl > 0) {
 
-			u_int8_t next_hop[ETH_ALEN];
-			const dessert_meshif_t* output_iface;
-			if (aodv_db_getprevhop(l25h->ether_shost, l25h->ether_dhost, next_hop, &output_iface) == TRUE) {
-				if (verbose)
-					dessert_debug("re-send RREP to *:%02x:%02x", l25h->ether_dhost[4], l25h->ether_dhost[5]);
-				memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
-				dessert_meshsend_fast(msg, output_iface);
-			}
-		} else { // this RREP is for me! -> pop all packets from FIFO buffer and send to destination
-			
-			if (verbose) {
-				dessert_ext_t* ext;
-				dessert_msg_getext(msg, &ext, RREQ_EXT_TYPE, 0);
-				struct aodv_msg_rrep* aodv_msg_rrep = (struct aodv_msg_rrep *) ext->data;
-				dessert_debug("RREP from *:%02x:%02x seq=%i", l25h->ether_shost[4], l25h->ether_shost[5], aodv_msg_rrep->seq_num_dest);
-			}
-			/* no need to search for next hop. Next hop is RREP.prev_hop */
-			aodv_send_packets_from_buffer(l25h->ether_shost, msg->l2h.ether_shost, iface);
-
+		u_int8_t next_hop[ETH_ALEN];
+		const dessert_meshif_t* output_iface;
+		if (aodv_db_getprevhop(l25h->ether_shost, l25h->ether_dhost, next_hop, &output_iface) == TRUE) {
+			if (verbose)
+				dessert_debug("re-send RREP to *:%02x:%02x", l25h->ether_dhost[4], l25h->ether_dhost[5]);
+			memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
+			dessert_meshsend_fast(msg, output_iface);
 		}
+	} else { // this RREP is for me! -> pop all packets from FIFO buffer and send to destination
+		
+		if (verbose) {
+			dessert_ext_t* ext;
+			dessert_msg_getext(msg, &ext, RREQ_EXT_TYPE, 0);
+			struct aodv_msg_rrep* aodv_msg_rrep = (struct aodv_msg_rrep *) ext->data;
+			dessert_debug("RREP from *:%02x:%02x seq=%i", l25h->ether_shost[4], l25h->ether_shost[5], aodv_msg_rrep->seq_num_dest);
+		}
+		/* no need to search for next hop. Next hop is RREP.prev_hop */
+		aodv_send_packets_from_buffer(l25h->ether_shost, msg->l2h.ether_shost, iface);
+
 	}
-	return DESSERT_MSG_DROP;
+end:	return DESSERT_MSG_DROP;
 }
 
 int aodv_fwd2dest(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
@@ -464,7 +477,8 @@ int aodv_fwd2dest(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, cons
 		}
 	}
 
-	if (proc->lflags & DESSERT_LFLAG_DST_BROADCAST || proc->lflags & DESSERT_LFLAG_DST_MULTICAST) { // BROADCAST
+	if (proc->lflags & DESSERT_LFLAG_DST_BROADCAST ||
+	    proc->lflags & DESSERT_LFLAG_DST_MULTICAST) { // BROADCAST
 		dessert_meshsend_fast(msg, NULL);
 		return DESSERT_MSG_KEEP;
 	}
