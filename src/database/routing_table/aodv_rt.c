@@ -303,6 +303,11 @@ int aodv_db_rt_getrouteseqnum(u_int8_t dhost_ether[ETH_ALEN], u_int32_t* dhost_s
 	return TRUE;
 }
 
+int aodv_db_rt_getpathweight(u_int8_t dhost_ether[ETH_ALEN], u_int32_t* dhost_seq_num_out) {
+	//FIXME
+	return -1;
+}
+
 int aodv_db_rt_getlastrreqseq(u_int8_t dhost_ether[ETH_ALEN],
 		u_int8_t shost_ether[ETH_ALEN], u_int32_t* shost_seq_num_out) {
 	aodv_rt_entry_t* rt_entry;

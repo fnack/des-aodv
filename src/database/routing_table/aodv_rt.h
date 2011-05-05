@@ -50,6 +50,8 @@ int aodv_db_rt_getprevhop(u_int8_t dhost_ether[ETH_ALEN], u_int8_t shost_ether[E
 
 int aodv_db_rt_getrouteseqnum(u_int8_t dhost_ether[ETH_ALEN], u_int32_t* dhost_seq_num_out);
 
+int aodv_db_rt_getpathweight(u_int8_t dhost_ether[ETH_ALEN], u_int32_t* dhost_seq_num_out);
+
 int aodv_db_rt_getlastrreqseq(u_int8_t dhost_ether[ETH_ALEN],
 		u_int8_t shost_ether[ETH_ALEN], u_int32_t* shost_seq_num_out);
 
