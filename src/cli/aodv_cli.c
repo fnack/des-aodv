@@ -33,24 +33,6 @@ For further information and questions please use the web site
 
 // -------------------- config ------------------------------------------------------------
 
-int cli_set_verbose(struct cli_def* cli, char* command, char* argv[], int argc) {
-	u_int32_t mode;
-
-	if (argc != 1 || sscanf(argv[0], "%u", &mode) != 1|| (mode != 0 && mode != 1)) {
-		cli_print(cli, "usage of %s command [0, 1]\n", command);
-		return CLI_ERROR_ARG;
-	}
-
-	if (mode == 1) {
-		dessert_info("be verbose = TRUE");
-		verbose = TRUE;
-	} else {
-		dessert_info("be verbose = FALSE");
-		verbose = FALSE;
-	}
-
-	return CLI_OK;
-}
 
 // -------------------- Testing ------------------------------------------------------------
 
