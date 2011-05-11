@@ -303,8 +303,8 @@ int aodv_handle_rreq(dessert_msg_t* msg,
 	rreq_msg->hop_count++;
 
 	struct rssi_sample sample = dessert_rssi_avg(l25h->ether_shost, iface, NULL);
-	u_int8_t interval;
-	if(interval = hf_rssi2interval(sample.rssi) < 0)
+	u_int8_t interval = hf_rssi2interval(sample.rssi);
+	if(interval  < 0)
 		dessert_crit("rssi is not in [-128, 0], this must be a bug in dessert_monitor");
 	else
 		rreq_msg->path_weight += interval;
@@ -317,8 +317,8 @@ int aodv_handle_rreq(dessert_msg_t* msg,
 		u_int32_t dhost_seq_num, dhost_path_weight;
 		if (!(rreq_msg->flags & AODV_FLAGS_RREQ_D) &&
 		    !(rreq_msg->flags & AODV_FLAGS_RREQ_U) &&
-		    (aodv_db_getpathweight(l25h->ether_dhost, &dhost_path_weight) == TRUE && hf_path_weight_comp(dhost_path_weight, rreq_msg->path_weight)) || //seqnum indicates this packet is a duplicate, but the path_weight is lesser, so proceed packet
-		    (aodv_db_getrouteseqnum(l25h->ether_dhost, &dhost_seq_num) == TRUE && hf_seq_comp_i_j(dhost_seq_num, rreq_msg->seq_num_dest) > 0)) { //packet is newer than the last seen from this source
+		    ((aodv_db_getpathweight(l25h->ether_dhost, &dhost_path_weight) == TRUE && hf_path_weight_comp(dhost_path_weight, rreq_msg->path_weight)) || //seqnum indicates this packet is a duplicate, but the path_weight is lesser, so proceed packet
+		    (aodv_db_getrouteseqnum(l25h->ether_dhost, &dhost_seq_num) == TRUE && hf_seq_comp_i_j(dhost_seq_num, rreq_msg->seq_num_dest) > 0))) { //packet is newer than the last seen from this source
 
 			// I know route to destination that have seq_num greater then that of source (route is newer) OR rssi-BETTER
 			//TODO RSSI
