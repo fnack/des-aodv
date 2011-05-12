@@ -302,8 +302,8 @@ int aodv_handle_rreq(dessert_msg_t* msg,
 	struct aodv_msg_rreq* rreq_msg = (struct aodv_msg_rreq*) rreq_ext->data;
 	rreq_msg->hop_count++;
 
-	struct rssi_sample sample = dessert_rssi_avg(l25h->ether_shost, iface, NULL);
-	u_int8_t interval = hf_rssi2interval(sample.rssi);
+	struct avg_node_result sample = dessert_rssi_avg(l25h->ether_shost, iface->if_name);
+	u_int8_t interval = hf_rssi2interval(sample.avg_rssi);
 	if(interval  < 0)
 		dessert_crit("rssi is not in [-128, 0], this must be a bug in dessert_monitor");
 	else
@@ -428,9 +428,9 @@ int aodv_handle_rrep(dessert_msg_t* msg,
                      dessert_frameid_t id) {
 	dessert_ext_t* rrep_ext;
 
-	if (dessert_msg_getext(msg, &rrep_ext, RREP_EXT_TYPE, 0) == FALSE)
+	if (dessert_msg_getext(msg, &rrep_ext, RREP_EXT_TYPE, 0) == 0)
 		return DESSERT_MSG_KEEP;
-	if (memcmp(msg->l2h.ether_dhost, iface->hwaddr, ETH_ALEN) == FALSE)
+	if (memcmp(msg->l2h.ether_dhost, iface->hwaddr, ETH_ALEN) != 0)
 		return DESSERT_MSG_DROP;
 
 	msg->ttl--;
@@ -440,6 +440,13 @@ int aodv_handle_rrep(dessert_msg_t* msg,
 	gettimeofday(&ts, NULL);
 	rrep_msg->hop_count++;
 	
+	struct avg_node_result sample = dessert_rssi_avg(l25h->ether_shost, iface->if_name);
+	u_int8_t interval = hf_rssi2interval(sample.avg_rssi);
+	if(interval  < 0)
+		dessert_crit("rssi is not in [-128, 0], this must be a bug in dessert_monitor");
+	else
+		rrep_msg->path_weight += interval;
+
 	dessert_ext_t* ext;
 	dessert_msg_getext(msg, &ext, RREQ_EXT_TYPE, 0);
 	struct aodv_msg_rrep* aodv_msg_rrep = (struct aodv_msg_rrep *) ext->data;
@@ -447,12 +454,22 @@ int aodv_handle_rrep(dessert_msg_t* msg,
 	// capture and re-send only if route is unknown OR
 	// sequence number is greater then that in database OR
 	// if seq_nums are equals and known hop count is greater than that in RREP
-	if (aodv_db_capt_rrep(l25h->ether_shost,
+	int route = aodv_db_capt_rrep(l25h->ether_shost,
 	                      msg->l2h.ether_shost,
 	                      iface,
 	                      rrep_msg->seq_num_dest,
 	                      rrep_msg->hop_count,
-	                      &ts) == FALSE) {
+	                      &ts);
+
+//	bool seq_num = (aodv_db_getrouteseqnum(l25h->ether_dhost, &dhost_seq_num) == TRUE && 
+//	                hf_seq_comp_i_j(dhost_seq_num, rreq_msg->seq_num_dest) > 0); //packet is newer than the last seen from this source
+
+	u_int32_t dhost_path_weight;
+	int is_path_weight_lower = (aodv_db_getpathweight(l25h->ether_dhost, &dhost_path_weight) == TRUE &&
+	                             hf_path_weight_comp(dhost_path_weight, rrep_msg->path_weight));//seqnum indicates this packet is a duplicate, but the path_weight is lesser, so proceed packet
+
+	//TODO ?!?!
+	if (route == FALSE && is_path_weight_lower == FALSE) {
 		//TODO RSSI
 		return DESSERT_MSG_DROP;
 	}

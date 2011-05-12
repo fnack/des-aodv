@@ -68,10 +68,8 @@ struct aodv_msg_rreq {
 	u_int16_t		flags;
 	/** The number of hops from the originator to the node habdling the request */
 	u_int8_t		hop_count;
-	
 	/** path_weight is the weight of the path from source to dest */
 	u_int8_t		path_weight;
-	
 	/**
 	 * Destination Sequence Number;
 	 * The latest sequence number received in the past by the originator for any
@@ -98,6 +96,8 @@ struct aodv_msg_rrep {
 	u_int8_t		prefix_size;
 	/**  Hop Count: The number of hops from the originator to destination */
 	u_int8_t		hop_count;
+	/** path_weight is the weight of the path from source to dest */
+	u_int8_t		path_weight;
 	/** Destination sequence number */
 	u_int32_t		seq_num_dest;
 	/**
