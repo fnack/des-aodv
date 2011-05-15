@@ -79,6 +79,7 @@ enum bool {TRUE = 1, FALSE = 0};
 #define HELLO_INTERVAL				2000 	// milliseconds
 #define RREQ_SIZE					128
 
+#define MOBILITY			200 //0==no; 255==max
 // --- Database Flags
 
 #define AODV_FLAGS_ROUTE_INVALID 	1
