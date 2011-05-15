@@ -90,7 +90,7 @@ int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
 
 	if (argc < 1 ||
 	    argc > 2 ||
-	    sscanf(argv[0], MAC, EXPLODE_ARRAY6(&dhost_hwaddr) != 6) { // args are not correct
+	    sscanf(argv[0], MAC, EXPLODE_ARRAY6(&dhost_hwaddr)) != 6) { // args are not correct
 		cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX]\n", command);
 		return CLI_ERROR_ARG;
 	} else {

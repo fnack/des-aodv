@@ -372,7 +372,6 @@ int aodv_handle_rreq(dessert_msg_t* msg,
 
 	int cap_result = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->seq_num_src, &ts);
 	if (memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) != 0) { // RREQ not for me
-		u_int32_t dhost_seq_num, dhost_path_weight;
 		if(!(rreq_msg->flags & AODV_FLAGS_RREQ_D) &&
 		   !(rreq_msg->flags & AODV_FLAGS_RREQ_U) &&
 		   ((seq_newer > 0 || (path_weight_lesser > 0 && seq_newer >= 0)))) {
