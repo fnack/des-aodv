@@ -94,5 +94,7 @@ extern char*						routing_log_file;
 extern int 							hello_size;
 extern int 							hello_interval;
 extern int 							rreq_size;
+extern int 							mobility;
+extern int 							hello_interval_fast;
 
 #endif

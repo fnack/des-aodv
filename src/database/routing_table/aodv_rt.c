@@ -42,6 +42,7 @@ typedef struct aodv_rt_entry {
 	const dessert_meshif_t*		output_iface;
 	u_int32_t					dhost_seq_num;
 	u_int8_t					hop_count;
+	u_int8_t					path_weight;
 	/**
 	 * flags format: 0 0 0 0 0 0 U I
 	 * I - Invalid flag; route is invalid due of link breakage
@@ -302,9 +303,13 @@ int aodv_db_rt_getrouteseqnum(u_int8_t dhost_ether[ETH_ALEN], u_int32_t* dhost_s
 	return TRUE;
 }
 
-int aodv_db_rt_getpathweight(u_int8_t dhost_ether[ETH_ALEN], u_int32_t* dhost_seq_num_out) {
-	//FIXME
-	return -1;
+int aodv_db_rt_getpathweight(u_int8_t dhost_ether[ETH_ALEN], u_int32_t* dhost_path_weight_out) {
+	aodv_rt_entry_t* rt_entry;
+	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
+	if (rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN)
+		return FALSE;
+	*dhost_path_weight_out = rt_entry->path_weight;
+	return TRUE;
 }
 
 int aodv_db_rt_getlastrreqseq(u_int8_t dhost_ether[ETH_ALEN],
