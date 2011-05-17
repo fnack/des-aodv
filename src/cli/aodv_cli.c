@@ -87,14 +87,15 @@ int cli_set_rreq_size(struct cli_def *cli, char *command, char *argv[], int argc
 
 int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
 	u_int8_t dhost_hwaddr[ETHER_ADDR_LEN];
-
-	if (argc < 1 ||
-	    argc > 2 ||
-	    sscanf(argv[0], MAC, EXPLODE_ARRAY6(&dhost_hwaddr)) != 6) { // args are not correct
-		cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX]\n", command);
-		return CLI_ERROR_ARG;
+	if (argc >= 1) {
+		if(sscanf(argv[0], MAC, EXPLODE_ARRAY6(&dhost_hwaddr)) != 6) {
+			// args are not correct
+			cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX]\n", command);
+			return CLI_ERROR_ARG;
+		}
 	} else {
-		struct timeval ts;								// args are correct -> send rreq
+		// args are correct -> send rreq
+		struct timeval ts;
 		gettimeofday(&ts, NULL);
 		aodv_send_rreq(dhost_hwaddr, &ts, TTL_START);
 		return CLI_OK;
