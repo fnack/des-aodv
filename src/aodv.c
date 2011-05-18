@@ -34,7 +34,6 @@ For further information and questions please use the web site
 
 int     hello_size          = HELLO_SIZE;
 int     hello_interval      = HELLO_INTERVAL;
-int     hello_interval_fast = FALSE;//default=FALSE, if hello with mobility is seen interval goes down and flag is true
 int     rreq_size           = RREQ_SIZE;
 int     mobility            = MOBILITY;//flag in hello_msg
 char*   routing_log_file    = NULL;

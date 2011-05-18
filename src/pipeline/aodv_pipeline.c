@@ -305,22 +305,6 @@ int aodv_handle_hello(dessert_msg_t* msg,
 	if (dessert_msg_getext(msg, &hallo_ext, HELLO_EXT_TYPE, 0) == FALSE)
 		return DESSERT_MSG_KEEP;
 
-	u_int8_t mobility = msg->u8;
-	if(hello_interval_fast == FALSE && mobility > 0) { //==0 -> unset == not mobile
-		dessert_info("hello mobility > 0");
-
-		int db_nt_init();
-		dessert_periodic_del(periodic_send_hello);
-
-		struct timeval hello_interval_t;
-		hello_interval_t.tv_sec = 0;
-		hello_interval_t.tv_usec = 50000;
-		periodic_send_hello = dessert_periodic_add(aodv_periodic_send_hello, NULL, NULL, &hello_interval_t);
-		dessert_notice("setting HELLO interval to %d.%d", hello_interval_t.tv_sec, hello_interval_t.tv_usec);
-		
-		hello_interval_fast = TRUE;//global status
-	}
-
 	msg->ttl--;
 	if (msg->ttl >= 1) { // send hello msg back
 		memcpy(msg->l2h.ether_dhost, msg->l2h.ether_shost, ETH_ALEN);
@@ -328,7 +312,8 @@ int aodv_handle_hello(dessert_msg_t* msg,
 	} else if (memcmp(iface->hwaddr, msg->l2h.ether_dhost, ETH_ALEN) == 0) {
 		struct timeval ts;
 		gettimeofday(&ts, NULL);
-		aodv_db_cap2Dneigh(msg->l2h.ether_shost, iface, &ts);
+		u_int8_t mobility = msg->u8;
+		aodv_db_cap2Dneigh(msg->l2h.ether_shost, iface, &ts, mobility);
 	}
 	return DESSERT_MSG_DROP;
 }

@@ -67,7 +67,7 @@ int aodv_db_capt_rreq(u_int8_t dhost_ether[ETH_ALEN],
                       const dessert_meshif_t* output_iface,
                       u_int32_t shost_seq_num,
                       struct timeval* timestamp);
-//TODO RSSI
+
 int aodv_db_capt_rrep(u_int8_t dhost_ether[ETH_ALEN],
                       u_int8_t dhost_next_hop[ETH_ALEN],
                       const dessert_meshif_t* output_iface,
@@ -102,7 +102,7 @@ int aodv_db_invroute(u_int8_t dhost_next_hop[ETH_ALEN], u_int8_t dhost_ether_out
  * Take a record that the given neighbor seems to be
  * the 1 hop bidirectional neighbor
  */
-int aodv_db_cap2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp);
+int aodv_db_cap2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp, u_int8_t mobility);
 
 /**
  * Check whether given neighbor is 1 hop bidirectional neighbor

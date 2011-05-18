@@ -25,11 +25,13 @@ For further information and questions please use the web site
 #include "../timeslot.h"
 #include "../../config.h"
 #include "../schedule_table/aodv_st.h"
+#include "../../pipeline/aodv_pipeline.h"
 
 typedef struct neighbor_entry {
 	struct __attribute__ ((__packed__)) { // key
 		u_int8_t 				ether_neighbor[ETH_ALEN];
 		const dessert_meshif_t*	iface;
+		u_int8_t 				mobility;
 	};
 	UT_hash_handle				hh;
 } neighbor_entry_t;
@@ -41,12 +43,13 @@ typedef struct neighbor_table {
 
 neighbor_table_t nt;
 
-neighbor_entry_t* db_neighbor_entry_create(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface) {
+neighbor_entry_t* db_neighbor_entry_create(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, u_int8_t mobility) {
 	neighbor_entry_t* new_entry;
 	new_entry = malloc(sizeof(neighbor_entry_t));
 	if (new_entry == NULL) return NULL;
 	memcpy(new_entry->ether_neighbor, ether_neighbor_addr, ETH_ALEN);
 	new_entry->iface = iface;
+	new_entry->mobility = mobility;
 	return new_entry;
 }
 
@@ -74,18 +77,20 @@ int db_nt_init() {
 	return TRUE;
 }
 
-int db_nt_cap2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp) {
+int db_nt_cap2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp, u_int8_t mobility) {
 	neighbor_entry_t* curr_entry = NULL;
 	u_int8_t addr_sum[ETH_ALEN + sizeof(void*)];
 	memcpy(addr_sum, ether_neighbor_addr, ETH_ALEN);
 	memcpy(addr_sum + ETH_ALEN, &iface, sizeof(void*));
 	HASH_FIND(hh, nt.entrys, addr_sum, ETH_ALEN + sizeof(void*), curr_entry);
 	if (curr_entry == NULL) {
-		curr_entry = db_neighbor_entry_create(ether_neighbor_addr, iface);
-		if (curr_entry == NULL) return FALSE;
+		curr_entry = db_neighbor_entry_create(ether_neighbor_addr, iface, mobility);
+		if (curr_entry == NULL)
+			return FALSE;
 		HASH_ADD_KEYPTR(hh, nt.entrys, curr_entry->ether_neighbor, ETH_ALEN + sizeof(void*), curr_entry);
 		dessert_debug("%s <=====> " MAC, iface->if_name, EXPLODE_ARRAY6(ether_neighbor_addr));
 	}
+	db_nt_increment_hello_interval(mobility);
 	timeslot_addobject(nt.ts, timestamp, curr_entry);
 	return TRUE;
 }
@@ -106,3 +111,36 @@ int db_nt_check2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_mes
 int db_nt_cleanup(struct timeval* timestamp) {
 	return timeslot_purgeobjects(nt.ts, timestamp);
 }
+
+/** returns the hello_interval in s */
+int calc_hello_interval(int mobility) {
+	if(mobility == 0)
+		return 10;
+	if(mobility < 10)
+		return 5;
+	if(mobility < 100)
+		return 2;
+	return 1;
+}
+
+/** increments the hello_interval, if the new mobility requers it */
+int db_nt_increment_hello_interval(u_int8_t mobility) {
+	int new_interval = calc_hello_interval(mobility);
+	if(new_interval < hello_interval) {
+		dessert_periodic_del(periodic_send_hello);
+
+		struct timeval hello_interval_t;
+		hello_interval_t.tv_sec = new_interval;
+		hello_interval_t.tv_usec = 0;
+		periodic_send_hello = dessert_periodic_add(aodv_periodic_send_hello, NULL, NULL, &hello_interval_t);
+		dessert_notice("setting HELLO interval from [%d]s to [%d]s - new max mobility is [%d]", hello_interval, new_interval, mobility);
+	}
+	return new_interval;
+}
+
+int db_nt_decrement_hello_interval() {
+	//NOT IMPLEMENTED
+	return -1;
+}
+
+
