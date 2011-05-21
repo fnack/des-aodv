@@ -1,34 +1,24 @@
-! File automatically created by des-aodv init script.
-! Use /etc/des-aodv.conf and /etc/default/des-aodv for configuration.
-! Your changes to this file will be overwritten!!!
 logging file /var/log/des-aodv.log
-! Do not configure sys (TAP/TUN) or mesh (ethX, wlanX, ...) interfaces
-! in this file. Use /etc/default/des-aodv or dpkg-reconfigure des-aodv.
-! Your changes to this file will be overwritten.
 
 set hello_size 130
 set hello_interval 1000
 set rreq_size 200
+
 no logging stderr
 logging ringbuffer 20
 loglevel info
+port 4519
 
-! set in verbose mode
-! set verbose 1
-
-! set path to routing-log file.
-! FORMAT:
-!	[source_mac_addr]\t[destination_mac_addr]\t[packet_seq_num]\t[hop_coung]\t[incomming_iface_name]\t[outgoing_iface_name]\t[iface_addr_of_next_hop]
-! Note that the packet is unique identified over the combination of (source_mac_addr,destination_mac_addr,packet_seq_num)
-! and the sequence number of packet send by destination to source is max(packet_seq_num_dest, "packet_seq_num_src + 1", 
-! where packet_seq_num_src is last seq_number of packet sent by source to destination. 
-! ATTENTION: Upon activation slightly reduces daemon performance!
-! set routinglog /var/log/des-aodv-routing.log
 pid /var/run/des-aodv.pid
-interface mesh eth1
-interface sys tap0 10.0.0.2 255.255.255.0
-!interface mesh wlan0
+
+! set routinglog /var/log/des-aodv-routing.log
+
+!interface mesh eth1
+interface mesh wlan0
 !interface mesh wlan1
 !interface mesh wlan2
-port 4519
-!interface monitor
+
+interface sys tap0 172.0.0.1 255.255.255.0
+
+interface monitor
+
