@@ -28,8 +28,8 @@ For further information and questions please use the web site
 
 enum bool {TRUE = 1, FALSE = 0};
 
-#define RREQ_RETRIES				2
-#define RREQ_RATELIMIT				10
+#define RREQ_RETRIES				5
+#define RREQ_RATELIMIT				16
 #define TTL_START					2
 #define TTL_INCREMENT				2
 #define TTL_THRESHOLD				7
@@ -38,7 +38,7 @@ enum bool {TRUE = 1, FALSE = 0};
 #define ACTIVE_ROUTE_TIMEOUT		6000 	// milliseconds
 #define ALLOWED_HELLO_LOST			7
 #define NODE_TRAVERSAL_TIME			10 		// milliseconds
-#define NET_DIAMETER				20
+#define NET_DIAMETER				6
 #define NET_TRAVERSAL_TIME			2 * NODE_TRAVERSAL_TIME * NET_DIAMETER
 #define BLACKLIST_TIMEOUT			RREQ_RETRIES * NET_TRAVERSAL_TIME
 #define MY_ROUTE_TIMEOUT			2 * ACTIVE_ROUTE_TIMEOUT
@@ -80,8 +80,8 @@ enum bool {TRUE = 1, FALSE = 0};
 #define RREQ_SIZE					128
 
 #define MOBILITY			200 //0==no; 255==max
-// --- Database Flags
 
+// --- Database Flags
 #define AODV_FLAGS_ROUTE_INVALID 	1
 #define AODV_FLAGS_NEXT_HOP_UNKNOWN	1 << 1
 #define MAX_MESH_IFACES_COUNT		8
