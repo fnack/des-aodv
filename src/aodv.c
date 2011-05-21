@@ -22,9 +22,6 @@ For further information and questions please use the web site
 *******************************************************************************/
 
 #include <string.h>
-#ifndef ANDROID
-#include <printf.h>
-#endif
 #include <dessert-extra.h>
 
 #include "config.h"
