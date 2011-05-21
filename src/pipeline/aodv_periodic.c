@@ -42,8 +42,9 @@ int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timev
 
         void* payload;
         uint16_t size = max(hello_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
-        memset(payload, 0xA, size);
+
         dessert_msg_addpayload(hello_msg, &payload, size);
+        memset(payload, 0xA, size);
 
         dessert_meshsend_fast(hello_msg, NULL);
         dessert_msg_destroy(hello_msg);
