@@ -18,7 +18,7 @@ interface mesh wlan0
 !interface mesh wlan1
 !interface mesh wlan2
 
-interface sys tap0 172.0.0.1 255.255.255.0
+interface sys tap0 10.0.0.20 255.255.255.0
 
 interface monitor
 
