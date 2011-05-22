@@ -203,14 +203,14 @@ int aodv_db_check2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_m
 	return result;
 }
 
-int aodv_db_addschedule(struct timeval* execute_ts, u_int8_t ether_addr[ETH_ALEN], u_int8_t type, u_int64_t param) {
+int aodv_db_addschedule(struct timeval* execute_ts, u_int8_t ether_addr[ETH_ALEN], u_int8_t type, u_int64_t param, u_int8_t flags) {
 	aodv_db_wlock();
-	int result =  aodv_db_sc_addschedule(execute_ts, ether_addr, type, param);
+	int result =  aodv_db_sc_addschedule(execute_ts, ether_addr, type, param, flags);
 	aodv_db_unlock();
 	return result;
 }
 
-int aodv_db_popschedule(struct timeval* timestamp, u_int8_t ether_addr_out[ETH_ALEN], u_int8_t* type, u_int64_t* param) {
+int aodv_db_popschedule(struct timeval* timestamp, u_int8_t ether_addr_out[ETH_ALEN], u_int8_t* type, u_int64_t* param, u_int8_t flags) {
 	aodv_db_wlock();
 	int result =  aodv_db_sc_popschedule(timestamp, ether_addr_out, type, param);
 	aodv_db_unlock();

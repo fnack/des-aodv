@@ -133,10 +133,11 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
         u_int8_t schedule_type;
         u_int64_t schedule_param;
         u_int8_t ether_addr[ETH_ALEN];
+        u_int8_t schedule_flags;
         struct timeval timestamp;
         gettimeofday(&timestamp, NULL);
 
-        if (aodv_db_popschedule(&timestamp, ether_addr, &schedule_type, &schedule_param) == FALSE) {
+        if (aodv_db_popschedule(&timestamp, ether_addr, &schedule_type, &schedule_param, &schedule_flags) == FALSE) {
                 return 0;
         }
 
@@ -172,7 +173,7 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
                         }
                 }
         }
-        else if (schedule_type == AODV_SC_REPEAT_RREQ) aodv_send_rreq(ether_addr, &timestamp, schedule_param);	// send out rreq
+        else if (schedule_type == AODV_SC_REPEAT_RREQ) aodv_send_rreq(ether_addr, &timestamp, schedule_param, schedule_flags);	// send out rreq
         else if (schedule_type == AODV_SC_SEND_OUT_RERR) {
                 u_int32_t rerr_count;
                 aodv_db_getrerrcount(&timestamp, &rerr_count);

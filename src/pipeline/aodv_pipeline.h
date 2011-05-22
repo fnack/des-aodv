@@ -53,17 +53,20 @@ extern u_int32_t broadcast_id;
  */
 #define AODV_FLAGS_RERR_N			1 << 7
 
+#define AODV_FLAGS_STRONG_LINK_ONLY		1 << 14 //FIXME
+
 
 /** RREQ - Route Request Message */
 struct aodv_msg_rreq {
 	/**
-	 * flags format: J R G D U 0 0 0   0 0 0 0 0 0 0 0
+	 * flags format: J R G D U S 0 0   0 0 0 0 0 0 0 0
 	 * J - Join flag; reserved for multicast
 	 * R - Repair flag; reserved for multicast
 	 * G - Gratuitous RREP flag; indicates whether a gratuitous
 	 * 	   RREP should be unicast to the node specified in the ether_dhost
 	 * D - Destination only flag; indicates only the destiantion may respond to this RREQ
 	 * U - Unknown sequence number; indicates the destination sequence number is unknown
+	 * S - Stong Link Only; indicates the source wants no bad links in paths
 	 */
 	u_int16_t		flags;
 	/** The number of hops from the originator to the node habdling the request */
@@ -199,6 +202,6 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 
 // ------------------------------ helper ------------------------------------------------------
 
-void aodv_send_rreq(u_int8_t dhost_ether[ETH_ALEN], struct timeval* ts, u_int8_t ttl);
+void aodv_send_rreq(u_int8_t dhost_ether[ETH_ALEN], struct timeval* ts, u_int8_t ttl, u_int8_t flags);
 
 #endif

@@ -92,9 +92,9 @@ int aodv_db_cap2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_mes
  */
 int aodv_db_check2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp);
 
-int aodv_db_addschedule(struct timeval* execute_ts, u_int8_t ether_addr[ETH_ALEN], u_int8_t type, u_int64_t param);
+int aodv_db_addschedule(struct timeval* execute_ts, u_int8_t ether_addr[ETH_ALEN], u_int8_t type, u_int64_t param, u_int8_t flags);
 
-int aodv_db_popschedule(struct timeval* timestamp, u_int8_t ether_addr_out[ETH_ALEN], u_int8_t* type, u_int64_t* param);
+int aodv_db_popschedule(struct timeval* timestamp, u_int8_t ether_addr_out[ETH_ALEN], u_int8_t* type, u_int64_t* param, u_int8_t flags);
 
 void aodv_db_dropschedule(u_int8_t ether_addr[ETH_ALEN], u_int8_t type);
 

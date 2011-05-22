@@ -34,6 +34,7 @@ typedef struct schedule {
 		u_int8_t 			schedule_id;
 	};
 	u_int64_t			schedule_param;
+	u_int8_t			schedule_flags;
 
 	struct schedule* 	next;
 	struct schedule* 	prev;
@@ -45,7 +46,7 @@ schedule_t* first_schedule = NULL;
 
 schedule_t* hash_table = NULL;
 
-schedule_t* create_schedule(struct timeval* execute_ts, u_int8_t ether_addr[ETH_ALEN], u_int8_t type, u_int64_t param) {
+schedule_t* create_schedule(struct timeval* execute_ts, u_int8_t ether_addr[ETH_ALEN], u_int8_t type, u_int64_t param, u_int8_t flags) {
 	schedule_t* s = malloc(sizeof(schedule_t));
 	if (s == NULL) return NULL;
 
@@ -54,15 +55,16 @@ schedule_t* create_schedule(struct timeval* execute_ts, u_int8_t ether_addr[ETH_
 	memcpy(s->ether_addr, ether_addr, ETH_ALEN);
 	s->schedule_id = type;
 	s->schedule_param = param;
+	s->schedule_flags = flags;
 	s->next = s->prev = NULL;
 	return s;
 }
 
-int aodv_db_sc_addschedule(struct timeval* execute_ts, u_int8_t ether_addr[ETH_ALEN], u_int8_t type, u_int64_t param) {
+int aodv_db_sc_addschedule(struct timeval* execute_ts, u_int8_t ether_addr[ETH_ALEN], u_int8_t type, u_int64_t param, u_int8_t flags) {
 	aodv_db_sc_dropschedule(ether_addr, type);
 
 	schedule_t* next_el = first_schedule;
-	schedule_t* el = create_schedule(execute_ts, ether_addr, type, param);
+	schedule_t* el = create_schedule(execute_ts, ether_addr, type, param, flags);
 	if (el == NULL) return FALSE;
 
 	HASH_ADD_KEYPTR(hh, hash_table, el->ether_addr, ETH_ALEN + sizeof(u_int8_t), el);
