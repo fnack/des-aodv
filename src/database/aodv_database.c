@@ -154,6 +154,13 @@ int aodv_db_getrouteseqnum(u_int8_t dhost_ether[ETH_ALEN], u_int32_t* dhost_seq_
 	return result;
 }
 
+int aodv_db_getpathweight(u_int8_t dhost_ether[ETH_ALEN], u_int32_t* dhost_seq_num_out) {
+	aodv_db_rlock();
+	int result = aodv_db_rt_getpathweight(dhost_ether, dhost_seq_num_out);
+	aodv_db_unlock();
+	return result;
+}
+
 int aodv_db_getlastrreqseq(u_int8_t dhost_ether[ETH_ALEN],
 		u_int8_t shost_ether[ETH_ALEN], u_int32_t* shost_seq_num_out) {
 	aodv_db_rlock();

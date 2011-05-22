@@ -52,4 +52,15 @@ int hf_compare_tv(struct timeval* tv1, struct timeval* tv2);
  */
 int hf_add_tv(struct timeval* tv1, struct timeval* tv2, struct timeval* sum);
 
+/** Return value between 1 and 5 for rssi values */
+int8_t hf_rssi2interval(int8_t rssi);
+
+/**
+ * Compares two integers
+ * returns 0 if i = j
+ * return 1 if i > j (cirlce diff < (MAX_INT / 2))
+ * return -1 if i < j (circle diff > (MAX_INT / 2))
+ */
+int hf_path_weight_comp(u_int8_t i, u_int8_t j);
+
 #endif
