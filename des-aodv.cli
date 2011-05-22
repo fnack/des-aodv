@@ -6,7 +6,7 @@ set rreq_size 200
 
 no logging stderr
 logging ringbuffer 20
-loglevel info
+loglevel debug
 port 4519
 
 pid /var/run/des-aodv.pid

@@ -29,7 +29,7 @@ For further information and questions please use the web site
 enum bool {TRUE = 1, FALSE = 0};
 
 #define RREQ_RETRIES				5
-#define RREQ_RATELIMIT				16
+#define RREQ_RATELIMIT				10
 #define TTL_START					2
 #define TTL_INCREMENT				2
 #define TTL_THRESHOLD				7

@@ -298,24 +298,26 @@ int aodv_handle_hello(dessert_msg_t* msg,
                       size_t len,
                       dessert_msg_proc_t *proc,
                       const dessert_meshif_t *iface,
-                      dessert_frameid_t id){
+                      dessert_frameid_t id) {
 
 	dessert_ext_t* hallo_ext;
 
-	if (dessert_msg_getext(msg, &hallo_ext, HELLO_EXT_TYPE, 0) == FALSE)
-		return DESSERT_MSG_KEEP;
-
-	msg->ttl--;
-	if (msg->ttl >= 1) { // send hello msg back
-		memcpy(msg->l2h.ether_dhost, msg->l2h.ether_shost, ETH_ALEN);
-		dessert_meshsend(msg, iface);
-	} else if (memcmp(iface->hwaddr, msg->l2h.ether_dhost, ETH_ALEN) == 0) {
-		struct timeval ts;
-		gettimeofday(&ts, NULL);
-		u_int8_t mobility = msg->u8;
-		aodv_db_cap2Dneigh(msg->l2h.ether_shost, iface, &ts, mobility);
+	if (dessert_msg_getext(msg, &hallo_ext, HELLO_EXT_TYPE, 0) != 0) {
+		msg->ttl--;
+		if (msg->ttl >= 1) { // send hello msg back
+			memcpy(msg->l2h.ether_dhost, msg->l2h.ether_shost, ETH_ALEN);
+			dessert_meshsend(msg, iface);
+		} else {
+			if (memcmp(iface->hwaddr, msg->l2h.ether_dhost, ETH_ALEN) == 0) {
+				struct timeval ts;
+				gettimeofday(&ts, NULL);
+				u_int8_t mobility = msg->u8;
+				aodv_db_cap2Dneigh(msg->l2h.ether_shost, iface, &ts, mobility);
+			}
+		}
+		return DESSERT_MSG_DROP;
 	}
-	return DESSERT_MSG_DROP;
+	return DESSERT_MSG_KEEP;
 }
 
 int aodv_handle_rreq(dessert_msg_t* msg,
@@ -401,66 +403,56 @@ int aodv_handle_rreq(dessert_msg_t* msg,
 	return DESSERT_MSG_DROP;
 }
 
-int aodv_handle_rerr(dessert_msg_t* msg,
-                     size_t len,
-                     dessert_msg_proc_t *proc,
-                     const dessert_meshif_t *iface_org, //TODO unused?!?!?
-                     dessert_frameid_t id) {
-
+int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
 	dessert_ext_t* rerr_ext;
-	if (dessert_msg_getext(msg, &rerr_ext, RERR_EXT_TYPE, 0) == FALSE)
-		return DESSERT_MSG_KEEP;
-		
-	struct aodv_msg_rerr* rerr_msg = (struct aodv_msg_rerr*) rerr_ext->data;
-	u_int8_t rebroadcast_rerr = FALSE;
-	u_int8_t dhost_ether[ETH_ALEN], dhost_next_hop[ETH_ALEN];
-	
-	dessert_ext_t* rerrdl_ext;
-	int rerrdl_num = 0;
-	while (dessert_msg_getext(msg, &rerrdl_ext, RERRDL_EXT_TYPE, rerrdl_num++) > 0) {
-		int i;
-		void* dhost_pointer = rerrdl_ext->data;
-		for (i = 0; i < rerrdl_ext->len / ETH_ALEN; i++) {
-			// get the MAC address of destination that is no more reachable
-			memcpy(dhost_ether, dhost_pointer + i*ETH_ALEN, ETH_ALEN);
-			// get next hop towards this destination
-			if (aodv_db_getnexthop(dhost_ether, dhost_next_hop) != TRUE)
-				continue;
-				
-			// if found, compare with entrys in interface-list this RRER.
-			// If equals then this this route is affected and must be invalidated!
-			int iface_num;
-			for (iface_num = 0; iface_num < rerr_msg->iface_addr_count; iface_num++) {
-				if (memcmp(rerr_msg->ifaces + iface_num * ETH_ALEN, dhost_next_hop, ETH_ALEN) == TRUE)
-					continue;
-				
-				rebroadcast_rerr = TRUE;
-				aodv_db_markrouteinv(dhost_ether);
-				dessert_debug("route to: " MAC "marked as invalid", EXPLODE_ARRAY6(dhost_ether));
+
+	if (dessert_msg_getext(msg, &rerr_ext, RERR_EXT_TYPE, 0) != 0) {
+		struct aodv_msg_rerr* rerr_msg = (struct aodv_msg_rerr*) rerr_ext->data;
+		int rerrdl_num = 0;
+		u_int8_t dhost_ether[ETH_ALEN];
+		u_int8_t dhost_next_hop[ETH_ALEN];
+		u_int8_t rebroadcast_rerr = FALSE;
+		dessert_ext_t* rerrdl_ext;
+
+		while (dessert_msg_getext(msg, &rerrdl_ext, RERRDL_EXT_TYPE, rerrdl_num++) > 0) {
+			int i;
+			void* dhost_pointer = rerrdl_ext->data;
+			for (i = 0; i < rerrdl_ext->len / ETH_ALEN; i++) {
+				// get the MAC address of destination that is no more reachable
+				memcpy(dhost_ether, dhost_pointer + i*ETH_ALEN, ETH_ALEN);
+				// get next hop towards this destination
+				if (aodv_db_getnexthop(dhost_ether, dhost_next_hop) == TRUE) {
+					// if found, compare with entrys in interface-list this RRER.
+					// If equals then this this route is affected and must be invalidated!
+					int iface_num;
+					for (iface_num = 0; iface_num < rerr_msg->iface_addr_count; iface_num++) {
+						if (memcmp(rerr_msg->ifaces + iface_num * ETH_ALEN, dhost_next_hop, ETH_ALEN) == 0) {
+							rebroadcast_rerr = TRUE;
+							aodv_db_markrouteinv(dhost_ether);
+							dessert_debug("route to *:%02x:%02x marked as invalid", dhost_ether[4], dhost_ether[5]);
+						}
+					}
+				}
 			}
 		}
-	}
 
-	if (rebroadcast_rerr == FALSE) {
-		dessert_debug("RERR to: " MAC " don't gets broadcasted", EXPLODE_ARRAY6(dhost_ether));
-		goto end;
-	}
+		if (rebroadcast_rerr) {		// write addresses of all my mesh interfaces
+			dessert_meshif_t* iface = dessert_meshiflist_get();
+			rerr_msg->iface_addr_count = 0;
+			void* iface_addr_pointer = rerr_msg->ifaces;
 
-	dessert_debug("RERR to: " MAC " gets broadcasted", EXPLODE_ARRAY6(dhost_ether));
-	// write addresses of all my mesh interfaces
-	dessert_meshif_t* iface = dessert_meshiflist_get();
-	rerr_msg->iface_addr_count = 0;
-	void* iface_addr_pointer = rerr_msg->ifaces;
+			while (iface != NULL && rerr_msg->iface_addr_count < MAX_MESH_IFACES_COUNT) {
+				memcpy(iface_addr_pointer, iface->hwaddr, ETH_ALEN);
+				iface_addr_pointer += ETH_ALEN;
+				iface = iface->next;
+				rerr_msg->iface_addr_count++;
+			}
 
-	while (iface != NULL && rerr_msg->iface_addr_count < MAX_MESH_IFACES_COUNT) {
-		memcpy(iface_addr_pointer, iface->hwaddr, ETH_ALEN);
-		iface_addr_pointer += ETH_ALEN;
-		iface = iface->next;
-		rerr_msg->iface_addr_count++;
+			dessert_meshsend_fast(msg, NULL);
+		}
+		return DESSERT_MSG_DROP;
 	}
-	dessert_meshsend_fast(msg, NULL);
-	
-end:	return DESSERT_MSG_DROP;
+	return DESSERT_MSG_KEEP;
 }
 
 int aodv_handle_rrep(dessert_msg_t* msg,
@@ -552,59 +544,53 @@ int aodv_fwd2dest(dessert_msg_t* msg,
 		}
 	}
 
-	if (proc->lflags & DESSERT_LFLAG_DST_BROADCAST ||
-	    proc->lflags & DESSERT_LFLAG_DST_MULTICAST) { // BROADCAST
+	if (proc->lflags & DESSERT_LFLAG_DST_BROADCAST || proc->lflags & DESSERT_LFLAG_DST_MULTICAST) { // BROADCAST
 		dessert_meshsend_fast(msg, NULL);
 		return DESSERT_MSG_KEEP;
-	}
-	if(!(((proc->lflags & DESSERT_LFLAG_NEXTHOP_SELF &&
-	    !(proc->lflags & DESSERT_LFLAG_NEXTHOP_SELF_OVERHEARD)) || proc->lflags & DESSERT_LFLAG_NEXTHOP_BROADCAST) &&
-	    !(proc->lflags & DESSERT_LFLAG_DST_SELF))) {
-		return DESSERT_MSG_KEEP;
-	}
-	
-	// Directed message
-	u_int8_t dhost_next_hop[ETH_ALEN];
-	const dessert_meshif_t* output_iface;
-	struct timeval timestamp;
-	gettimeofday(&timestamp, NULL);
+	} else if (((proc->lflags & DESSERT_LFLAG_NEXTHOP_SELF
+			&& !(proc->lflags & DESSERT_LFLAG_NEXTHOP_SELF_OVERHEARD)) || proc->lflags & DESSERT_LFLAG_NEXTHOP_BROADCAST)
+			&& !(proc->lflags & DESSERT_LFLAG_DST_SELF)){ // Directed message
+		u_int8_t dhost_next_hop[ETH_ALEN];
+		const dessert_meshif_t* output_iface;
+		struct timeval timestamp;
+		gettimeofday(&timestamp, NULL);
 
-	if (aodv_db_getroute2dest(l25h->ether_dhost, dhost_next_hop, &output_iface, &timestamp) == TRUE) {
-		dessert_debug("forward " MAC " -------> " MAC, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(l25h->ether_dhost));
-		memcpy(msg->l2h.ether_dhost, dhost_next_hop, ETH_ALEN);
-		if (routing_log_file != NULL) {
-			rlfile_log(l25h->ether_shost,
-			           l25h->ether_dhost,
-			           rl_seq_num,
-			           rl_hop_count,
-			           iface->hwaddr,
-			           output_iface->hwaddr,
-			           dhost_next_hop);
+		if (aodv_db_getroute2dest(l25h->ether_dhost, dhost_next_hop, &output_iface, &timestamp) == TRUE) {
+
+				dessert_debug(" *:%02x:%02x -------> *:%02x:%02x",
+						l25h->ether_shost[4], l25h->ether_shost[5], l25h->ether_dhost[4], l25h->ether_dhost[5]);
+
+			memcpy(msg->l2h.ether_dhost, dhost_next_hop, ETH_ALEN);
+			if (routing_log_file != NULL) {
+				rlfile_log(l25h->ether_shost, l25h->ether_dhost,
+						rl_seq_num, rl_hop_count, iface->hwaddr, output_iface->hwaddr, dhost_next_hop);
+			}
+			dessert_meshsend_fast(msg, output_iface);
+		} else {
+			u_int32_t rerr_count;
+			aodv_db_getrerrcount(&timestamp, &rerr_count);
+			if (rerr_count < RERR_RATELIMIT) {
+				// route unknown -> send rerr towards source
+				_onlb_element_t *head, *curr_el;
+				head = NULL;
+				curr_el = malloc(sizeof(_onlb_element_t));
+				memcpy(curr_el->dhost_ether, l25h->ether_dhost, ETH_ALEN);
+				curr_el->next = curr_el->prev = NULL;
+				DL_APPEND(head, curr_el);
+				dessert_msg_t* rerr_msg = aodv_create_rerr(&head, 1);
+				if (rerr_msg != NULL) {
+					dessert_meshsend_fast(rerr_msg, NULL);
+					dessert_msg_destroy(rerr_msg);
+					aodv_db_putrerr(&timestamp);
+				}
+				if (routing_log_file) {
+					rlfile_log(l25h->ether_shost, l25h->ether_dhost, rl_seq_num, rl_hop_count, iface->hwaddr, NULL, NULL);
+				}
+			}
 		}
-		dessert_meshsend_fast(msg, output_iface);
-	} else {
-		u_int32_t rerr_count;
-		aodv_db_getrerrcount(&timestamp, &rerr_count);
-		if (!(rerr_count < RERR_RATELIMIT))
-			goto end;
-			
-		// route unknown -> send rerr towards source
-		_onlb_element_t *head, *curr_el;
-		head = NULL;
-		curr_el = malloc(sizeof(_onlb_element_t));
-		memcpy(curr_el->dhost_ether, l25h->ether_dhost, ETH_ALEN);
-		curr_el->next = curr_el->prev = NULL;
-		DL_APPEND(head, curr_el);
-		dessert_msg_t* rerr_msg = aodv_create_rerr(&head, 1);
-		if (rerr_msg != NULL) {
-			dessert_meshsend_fast(rerr_msg, NULL);
-			dessert_msg_destroy(rerr_msg);
-			aodv_db_putrerr(&timestamp);
-		}
-		if (routing_log_file)
-			rlfile_log(l25h->ether_shost, l25h->ether_dhost, rl_seq_num, rl_hop_count, iface->hwaddr, NULL, NULL);
+		return DESSERT_MSG_DROP;
 	}
-end:	return DESSERT_MSG_DROP;
+	return DESSERT_MSG_KEEP;
 }
 // --------------------------- TUN ----------------------------------------------------------
 
@@ -624,35 +610,33 @@ int aodv_sys2rp (dessert_msg_t *msg,
 		brc_str->id = ++broadcast_id;
 		pthread_rwlock_unlock(&pp_rwlock);
 		dessert_meshsend_fast(msg, NULL);
-		goto end;
-	}
-	
-	u_int8_t dhost_next_hop[ETH_ALEN];
-	const dessert_meshif_t* output_iface;
-	struct timeval ts;
-	gettimeofday(&ts, NULL);
-	if (aodv_db_getroute2dest(l25h->ether_dhost, dhost_next_hop, &output_iface, &ts) == TRUE) {
-		// route is known -> send
-		memcpy(msg->l2h.ether_dhost, dhost_next_hop, ETH_ALEN);
-		if (routing_log_file != NULL) {
-			u_int32_t seq_num = 0;
-			pthread_rwlock_wrlock(&rlseqlock);
-			seq_num = rl_get_nextseq(dessert_l25_defsrc, l25h->ether_dhost);
-			pthread_rwlock_unlock(&rlseqlock);
-			dessert_ext_t* rl_ext;
-			dessert_msg_addext(msg, &rl_ext, RL_EXT_TYPE, sizeof(struct rl_seq));
-			struct rl_seq* rl_data = (struct rl_seq*) rl_ext->data;
-			rl_data->seq_num = seq_num;
-			rl_data->hop_count = 0;
-			rlfile_log(dessert_l25_defsrc, l25h->ether_dhost, seq_num, 0, NULL, output_iface->hwaddr, dhost_next_hop);
-		}
-		dessert_meshsend_fast(msg, output_iface);
 	} else {
-		aodv_db_push_packet(l25h->ether_dhost, msg, &ts);    // route is unknown -> push packet to FIFO and send RREQ
-		aodv_send_rreq(l25h->ether_dhost, &ts, TTL_START);	 // create and send RREQ
+		u_int8_t dhost_next_hop[ETH_ALEN];
+		const dessert_meshif_t* output_iface;
+		struct timeval ts;
+		gettimeofday(&ts, NULL);
+		if (aodv_db_getroute2dest(l25h->ether_dhost, dhost_next_hop, &output_iface, &ts) == TRUE) {
+			// route is known -> send
+			memcpy(msg->l2h.ether_dhost, dhost_next_hop, ETH_ALEN);
+			if (routing_log_file != NULL) {
+				u_int32_t seq_num = 0;
+				pthread_rwlock_wrlock(&rlseqlock);
+				seq_num = rl_get_nextseq(dessert_l25_defsrc, l25h->ether_dhost);
+				pthread_rwlock_unlock(&rlseqlock);
+				dessert_ext_t* rl_ext;
+				dessert_msg_addext(msg, &rl_ext, RL_EXT_TYPE, sizeof(struct rl_seq));
+				struct rl_seq* rl_data = (struct rl_seq*) rl_ext->data;
+				rl_data->seq_num = seq_num;
+				rl_data->hop_count = 0;
+				rlfile_log(dessert_l25_defsrc, l25h->ether_dhost, seq_num, 0, NULL, output_iface->hwaddr, dhost_next_hop);
+			}
+			dessert_meshsend_fast(msg, output_iface);
+		} else {
+			aodv_db_push_packet(l25h->ether_dhost, msg, &ts);    // route is unknown -> push packet to FIFO and send RREQ
+			aodv_send_rreq(l25h->ether_dhost, &ts, TTL_START);	 // create and send RREQ
+		}
 	}
-
-end:	return DESSERT_MSG_DROP;
+    return DESSERT_MSG_DROP;
 }
 
 // ----------------- common callbacks ---------------------------------------------------
@@ -661,10 +645,8 @@ end:	return DESSERT_MSG_DROP;
  * Forward packets addressed to me to tun pipeline
  */
 int rp2sys(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
-	if((proc->lflags & DESSERT_LFLAG_DST_SELF && !(proc->lflags & DESSERT_LFLAG_DST_SELF_OVERHEARD)) || 
-	    proc->lflags & DESSERT_LFLAG_DST_BROADCAST || 
-	    proc->lflags & DESSERT_LFLAG_DST_MULTICAST ) {
-
+	if((proc->lflags & DESSERT_LFLAG_DST_SELF&& !(proc->lflags & DESSERT_LFLAG_DST_SELF_OVERHEARD))
+				|| proc->lflags & DESSERT_LFLAG_DST_BROADCAST || proc->lflags & DESSERT_LFLAG_DST_MULTICAST ) {
 		if (routing_log_file && !(proc->lflags & DESSERT_LFLAG_DST_BROADCAST) && !(proc->lflags & DESSERT_LFLAG_DST_MULTICAST)) {
 			struct ether_header* l25h = dessert_msg_getl25ether(msg);
 			dessert_ext_t* rl_ext;
