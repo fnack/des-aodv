@@ -287,6 +287,7 @@ int aodv_handle_hello(dessert_msg_t* msg,
 	msg->ttl--;
 	if (msg->ttl >= 1) { // send hello msg back
 		memcpy(msg->l2h.ether_dhost, msg->l2h.ether_shost, ETH_ALEN);
+		msg->u8 = mobility;
 		dessert_meshsend(msg, iface);
 	} else if (memcmp(iface->hwaddr, msg->l2h.ether_dhost, ETH_ALEN) == 0) {
 		struct timeval ts;

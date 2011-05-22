@@ -35,8 +35,7 @@ int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timev
 	dessert_msg_t* hello_msg;
 	dessert_msg_new(&hello_msg);
 	hello_msg->ttl = 2;
-	hello_msg->u8 = mobility;
-	
+
 	dessert_ext_t* ext;
 	dessert_msg_addext(hello_msg, &ext, HELLO_EXT_TYPE, sizeof(struct aodv_msg_hello));
 
