@@ -57,24 +57,3 @@ int hf_add_tv(struct timeval* tv1, struct timeval* tv2, struct timeval* sum) {
 	return TRUE;
 }
 
-/* rssi is typicaly in [-128, 0] */
-int8_t hf_rssi2interval(int8_t rssi) {
-	if(rssi <= -128 || rssi > 0)
-		return -1;
-	if(rssi > -40)
-		return 1;
-	if(rssi > -60)
-		return 2;
-	if(rssi > -90)
-		return 3;
-	return 5; // in [-128, -90]
-}
-
-int hf_path_weight_comp(u_int8_t i, u_int8_t j) {
-	if (i == j) return 0;
-	u_int32_t diff = i - j;
-	if (diff < (SEQNO_MAX >> 1))
-		return 1;
-	return -1;
-
-}

@@ -127,23 +127,15 @@ void aodv_send_rreq(u_int8_t dhost_ether[ETH_ALEN], struct timeval* ts, u_int8_t
 	hf_add_tv(ts, &rreq_repeat_time, &rreq_repeat_time);
 
 	if (ttl <= TTL_THRESHOLD) { // TTL_THRESHOLD + 1 means: this is a first try from RREQ_RETRIES
-		u_int8_t flags = AODV_FLAGS_STRONG_LINK_ONLY;
 		aodv_db_addschedule(&rreq_repeat_time, dhost_ether, AODV_SC_REPEAT_RREQ, (ttl + TTL_INCREMENT > TTL_THRESHOLD)? TTL_THRESHOLD + 1 : ttl + TTL_INCREMENT, flags);
 	} else {
 		u_int8_t try_num = ttl - TTL_THRESHOLD;
 		if (try_num < RREQ_RETRIES) {
-			u_int8_t flags = 0; // NOT AODV_FLAGS_STRONG_LINK_ONLY
 			aodv_db_addschedule(&rreq_repeat_time, dhost_ether, AODV_SC_REPEAT_RREQ, ttl + 1, flags);
 		}
 	}
 	aodv_db_putrreq(ts);
-	if (verbose == TRUE) {
-                #ifndef ANDROID
-		dessert_debug("RREQ to %M ttl=%i", dhost_ether, (ttl > TTL_THRESHOLD) ? 255 : ttl);
-                #else
-                dessert_debug("RREQ to %02x:%02x:%02x:%02x:%02x:%02x ttl=%i", EXPLODE_ARRAY6(dhost_ether), (ttl > TTL_THRESHOLD) ? 255 : ttl);
-                #endif
-	}
+//	dessert_debug("sending RREQ to: " MAC " | ttl=%i | strong_link_only=%d", EXPLODE_ARRAY6(dhost_ether), (ttl > TTL_THRESHOLD) ? 255 : ttl, flags);
 
 	void* payload;
 	uint16_t size = max(rreq_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
@@ -215,9 +207,7 @@ void aodv_send_packets_from_buffer(u_int8_t ether_dhost[ETH_ALEN], u_int8_t next
 			rl_data->hop_count = 0;
 			rlfile_log(dessert_l25_defsrc, l25h->ether_dhost, seq_num, 0, NULL, iface->hwaddr, next_hop);
 		}
-		if (verbose == TRUE) {
-			dessert_debug("rout found. send out packet from buffer");
-		}
+		dessert_debug("rout found. send out packet from buffer");
 
 		/*  no need to search for next hop. Next hop is the last_hop that send RREP */
 		memcpy(buffered_msg->l2h.ether_dhost, next_hop, ETH_ALEN);
@@ -309,15 +299,25 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 	gettimeofday(&ts, NULL);
 	struct aodv_msg_rreq* rreq_msg = (struct aodv_msg_rreq*) rreq_ext->data;
 	
-	if(rreq_msg->strong_link_only == 1) {
-		struct avg_node_result sample = dessert_rssi_avg(l25h->ether_shost, iface->if_name);
+	dessert_debug("rreq with rreq_msg->strong_link_only set to %d", rreq_msg->strong_link_only);
+	if(rreq_msg->strong_link_only > 0) {
+		
+		dessert_debug("got RREQ from " MAC " on %s", EXPLODE_ARRAY6(msg->l2h.ether_shost), iface->if_name);
+		
+		char *mon = "mon.";
+		char monitorName[IFNAMSIZ];
+		if(snprintf(monitorName, sizeof(monitorName), "%s%s", mon, iface->if_name) > IFNAMSIZ) {
+			dessert_crit("Device for the monitor-device seems too long: %s > IFNAMSIZ", strlen(iface->if_name) + strlen(mon) + 1);
+			return DESSERT_MSG_DROP;
+		}
+		
+		struct avg_node_result sample = dessert_rssi_avg(msg->l2h.ether_shost, monitorName);
 
-		u_int8_t interval = hf_rssi2interval(sample.avg_rssi);
-		if(interval  < 0) {
-			dessert_crit("rssi is not in [-128, 0], this must be a bug in dessert_monitor");
+		if(sample.avg_rssi < strong_link_threshold) {
+			dessert_debug("got RREQ with strong_link_only set to [%d] but rssi=[%03d] is lower than STRONG_LINK_THRESHOLD=[%d]", rreq_msg->strong_link_only, sample.avg_rssi, STRONG_LINK_THRESHOLD);
+			return DESSERT_MSG_DROP;
 		} else {
-			if(interval < strong_link_threshold)
-				return DESSERT_MSG_DROP;
+			dessert_debug("got RREQ with strong_link_only set to [%d] | rssi=[%03d] | STRONG_LINK_THRESHOLD=[%d]", rreq_msg->strong_link_only, sample.avg_rssi, STRONG_LINK_THRESHOLD);
 		}
 	}
 
@@ -338,11 +338,11 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 			dessert_msg_destroy(rrep_msg);
 		} else if (msg->ttl > 0 && cap_result == TRUE) {	// good route to this host is unknown for me -> rebroadcast RREQ
 
-			dessert_debug("rebroadcast RREQ to %M", l25h->ether_dhost);
+			dessert_debug("rebroadcast RREQ from " MAC, EXPLODE_ARRAY6(msg->l2h.ether_shost));
 			dessert_meshsend_fast(msg, NULL);
 		}
 	} else {
-		dessert_debug("incoming RREQ from %M seqSRC=%i -> answer with RREP seqDEST=%i", l25h->ether_shost, rreq_msg->seq_num_src, seq_num);
+		dessert_debug("incoming RREQ from " MAC " seq-src=%i -> answer with RREP seq-dest=%i", EXPLODE_ARRAY6(l25h->ether_shost), rreq_msg->seq_num_src, seq_num);
 
 		u_int32_t last_rreq_seq;
 		int result = aodv_db_getrouteseqnum(l25h->ether_shost, &last_rreq_seq);
@@ -359,9 +359,8 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 		if (aodv_db_capt_rrep(l25h->ether_shost, prev_hop, iface, rreq_msg->seq_num_src, rreq_msg->hop_count, &ts) == TRUE) {
 			aodv_send_packets_from_buffer(l25h->ether_shost, prev_hop, iface); // no need to search for next hop. Next hop is RREQ.prev_hop
 		}
-
-		return DESSERT_MSG_DROP;
 	}
+	return DESSERT_MSG_DROP;
 }
 
 int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
@@ -440,68 +439,21 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 					u_int8_t next_hop[ETH_ALEN];
 					const dessert_meshif_t* output_iface;
 
-					if (multipath) {
-						int gph_res;
-
-						if (rrep_msg->flags & AODV_FLAGS_RREP_A) gph_res = aodv_db_getprevhop(l25h->ether_shost, l25h->ether_dhost, next_hop, &output_iface);	// RREP - get prev hop (towards source)
-						else gph_res = aodv_db_getroute2dest(l25h->ether_dhost, next_hop, &output_iface, &ts);													// RREP - ACK get next hop (towards destination)
-
-						if (gph_res) {
-							if (verbose) {
-								if (rrep_msg->flags & AODV_FLAGS_RREP_A) {
-									dessert_debug("re-send RREP to *:%02x:%02x", l25h->ether_dhost[4], l25h->ether_dhost[5]);
-								}
-								else {
-									dessert_debug("re-send RREP-ACK to *:%02x:%02x", l25h->ether_dhost[4], l25h->ether_dhost[5]);
-								}
-							}
-
-							memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
-							dessert_meshsend_fast(msg, output_iface);
-						}
-					} else {
-						if (aodv_db_getprevhop(l25h->ether_shost, l25h->ether_dhost, next_hop, &output_iface) == TRUE) {
-							if (verbose) dessert_debug("re-send RREP to *:%02x:%02x", l25h->ether_dhost[4], l25h->ether_dhost[5]);
-							memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
-							dessert_meshsend_fast(msg, output_iface);
-						}
+					if (aodv_db_getprevhop(l25h->ether_shost, msg->l2h.ether_dhost, next_hop, &output_iface) == TRUE) {
+						dessert_debug("re-send RREP to" MAC, EXPLODE_ARRAY6(l25h->ether_dhost));
+						memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
+						dessert_meshsend_fast(msg, output_iface);
 					}
 				}
 			} else {    // this RREP is for me! -> pop all packets from FIFO buffer and send to destination
-				if (multipath) {
-					if (rrep_msg->flags & AODV_FLAGS_RREP_A) {    // communication partner has requested RREP-ACK
-						pthread_rwlock_wrlock(&pp_rwlock);
-						u_int32_t seq_num_copy = ++seq_num;
-						pthread_rwlock_unlock(&pp_rwlock);
 
-						dessert_msg_t* rrep_ack = _create_rrep(dessert_l25_defsrc, l25h->ether_shost, msg->l2h.ether_shost, seq_num_copy, 0);
-						dessert_meshsend_fast(rrep_ack, iface);
-						dessert_msg_destroy(rrep_ack);
-						if (verbose) {
-							dessert_debug("RREP from *:%02x:%02x -> send RREP-ACK", l25h->ether_shost[4], l25h->ether_shost[5]);
-						}
-					} else {
-						if (verbose) {
-							dessert_debug("RREP-ACK from *:%02x:%02x", l25h->ether_shost[4], l25h->ether_shost[5]);
-						}
-					}
+				dessert_ext_t* ext;
+				dessert_msg_getext(msg, &ext, RREP_EXT_TYPE, 0);
+				struct aodv_msg_rrep* aodv_msg_rrep = (struct aodv_msg_rrep *) ext->data;
+				dessert_debug("rrep from " MAC " seq=%i", EXPLODE_ARRAY6(msg->l2h.ether_shost), aodv_msg_rrep->seq_num_dest);
 
-					struct timeval send_out_time;
-					send_out_time.tv_sec = BUFFER_SENDOUT_DELAY / 1000;
-					send_out_time.tv_usec = (BUFFER_SENDOUT_DELAY % 1000) * 1000;
-					hf_add_tv(&ts, &send_out_time, &send_out_time);
-					aodv_db_addschedule(&send_out_time, l25h->ether_shost, AODV_SC_SEND_OUT_PACKET, 0, 0); //NO params and NO flags
-					aodv_db_dropschedule(l25h->ether_shost, AODV_SC_REPEAT_RREQ);
-				} else {
-					if (verbose) {
-                        dessert_ext_t* ext;
-						dessert_msg_getext(msg, &ext, RREQ_EXT_TYPE, 0);
-						struct aodv_msg_rrep* aodv_msg_rrep = (struct aodv_msg_rrep *) ext->data;
-						dessert_debug("RREP from *:%02x:%02x seq=%i", l25h->ether_shost[4], l25h->ether_shost[5], aodv_msg_rrep->seq_num_dest);
-					}
-					/* no need to search for next hop. Next hop is RREP.prev_hop */
-					aodv_send_packets_from_buffer(l25h->ether_shost, msg->l2h.ether_shost, iface);
-				}
+				/* no need to search for next hop. Next hop is RREP.prev_hop */
+				aodv_send_packets_from_buffer(l25h->ether_shost, msg->l2h.ether_shost, iface);
 			}
 		}
 		return DESSERT_MSG_DROP;
@@ -534,10 +486,9 @@ int aodv_fwd2dest(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, cons
 		gettimeofday(&timestamp, NULL);
 
 		if (aodv_db_getroute2dest(l25h->ether_dhost, dhost_next_hop, &output_iface, &timestamp) == TRUE) {
-			if (verbose) {
-				dessert_debug(" *:%02x:%02x -------> *:%02x:%02x",
-						l25h->ether_shost[4], l25h->ether_shost[5], l25h->ether_dhost[4], l25h->ether_dhost[5]);
-			}
+
+			dessert_debug(" *:%02x:%02x -------> *:%02x:%02x", l25h->ether_shost[4], l25h->ether_shost[5], l25h->ether_dhost[4], l25h->ether_dhost[5]);
+
 			memcpy(msg->l2h.ether_dhost, dhost_next_hop, ETH_ALEN);
 			if (routing_log_file != NULL) {
 				rlfile_log(l25h->ether_shost, l25h->ether_dhost,
@@ -607,7 +558,7 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, desse
 			dessert_meshsend_fast(msg, output_iface);
 		} else {
 			aodv_db_push_packet(l25h->ether_dhost, msg, &ts);    // route is unknown -> push packet to FIFO and send RREQ
-			aodv_send_rreq(l25h->ether_dhost, &ts, TTL_START, 0);	 // create and send RREQ, NO flags
+			aodv_send_rreq(l25h->ether_dhost, &ts, TTL_START, 55);	 // create and send RREQ, strong_link_only != 0 -> the first rreq should force that
 		}
 	}
     return DESSERT_MSG_DROP;
