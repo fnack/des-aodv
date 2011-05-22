@@ -35,6 +35,7 @@ For further information and questions please use the web site
 int     hello_size	        = HELLO_SIZE;
 int     hello_interval      = HELLO_INTERVAL;
 int     rreq_size	        = RREQ_SIZE;
+int     mobility            = MOBILITY;//flag in hello_msg
 int     verbose 	        = VERBOSE;
 int     multipath 	        = MULTIPATH;
 char*   routing_log_file    = NULL;
