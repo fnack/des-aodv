@@ -81,6 +81,8 @@ enum bool {TRUE = 1, FALSE = 0};
 #define HELLO_INTERVAL				2000 	// milliseconds
 #define RREQ_SIZE					128
 
+#define STRONG_LINK_THRESHOLD				-80 /* rssi < STRONG_LINK_THRESHOLD and strong_link_only is set the RREQ is discarded */
+
 // --- Database Flags
 
 #define AODV_FLAGS_ROUTE_INVALID 	1
@@ -97,5 +99,6 @@ extern char*						routing_log_file;
 extern int 							hello_size;
 extern int 							hello_interval;
 extern int 							rreq_size;
+extern int 							strong_link_threshold;
 
 #endif

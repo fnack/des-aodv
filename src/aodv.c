@@ -38,6 +38,7 @@ int     rreq_size	        = RREQ_SIZE;
 int     verbose 	        = VERBOSE;
 int     multipath 	        = MULTIPATH;
 char*   routing_log_file    = NULL;
+int     strong_link_threshold = STRONG_LINK_THRESHOLD;
 
 dessert_periodic_t* periodic_send_hello;
 
