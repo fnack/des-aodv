@@ -11,22 +11,23 @@
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 NAME=des-aodv
-DAEMON=/usr/sbin/$NAME
+HOME=/home/c
+DAEMON=$HOME/git/$NAME/$NAME
 DESC="$NAME, a daemon based on libdessert"
 
 test -x $DAEMON || exit 0
 
-LOGDIR=/var/log/$NAME
+#HOSTNAME=$(hostname)
+#LOGDIR=/home/mehlis/$HOSTNAME/$NAME
 PIDFILE=/var/run/$NAME.pid 	# Default may be overwritten by /etc/default/$NAME
 DODTIME=1                  	# Time to wait for the server to die, in seconds
 							# If this value is set too low you might not
 							# let some servers to die gracefully and
 							# 'restart' will not work
-HOSTNAME=$(hostname)
 
 # Include default configuration if available
-if [ -f /etc/default/$NAME ] ; then
-    . /etc/default/$NAME
+if [ -f $HOME/$NAME.default ] ; then
+    . $HOME/$NAME.default
 fi
 
 set -e
@@ -48,6 +49,7 @@ build_conf()
     done
     IFS=$OIFS
     echo "port $CLI_PORT" >> /tmp/$NAME.cli
+    echo "interface monitor" >> /tmp/$NAME.cli
     return 0
 }
 
@@ -101,6 +103,7 @@ case "$1" in
   start)
         build_conf
         echo -n "Starting $DESC: "
+        export LD_LIBRARY_PATH="$HOME/"
         start-stop-daemon --start --quiet --pidfile $PIDFILE \
             --exec $DAEMON -- /tmp/$NAME.cli
         sleep 2
