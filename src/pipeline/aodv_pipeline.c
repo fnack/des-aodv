@@ -153,6 +153,48 @@ void aodv_send_rreq(u_int8_t dhost_ether[ETH_ALEN], struct timeval* ts, u_int8_t
 	dessert_msg_destroy(rreq_msg);
 }
 
+dessert_msg_t* _create_rwarn(u_int8_t rwarn_dest[ETH_ALEN],
+                             u_int8_t rwarn_source[ETH_ALEN],
+                             u_int8_t rwarn_next_hop[ETH_ALEN],
+                             u_int8_t source_mobility) {
+
+	dessert_msg_t* msg;
+	dessert_msg_new(&msg);
+	msg->ttl = 255;
+
+	// add l25h header
+	dessert_ext_t* ext;
+	dessert_msg_addext(msg, &ext, DESSERT_EXT_ETH, ETHER_HDR_LEN);
+	struct ether_header* rwarn_l25h = (struct ether_header*) ext->data;
+	memcpy(rwarn_l25h->ether_shost, rwarn_dest, ETH_ALEN);
+	memcpy(rwarn_l25h->ether_dhost, rwarn_source, ETH_ALEN);
+
+	// set next hop
+	memcpy(msg->l2h.ether_dhost, rwarn_next_hop, ETH_ALEN);
+
+	// and add RREP ext
+	dessert_msg_addext(msg, &ext, RWARN_EXT_TYPE, sizeof(struct aodv_msg_rwarn));
+	struct aodv_msg_rwarn* rwarn_msg = (struct aodv_msg_rwarn*) ext->data;
+	rwarn_msg->source_mobility = source_mobility;
+	return msg;
+	
+}
+
+void aodv_send_rwarn(u_int8_t rwarn_dest[ETH_ALEN],
+                     u_int8_t rwarn_source[ETH_ALEN],
+                     u_int8_t rwarn_next_hop[ETH_ALEN],
+                     u_int8_t source_mobility) {
+	
+	dessert_msg_t* rwarn_msg = _create_rwarn(rwarn_dest,
+	                                         rwarn_source,
+	                                         rwarn_next_hop,
+	                                         source_mobility);
+	
+	// send out and destroy
+	dessert_meshsend_fast(rwarn_msg, NULL);
+	dessert_msg_destroy(rwarn_msg);
+}
+
 pthread_rwlock_t rlflock = PTHREAD_RWLOCK_INITIALIZER;
 pthread_rwlock_t rlseqlock = PTHREAD_RWLOCK_INITIALIZER;
 

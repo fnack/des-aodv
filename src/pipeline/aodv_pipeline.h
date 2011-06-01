@@ -117,6 +117,12 @@ struct aodv_msg_rerr {
 	u_int8_t		ifaces[ETH_ALEN * MAX_MESH_IFACES_COUNT];
 } __attribute__ ((__packed__));
 
+
+/** RWARN - Route Warn Message */
+struct aodv_msg_rwarn {
+	u_int8_t		source_mobility;
+} __attribute__ ((__packed__));
+
 /** HELLO - Hello Message */
 struct aodv_msg_hello {
 } __attribute__ ((__packed__));

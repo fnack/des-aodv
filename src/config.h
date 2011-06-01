@@ -54,6 +54,7 @@ enum bool {TRUE = 1, FALSE = 0};
 #define PING_EXT_TYPE				DESSERT_EXT_USER + 6
 #define PONG_EXT_TYPE				DESSERT_EXT_USER + 7
 #define RL_EXT_TYPE					DESSERT_EXT_USER + 8
+#define RWARN_EXT_TYPE				DESSERT_EXT_USER + 9
 
 #define FIFO_BUFFER_MAX_ENTRY_SIZE	128 	// maximal packet count that can be stored in FIFO for one destination
 #define DB_CLEANUP_INTERVAL			NET_TRAVERSAL_TIME
