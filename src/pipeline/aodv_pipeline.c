@@ -195,6 +195,43 @@ void aodv_send_rwarn(u_int8_t rwarn_dest[ETH_ALEN],
 	dessert_msg_destroy(rwarn_msg);
 }
 
+
+int aodv_handle_rwarn(dessert_msg_t* msg,
+                      size_t len,
+                      dessert_msg_proc_t *proc,
+                      const dessert_meshif_t *iface,
+                      dessert_frameid_t id) {
+
+	dessert_ext_t* rwarn_ext;
+
+	if (dessert_msg_getext(msg, &rwarn_ext, RWARN_EXT_TYPE, 0) == FALSE)
+		return DESSERT_MSG_KEEP;
+
+	msg->ttl--;
+	if (msg->ttl == 0) {
+		return DESSERT_MSG_DROP;
+	}
+
+	struct ether_header* l25h = dessert_msg_getl25ether(msg);
+	if (memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) != 0) {
+		//not for me
+		const dessert_meshif_t* output_iface;
+		u_int8_t next_hop[ETH_ALEN];
+		if(aodv_db_getprevhop(l25h->ether_shost, l25h->ether_dhost, next_hop, &output_iface)) {
+			dessert_debug("re-send RWARN to " MAC, EXPLODE_ARRAY6(l25h->ether_dhost));
+			memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
+			dessert_meshsend_fast(msg, output_iface);
+		}
+	} else {
+		//for me
+		dessert_debug("got RWARN from " MAC " send rreq...", EXPLODE_ARRAY6(l25h->ether_dhost));
+		struct timeval ts;
+		gettimeofday(&ts, NULL);
+		aodv_send_rreq(l25h->ether_dhost, &ts, TTL_START);	 // create and send RREQ
+	}
+	return DESSERT_MSG_DROP;
+}
+
 pthread_rwlock_t rlflock = PTHREAD_RWLOCK_INITIALIZER;
 pthread_rwlock_t rlseqlock = PTHREAD_RWLOCK_INITIALIZER;
 
