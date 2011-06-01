@@ -195,7 +195,7 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 
                         if (dest_count > 0) {
                                 while(head != NULL) {
-                                dessert_msg_t* rerr_msg = aodv_create_rerr(&head, dest_count);
+                                        dessert_msg_t* rerr_msg = aodv_create_rerr(&head, dest_count);
                                         if (rerr_msg != NULL) {
                                                 dessert_debug("link to " MAC " break -> send RERR", EXPLODE_ARRAY6(dhost_ether));
 
