@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
     if ((argc == 2) && (strcmp(argv[1], "-nondaemonize") == 0)) {
             dessert_info("starting AODV in non daemonize mode");
             dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
-            char cfg_file_name[] = "/etc/des-aodv.conf";
+            char cfg_file_name[] = "./des-aodv.cli";
             cfg = fopen(cfg_file_name, "r");
             if (cfg == NULL) {
                     printf("Config file '%s' not found. Exit ...\n", cfg_file_name);
