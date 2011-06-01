@@ -318,7 +318,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 			dessert_msg_destroy(rrep_msg);
 		} else if (msg->ttl > 0 && cap_result) {
 			// route to this host is unknown to me -> rebroadcast RREQ
-			dessert_debug("rebroadcast RREQ from %M", msg->l2h.ether_shost);
+			dessert_trace("rebroadcast RREQ from " MAC, EXPLODE_ARRAY6(msg->l2h.ether_shost));
 			dessert_meshsend_fast(msg, NULL);
 
 		}
