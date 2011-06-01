@@ -310,7 +310,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 		    !(rreq_msg->flags & AODV_FLAGS_RREQ_U) &&
 		    (route_seq_num == TRUE && dhost_path_weight == TRUE) && //there is an seq num and a path weight
 		    (dhost_seq_num > rreq_msg->seq_num_dest || // if rreq is newer
-		    (dhost_seq_num == rreq_msg->seq_num_dest) && (dhost_path_weight < rreq_msg->path_weight))) { //or if rreq has better path weight and seq is not old
+		    (dhost_seq_num == rreq_msg->seq_num_dest) && (dhost_path_weight > rreq_msg->path_weight))) { //or if rreq has better path weight and seq is not old
 			// i know route to destination that have seq_num greater then that of source (route is newer)
 			dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_rreq_seq, AODV_FLAGS_RREP_A);
 
@@ -334,8 +334,8 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 		u_int32_t dhost_path_weight;
 		int route_path_weight = aodv_db_getpathweight(l25h->ether_dhost, &dhost_path_weight);
 		
-		if (seq_num_res == FALSE || comp_seq_num_res > 0 ||
-		    (comp_seq_num_res == 0 && dhost_path_weight < rreq_msg->path_weight)) {
+		if (seq_num_res && comp_seq_num_res > 0 ||
+		    (comp_seq_num_res == 0 && dhost_path_weight > rreq_msg->path_weight)) {
 			// RREQ for me -> answer with RREP
 			pthread_rwlock_wrlock(&pp_rwlock);
 			u_int8_t seq_num_copy = ++seq_num;
