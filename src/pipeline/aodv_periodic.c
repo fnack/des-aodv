@@ -183,11 +183,8 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
                         _onlb_element_t* head = NULL;
 
                         while(aodv_db_invroute(ether_addr, dhost_ether) == TRUE) {
-                                #ifndef ANDROID
-                                dessert_debug("invalidate route to %M", dhost_ether);
-                                #else
-                                dessert_debug("invalidate route to %02x:%02x:%02x:%02x:%02x:%02x", EXPLODE_ARRAY6(dhost_ether));
-                                #endif
+                                dessert_debug("invalidate route to " MAC, EXPLODE_ARRAY6(dhost_ether));
+
                                 dest_count++;
                                 curr_el = malloc(sizeof(_onlb_element_t));
                                 memcpy(curr_el->dhost_ether, dhost_ether, ETH_ALEN);
@@ -199,11 +196,8 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
                                 while(head != NULL) {
                                 dessert_msg_t* rerr_msg = aodv_create_rerr(&head, dest_count);
                                         if (rerr_msg != NULL) {
-                                                #ifndef ANDROID
-                                                dessert_debug("link to %M break -> send RERR", ether_addr);
-                                                #else
-                                                dessert_debug("link to %02x:%02x:%02x:%02x:%02x:%02x break -> send RERR", EXPLODE_ARRAY6(dhost_ether));
-                                                #endif
+                                                dessert_debug("link to " MAC " break -> send RERR", EXPLODE_ARRAY6(dhost_ether));
+
                                                 dessert_meshsend_fast(rerr_msg, NULL);
                                                 dessert_msg_destroy(rerr_msg);
                                                 aodv_db_putrerr(&timestamp);

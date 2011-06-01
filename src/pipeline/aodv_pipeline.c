@@ -135,13 +135,7 @@ void aodv_send_rreq(u_int8_t dhost_ether[ETH_ALEN], struct timeval* ts, u_int8_t
 		}
 	}
 	aodv_db_putrreq(ts);
-	if (verbose == TRUE) {
-                #ifndef ANDROID
-		dessert_debug("RREQ to %M ttl=%i", dhost_ether, (ttl > TTL_THRESHOLD) ? 255 : ttl);
-                #else
-                dessert_debug("RREQ to %02x:%02x:%02x:%02x:%02x:%02x ttl=%i", EXPLODE_ARRAY6(dhost_ether), (ttl > TTL_THRESHOLD) ? 255 : ttl);
-                #endif
-	}
+	dessert_debug("RREQ to " MAC " ttl=%i", EXPLODE_ARRAY6(dhost_ether), (ttl > TTL_THRESHOLD) ? 255 : ttl);
 
 	void* payload;
 	uint16_t size = max(rreq_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
@@ -163,31 +157,15 @@ void rlfile_log(const u_int8_t src_addr[ETH_ALEN], const u_int8_t dest_addr[ETH_
 	FILE* f = fopen(routing_log_file, "a+");
 	if (f == NULL) dessert_debug("file = 0");
 	if (out_iface == NULL) {
-                #ifndef ANDROID
-		fprintf(f, "%M\t%M\t%u\t%u\t%M\t%s\t%s\n",
-				src_addr, dest_addr, seq_num, hop_count, in_iface, "NULL", "NULL");
-                #else
                 fprintf(f, "%02x:%02x:%02x:%02x:%02x:%02x\t%02x:%02x:%02x:%02x:%02x:%02x\t%u\t%u\t%02x:%02x:%02x:%02x:%02x:%02x\t%s\t%s\n",
                                 EXPLODE_ARRAY6(src_addr), EXPLODE_ARRAY6(dest_addr), seq_num, hop_count, EXPLODE_ARRAY6(in_iface), "NULL", "NULL");
-                #endif
-	}
-	else if (in_iface == NULL) {
-                #ifndef ANDROID
-		fprintf(f, "%M\t%M\t%u\t%u\t%s\t%M\t%M\n",
-				src_addr, dest_addr, seq_num, hop_count, "NULL", out_iface, next_hop_addr);
-                #else
+	} else if (in_iface == NULL) {
                 fprintf(f, "%02x:%02x:%02x:%02x:%02x:%02x\t%02x:%02x:%02x:%02x:%02x:%02x\t%u\t%u\t%s\t%02x:%02x:%02x:%02x:%02x:%02x\t%02x:%02x:%02x:%02x:%02x:%02x\n",
                                 EXPLODE_ARRAY6(src_addr), EXPLODE_ARRAY6(dest_addr), seq_num, hop_count, "NULL", EXPLODE_ARRAY6(out_iface), EXPLODE_ARRAY6(next_hop_addr));
-                #endif
-	}
-	else {
-                #ifndef ANDROID
-		fprintf(f, "%M\t%M\t%u\t%u\t%M\t%M\t%M\n",
-				src_addr, dest_addr, seq_num, hop_count, in_iface, out_iface, next_hop_addr);
-                #else
+
+	} else {
                 fprintf(f, "%02x:%02x:%02x:%02x:%02x:%02x\t%02x:%02x:%02x:%02x:%02x:%02x\t%u\t%u\t%02x:%02x:%02x:%02x:%02x:%02x\t%02x:%02x:%02x:%02x:%02x:%02x\t%02x:%02x:%02x:%02x:%02x:%02x\n",
                                 EXPLODE_ARRAY6(src_addr), EXPLODE_ARRAY6(dest_addr), seq_num, hop_count, EXPLODE_ARRAY6(in_iface), EXPLODE_ARRAY6(out_iface), EXPLODE_ARRAY6(next_hop_addr));
-                #endif
 	}
 	fclose(f);
 	pthread_rwlock_unlock(&rlflock);
@@ -322,19 +300,19 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 			// i know route to destination that have seq_num greater then that of source (route is newer)
 			dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_rreq_seq, AODV_FLAGS_RREP_A);
 
-			dessert_debug("repair link to %M", l25h->ether_dhost);
+			dessert_debug("repair link to " MAC, EXPLODE_ARRAY6(l25h->ether_dhost));
 
 			dessert_meshsend_fast(rrep_msg, iface);
 			dessert_msg_destroy(rrep_msg);
 		} else if (msg->ttl > 0 && cap_result) {	// good route to this host is unknown for me -> rebroadcast RREQ
 
-			dessert_debug("rebroadcast RREQ to %M", l25h->ether_dhost);
+			dessert_debug("rebroadcast RREQ to " MAC, EXPLODE_ARRAY6(l25h->ether_dhost));
 			dessert_meshsend_fast(msg, NULL);
 		}
 		return DESSERT_MSG_KEEP;
 	} else { // RREQ for me
 
-		dessert_debug("incoming RREQ from %M seqSRC=%i -> answer with RREP seqDEST=%i", l25h->ether_shost, rreq_msg->seq_num_src, seq_num);
+		dessert_debug("incoming RREQ from " MAC " seqSRC=%i -> answer with RREP seqDEST=%i", EXPLODE_ARRAY6(l25h->ether_shost), rreq_msg->seq_num_src, seq_num);
 
 		u_int32_t last_rreq_seq;
 		int s = !aodv_db_getrouteseqnum(l25h->ether_shost, &last_rreq_seq);
