@@ -1,0 +1,24 @@
+logging file /var/log/des-aodv.log
+
+set hello_size 130
+set hello_interval 1000
+set rreq_size 200
+
+no logging stderr
+logging ringbuffer 20
+loglevel debug
+port 4519
+
+pid /var/run/des-aodv.pid
+
+! set routinglog /var/log/des-aodv-routing.log
+
+!interface mesh eth1
+interface mesh wlan0
+!interface mesh wlan1
+!interface mesh wlan2
+
+interface sys tap0 10.0.0.1 255.255.255.0
+
+interface monitor
+
