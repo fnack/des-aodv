@@ -422,9 +422,9 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 		}
 	} else {    // this RREP is for me! -> pop all packets from FIFO buffer and send to destination
 		dessert_ext_t* ext;
-		dessert_msg_getext(msg, &ext, RREQ_EXT_TYPE, 0);
+		dessert_msg_getext(msg, &ext, RREP_EXT_TYPE, 0);
 		struct aodv_msg_rrep* aodv_msg_rrep = (struct aodv_msg_rrep *) ext->data;
-		dessert_debug("RREP from *:%02x:%02x seq=%i", l25h->ether_shost[4], l25h->ether_shost[5], aodv_msg_rrep->seq_num_dest);
+		dessert_debug("RREP from " MAC " seq=%i", EXPLODE_ARRAY6(l25h->ether_shost), aodv_msg_rrep->seq_num_dest);
 		/* no need to search for next hop. Next hop is RREP.prev_hop */
 		aodv_send_packets_from_buffer(l25h->ether_shost, msg->l2h.ether_shost, iface);
 	}
