@@ -28,8 +28,17 @@ For further information and questions please use the web site
 #include "../database/rl_seq_t/rl_seq.h"
 #include <pthread.h>
 #include <utlist.h>
+#include <unistd.h>
+
+useconds_t hello_jitter() {
+	return (useconds_t) (((float) random() / RAND_MAX - 0.5) * JITTER_INTERVAL);
+}
 
 int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timeval *interval) {
+
+	//insert some jitter
+	useconds_t jitter = hello_jitter()*1000;
+	usleep(jitter);
 
 	// create new HELLO message with hello_ext.
 	dessert_msg_t* hello_msg;
