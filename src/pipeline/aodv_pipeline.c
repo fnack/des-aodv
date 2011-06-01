@@ -287,8 +287,6 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 	struct aodv_msg_rreq* rreq_msg = (struct aodv_msg_rreq*) rreq_ext->data;
 
 	u_int8_t prev_hop[ETH_ALEN];
-
-
 	rreq_msg->hop_count++;
 	memcpy(prev_hop, msg->l2h.ether_shost, ETH_ALEN);
 	
@@ -302,7 +300,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 	if (memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) != 0) { // RREQ is not for me
 		u_int32_t dhost_seq_num;
 		u_int32_t dhost_path_weight;
-		int cap_result = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->seq_num_src, &ts);
+		int cap_result = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->seq_num_src, rreq_msg->path_weight, &ts);
 
 		int route_seq_num = aodv_db_getrouteseqnum(l25h->ether_dhost, &dhost_seq_num);
 		int route_path_weight = aodv_db_getpathweight(l25h->ether_dhost, &dhost_path_weight);
@@ -312,7 +310,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 		    (dhost_seq_num > rreq_msg->seq_num_dest || // if rreq is newer
 		    (dhost_seq_num == rreq_msg->seq_num_dest) && (dhost_path_weight > rreq_msg->path_weight))) { //or if rreq has better path weight and seq is not old
 			// i know route to destination that have seq_num greater then that of source (route is newer)
-			dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_rreq_seq, AODV_FLAGS_RREP_A);
+			dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, dhost_seq_num, AODV_FLAGS_RREP_A);
 
 			dessert_debug("repair link to " MAC, EXPLODE_ARRAY6(l25h->ether_dhost));
 
@@ -345,7 +343,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 			dessert_msg_destroy(rrep_msg);
 		}
 		/* RREQ gives route to his source. Process RREQ also as RREP */
-		if (aodv_db_capt_rrep(l25h->ether_shost, prev_hop, iface, rreq_msg->seq_num_src, rreq_msg->hop_count, &ts) == TRUE) {
+		if (aodv_db_capt_rrep(l25h->ether_shost, prev_hop, iface, rreq_msg->seq_num_src, rreq_msg->hop_count, rreq_msg->path_weight, &ts) == TRUE) {
 			aodv_send_packets_from_buffer(l25h->ether_shost, prev_hop, iface); // no need to search for next hop. Next hop is RREQ.prev_hop
 		}
 
@@ -431,7 +429,7 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 	// capture and re-send only if route is unknown OR
 	// sequence number is greater then that in database OR
 	// if seq_nums are equals and known hop count is greater than that in RREP
-	if (!aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->seq_num_dest, rrep_msg->hop_count, &ts)) {
+	if (!aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->seq_num_dest, rrep_msg->hop_count, rrep_msg->path_weight, &ts)) {
 		return DESSERT_MSG_DROP;
 	}
 

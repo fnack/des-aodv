@@ -102,19 +102,28 @@ int aodv_db_add_brcid(u_int8_t shost_ether[ETH_ALEN], u_int32_t brc_id, struct t
  * this destination. All messages to source (example: RREP) must be send
  * over shost_prev_hop (nodes output interface: output_iface).
  */
-int aodv_db_capt_rreq (u_int8_t dhost_ether[ETH_ALEN], u_int8_t shost_ether[ETH_ALEN],
-		u_int8_t shost_prev_hop[ETH_ALEN], const dessert_meshif_t* output_iface,
-		u_int32_t shost_seq_num, struct timeval* timestamp){
+int aodv_db_capt_rreq(u_int8_t dhost_ether[ETH_ALEN],
+                      u_int8_t shost_ether[ETH_ALEN],
+                      u_int8_t shost_prev_hop[ETH_ALEN],
+                      const dessert_meshif_t* output_iface,
+                      u_int32_t shost_seq_num,
+                      u_int8_t path_weight,
+                      struct timeval* timestamp) {
 	aodv_db_wlock();
-	int result = aodv_db_rt_capt_rreq(dhost_ether, shost_ether, shost_prev_hop, output_iface, shost_seq_num, timestamp);
+	int result = aodv_db_rt_capt_rreq(dhost_ether, shost_ether, shost_prev_hop, output_iface, shost_seq_num, path_weight, timestamp);
 	aodv_db_unlock();
 	return result;
 }
 
-int aodv_db_capt_rrep (u_int8_t dhost_ether[ETH_ALEN], u_int8_t dhost_next_hop[ETH_ALEN],
-		const dessert_meshif_t* output_iface, u_int32_t dhost_seq_num, u_int8_t hop_count, struct timeval* timestamp) {
+int aodv_db_capt_rrep(u_int8_t dhost_ether[ETH_ALEN],
+                      u_int8_t dhost_next_hop[ETH_ALEN],
+                      const dessert_meshif_t* output_iface,
+                      u_int32_t dhost_seq_num,
+                      u_int8_t hop_count,
+                      u_int8_t path_weight,
+                      struct timeval* timestamp) {
 	aodv_db_wlock();
-	int result =  aodv_db_rt_capt_rrep(dhost_ether, dhost_next_hop, output_iface, dhost_seq_num, hop_count, timestamp);
+	int result =  aodv_db_rt_capt_rrep(dhost_ether, dhost_next_hop, output_iface, dhost_seq_num, hop_count, path_weight, timestamp);
 	aodv_db_unlock();
 	return result;
 }

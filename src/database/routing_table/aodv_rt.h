@@ -32,13 +32,21 @@ For further information and questions please use the web site
 
 int aodv_db_rt_init();
 
-int aodv_db_rt_capt_rreq (u_int8_t dhost_ether[ETH_ALEN], u_int8_t shost_ether[ETH_ALEN],
-		u_int8_t shost_prev_hop[ETH_ALEN], const dessert_meshif_t* output_iface,
-		u_int32_t shost_seq_num, struct timeval* timestamp);
+int aodv_db_rt_capt_rreq(u_int8_t dhost_ether[ETH_ALEN],
+                         u_int8_t shost_ether[ETH_ALEN],
+                         u_int8_t shost_prev_hop[ETH_ALEN],
+                         const dessert_meshif_t* output_iface,
+                         u_int32_t shost_seq_num,
+                         u_int8_t path_weight,
+                         struct timeval* timestamp);
 
-int aodv_db_rt_capt_rrep (u_int8_t dhost_ether[ETH_ALEN], u_int8_t dhost_next_hop[ETH_ALEN],
-		const dessert_meshif_t* output_iface, u_int32_t dhost_seq_num,
-		u_int8_t hop_count, struct timeval* timestamp);
+int aodv_db_rt_capt_rrep(u_int8_t dhost_ether[ETH_ALEN],
+                         u_int8_t dhost_next_hop[ETH_ALEN],
+                         const dessert_meshif_t* output_iface,
+                         u_int32_t dhost_seq_num,
+                         u_int8_t hop_count,
+                         u_int8_t path_weight,
+                         struct timeval* timestamp);
 
 int aodv_db_rt_getroute2dest(u_int8_t dhost_ether[ETH_ALEN], u_int8_t dhost_next_hop_out[ETH_ALEN],
 		const dessert_meshif_t** output_iface_out, struct timeval* timestamp);
