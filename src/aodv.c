@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
     if ((argc == 2) && (strcmp(argv[1], "-nondaemonize") == 0)) {
             dessert_info("starting AODV in non daemonize mode");
             dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
-            char cfg_file_name[] = "/etc/des-aodv.conf";
+            char cfg_file_name[] = "./des-aodv.cli";
             cfg = fopen(cfg_file_name, "r");
             if (cfg == NULL) {
                     printf("Config file '%s' not found. Exit ...\n", cfg_file_name);
@@ -110,6 +110,7 @@ int main(int argc, char** argv) {
     cli_register_command(dessert_cli, dessert_cli_show, "multipath", cli_show_multipath, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show multipath variant");
 
     cli_register_command(dessert_cli, NULL, "send_rreq", cli_send_rreq, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "send RREQ to destination");
+    cli_register_command(dessert_cli, NULL, "send_rwarn", cli_send_rwarn, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "send RWARN to destination");
 
     /* registering callbacks */
     dessert_meshrxcb_add(dessert_msg_check_cb, 10);
@@ -117,9 +118,11 @@ int main(int argc, char** argv) {
     dessert_meshrxcb_add(aodv_drop_errors, 30);
     dessert_meshrxcb_add(aodv_handle_hello, 40);
     dessert_meshrxcb_add(aodv_handle_rreq, 50);
+    dessert_meshrxcb_add(aodv_handle_rwarn, 55);
     dessert_meshrxcb_add(aodv_handle_rerr, 60);
     dessert_meshrxcb_add(aodv_handle_rrep, 70);
     dessert_meshrxcb_add(dessert_mesh_ipttl, 75);
+    dessert_meshrxcb_add(aodv_monitor_last_hops, 76);
     dessert_meshrxcb_add(aodv_fwd2dest, 80);
     dessert_meshrxcb_add(rp2sys, 100);
 
@@ -140,6 +143,11 @@ int main(int argc, char** argv) {
     schedule_chec_interval.tv_sec = SCHEDULE_CHECK_INTERVAL / 1000;
     schedule_chec_interval.tv_usec = (SCHEDULE_CHECK_INTERVAL % 1000) * 1000;
     dessert_periodic_add(aodv_periodic_scexecute, NULL, NULL, &schedule_chec_interval);
+
+    struct timeval schedule_monitor_signal_strength_interval;
+    schedule_monitor_signal_strength_interval.tv_sec = MONITOR_SIGNAL_STRENGTH_INTERVAL / 1000;
+    schedule_monitor_signal_strength_interval.tv_usec = (MONITOR_SIGNAL_STRENGTH_INTERVAL % 1000) * 1000;
+    dessert_periodic_add(aodv_schedule_monitor_signal_strength, NULL, NULL, &schedule_monitor_signal_strength_interval);
 
     /* running cli & daemon */
     cli_file(dessert_cli, cfg, PRIVILEGE_PRIVILEGED, MODE_CONFIG);

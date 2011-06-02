@@ -41,4 +41,5 @@ int cli_show_rt(struct cli_def* cli, char* command, char* argv[], int argc);
 int cli_show_multipath(struct cli_def* cli, char* command, char* argv[], int argc);
 
 int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc);
+int cli_send_rwarn(struct cli_def* cli, char* command, char* argv[], int argc);
 

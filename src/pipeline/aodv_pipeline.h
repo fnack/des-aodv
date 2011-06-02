@@ -151,6 +151,11 @@ typedef struct _onlb_dest_list_element {
 
 // ------------- helper -------------------------------------------------------
 
+typedef struct _last_hops {
+	struct timeval time[MONITOR_SIGNAL_STRENGTH_MAX];
+	mac_addr addr[MONITOR_SIGNAL_STRENGTH_MAX];
+} _last_hops_t;
+
 extern pthread_rwlock_t rlflock;
 extern pthread_rwlock_t rlseqlock;
 
@@ -167,6 +172,9 @@ int aodv_handle_hello(dessert_msg_t* msg, size_t len,
 int aodv_handle_rreq(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
+int aodv_handle_rwarn(dessert_msg_t* msg, size_t len,
+		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
+
 int aodv_handle_rerr(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
@@ -174,6 +182,9 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
 int aodv_fwd2dest(dessert_msg_t* msg, size_t len,
+		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
+
+int aodv_monitor_last_hops(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
 /**
@@ -186,7 +197,6 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc,
 /** forward packets received via AODV to tun interface */
 int rp2sys(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
-
 
 /** drop errors (drop corrupt packets, packets from myself and etc...)*/
 int aodv_drop_errors(dessert_msg_t* msg, size_t len,
@@ -203,8 +213,15 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, u_int16_t count);
 
 int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval);
 
+int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled, struct timeval *interval);
 // ------------------------------ helper ------------------------------------------------------
 
 void aodv_send_rreq(u_int8_t dhost_ether[ETH_ALEN], struct timeval* ts, u_int8_t ttl);
+
+void aodv_send_rwarn(u_int8_t rwarn_dest[ETH_ALEN],
+                     u_int8_t rwarn_source[ETH_ALEN],
+                     u_int8_t rwarn_next_hop[ETH_ALEN],
+                     u_int8_t source_mobility,
+                     u_int8_t ttl);
 
 #endif

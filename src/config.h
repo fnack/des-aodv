@@ -61,6 +61,8 @@ enum bool {TRUE = 1, FALSE = 0};
 #define BUFFER_SENDOUT_DELAY		10
 #define SCHEDULE_CHECK_INTERVAL		30 		// milliseconds
 
+#define MONITOR_SIGNAL_STRENGTH_MAX	5		//monitor last MONITOR_SIGNAL_STRENGTH_MAX sources
+#define MONITOR_SIGNAL_STRENGTH_INTERVAL 200		// milliseconds
 /**
  * Schedule type = send out packets from FIFO puffer for
  * destination with ether_addr
@@ -82,7 +84,7 @@ enum bool {TRUE = 1, FALSE = 0};
 #define HELLO_INTERVAL				2000 	// milliseconds
 #define RREQ_SIZE					128
 
-#define MOBILITY			200 /* 0==no; 255==max */
+#define MOBILITY			0 /* 0==no; 255==max */
 
 // --- Database Flags
 #define AODV_FLAGS_ROUTE_INVALID 	1

@@ -215,3 +215,10 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
         }
         return 0;
 }
+
+int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled, struct timeval *interval) {
+//	dessert_debug("call");
+	return 0;
+}
+
+
