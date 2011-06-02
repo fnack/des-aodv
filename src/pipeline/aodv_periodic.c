@@ -30,14 +30,10 @@ For further information and questions please use the web site
 #include <utlist.h>
 #include <unistd.h>
 
-useconds_t hello_jitter() {
-	return (useconds_t) (((float) random() / RAND_MAX - 0.5) * JITTER_INTERVAL);
-}
-
 int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timeval *interval) {
 
 	//insert some jitter
-	useconds_t jitter = hello_jitter()*1000;
+	useconds_t jitter = rand() & 0x1FFFF; // jitter of 131 072 µs -> http://www.kernel.org/doc/man-pages/online/pages/man3/rand.3.html
 	usleep(jitter);
 
 	// create new HELLO message with hello_ext.
