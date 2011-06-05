@@ -185,7 +185,9 @@ void aodv_send_rwarn(u_int8_t rwarn_dest[ETH_ALEN],
                      u_int8_t rwarn_next_hop[ETH_ALEN],
                      u_int8_t source_mobility,
                      u_int8_t ttl) {
-	
+
+	dessert_debug("sending rwarn to " MAC " over " MAC " mobility is %d", rwarn_dest, rwarn_next_hop, mobility);
+
 	dessert_msg_t* rwarn_msg = _create_rwarn(rwarn_dest,
 	                                         rwarn_source,
 	                                         rwarn_next_hop,

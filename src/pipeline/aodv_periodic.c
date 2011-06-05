@@ -220,34 +220,34 @@ int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled,
 	int i;
 	for(i = 0; i < MONITOR_SIGNAL_STRENGTH_MAX; i++) {
 		if(0 == memcmp(aodv_monitor_last_hops_rbuff[i].l2_source, invalid_mac, ETHER_ADDR_LEN))
-			return 0;
-		
+			continue;
+
 		avg_node_result_t result = dessert_rssi_avg(aodv_monitor_last_hops_rbuff[i].l2_source, aodv_monitor_last_hops_rbuff[i].if_name);
 
 		if(result.avg_rssi < MONITOR_SIGNAL_STRENGTH_GREY_ZONE) {
-			
+
 			time_t last_warn = aodv_monitor_last_hops_rbuff[i].last_warn;
 			time_t now = time(0);
 			if(last_warn != 0 && (last_warn + MONITOR_SIGNAL_STRENGTH_WARN_INTERVAL) > now) { //send only every MONITOR_SIGNAL_STRENGTH_WARN_INTERVAL seconds
-				dessert_debug("RSSI VAL of %d from " MAC " is too bad ( < %d ) but SIGNAL_STRENGTH_MIN_WARN_INTERVAL*5 is not reached",
+				dessert_trace("RSSI VAL of %d from " MAC " is too bad ( < %d ) but SIGNAL_STRENGTH_MIN_WARN_INTERVAL*5 is not reached",
 					      result.avg_rssi,
 					      EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l2_source),
 					      MONITOR_SIGNAL_STRENGTH_GREY_ZONE);
 				continue;
 			}
-		
-			aodv_send_rwarn(aodv_monitor_last_hops_rbuff[i].l25_source,
-			                dessert_l25_defsrc,
-			                aodv_monitor_last_hops_rbuff[i].l2_source,
-			                mobility,
-			                255);
-			aodv_monitor_last_hops_rbuff[i].last_warn = now;
 
 			dessert_debug("RSSI VAL of %d from " MAC " is too bad ( < %d ) -> sending RWARN to " MAC,
 			              result.avg_rssi,
 			              EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l2_source),
 			              MONITOR_SIGNAL_STRENGTH_GREY_ZONE,
 			              EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l25_source));
+
+			aodv_send_rwarn(aodv_monitor_last_hops_rbuff[i].l25_source,
+			                dessert_l25_defsrc,
+			                aodv_monitor_last_hops_rbuff[i].l2_source,
+			                mobility,
+			                255);
+			aodv_monitor_last_hops_rbuff[i].last_warn = now;
 		}
 	}
 	return 0;
