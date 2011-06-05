@@ -52,6 +52,7 @@ int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timev
 
         dessert_meshsend_fast(hello_msg, NULL);
         dessert_msg_destroy(hello_msg);
+//        dessert_debug("send hello-req");
         return 0;
 }
 
