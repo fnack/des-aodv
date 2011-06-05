@@ -151,11 +151,6 @@ typedef struct _onlb_dest_list_element {
 
 // ------------- helper -------------------------------------------------------
 
-typedef struct _last_hops {
-	struct timeval time[MONITOR_SIGNAL_STRENGTH_MAX];
-	mac_addr addr[MONITOR_SIGNAL_STRENGTH_MAX];
-} _last_hops_t;
-
 extern pthread_rwlock_t rlflock;
 extern pthread_rwlock_t rlseqlock;
 
@@ -163,8 +158,18 @@ void rlfile_log(const u_int8_t src_addr[ETH_ALEN], const u_int8_t dest_addr[ETH_
 		const u_int32_t seq_num, const u_int8_t hop_count, const u_int8_t in_iface[ETH_ALEN],
 		const u_int8_t out_iface[ETH_ALEN], const u_int8_t next_hop_addr[ETH_ALEN]);
 
-// ------------- pipeline -----------------------------------------------------
+typedef struct aodv_monitor_last_hops_rbuff {
+	mac_addr l2_source;
+	mac_addr l25_source;
+	char if_name[IFNAMSIZ];
+	time_t last_warn;
+} aodv_monitor_last_hops_rbuff_t;
 
+aodv_monitor_last_hops_rbuff_t aodv_monitor_last_hops_rbuff[MONITOR_SIGNAL_STRENGTH_MAX];
+u_int32_t aodv_monitor_last_hops_rbuff_pos;
+mac_addr invalid_mac;
+
+// ------------- pipeline -----------------------------------------------------
 
 int aodv_handle_hello(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);

@@ -148,6 +148,7 @@ int main(int argc, char** argv) {
     schedule_monitor_signal_strength_interval.tv_sec = MONITOR_SIGNAL_STRENGTH_INTERVAL / 1000;
     schedule_monitor_signal_strength_interval.tv_usec = (MONITOR_SIGNAL_STRENGTH_INTERVAL % 1000) * 1000;
     dessert_periodic_add(aodv_schedule_monitor_signal_strength, NULL, NULL, &schedule_monitor_signal_strength_interval);
+    dessert_parse_mac("00:00:00:00:00:00", &invalid_mac);
 
     /* running cli & daemon */
     cli_file(dessert_cli, cfg, PRIVILEGE_PRIVILEGED, MODE_CONFIG);
