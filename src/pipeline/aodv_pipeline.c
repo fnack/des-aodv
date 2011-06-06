@@ -463,10 +463,7 @@ int aodv_fwd2dest(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, cons
 		gettimeofday(&timestamp, NULL);
 
 		if (aodv_db_getroute2dest(l25h->ether_dhost, dhost_next_hop, &output_iface, &timestamp) == TRUE) {
-			if (verbose) {
-				dessert_debug(" *:%02x:%02x -------> *:%02x:%02x",
-						l25h->ether_shost[4], l25h->ether_shost[5], l25h->ether_dhost[4], l25h->ether_dhost[5]);
-			}
+			dessert_debug(MAC " -------> " MAC, EXPLODE_ARRAY&(l25h->ether_shost), EXPLODE_ARRAY6(l25h->ether_dhost));
 			memcpy(msg->l2h.ether_dhost, dhost_next_hop, ETH_ALEN);
 			if (routing_log_file != NULL) {
 				rlfile_log(l25h->ether_shost, l25h->ether_dhost,
