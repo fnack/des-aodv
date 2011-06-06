@@ -28,8 +28,13 @@ For further information and questions please use the web site
 #include "../database/rl_seq_t/rl_seq.h"
 #include <pthread.h>
 #include <utlist.h>
+#include <unistd.h>
 
 int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timeval *interval) {
+
+	//insert some jitter
+	useconds_t jitter = rand() & 0x1FFFF; // jitter of 131 072 µs -> http://www.kernel.org/doc/man-pages/online/pages/man3/rand.3.html
+	usleep(jitter);
 
 	// create new HELLO message with hello_ext.
 	dessert_msg_t* hello_msg;
@@ -47,6 +52,7 @@ int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timev
 
         dessert_meshsend_fast(hello_msg, NULL);
         dessert_msg_destroy(hello_msg);
+//        dessert_debug("send hello-req");
         return 0;
 }
 

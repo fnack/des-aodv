@@ -84,7 +84,7 @@ enum bool {TRUE = 1, FALSE = 0};
 #define MULTIPATH					FALSE
 #define VERBOSE						FALSE
 #define HELLO_SIZE					128
-#define HELLO_INTERVAL				2000 	// milliseconds
+#define HELLO_INTERVAL				1000 	// milliseconds
 #define RREQ_SIZE					128
 
 #define MOBILITY			0 /* 0==no; 255==max */

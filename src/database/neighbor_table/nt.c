@@ -56,6 +56,7 @@ neighbor_entry_t* db_neighbor_entry_create(u_int8_t ether_neighbor_addr[ETH_ALEN
 void db_nt_on_neigbor_timeout(struct timeval* timestamp, void* src_object, void* object) {
 	neighbor_entry_t* curr_entry = object;
 	dessert_debug("%s <= x => " MAC, curr_entry->iface->if_name, EXPLODE_ARRAY6(curr_entry->ether_neighbor));
+	db_nt_decrement_hello_interval(curr_entry);
 	HASH_DEL(nt.entrys, curr_entry);
 
 	// add schedule
@@ -89,8 +90,8 @@ int db_nt_cap2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshi
 			return FALSE;
 		HASH_ADD_KEYPTR(hh, nt.entrys, curr_entry->ether_neighbor, ETH_ALEN + sizeof(void*), curr_entry);
 		dessert_debug("%s <=====> " MAC, iface->if_name, EXPLODE_ARRAY6(ether_neighbor_addr));
+		db_nt_increment_hello_interval(mobility);
 	}
-	db_nt_increment_hello_interval(mobility);
 	timeslot_addobject(nt.ts, timestamp, curr_entry);
 	return TRUE;
 }
@@ -129,22 +130,36 @@ int calc_hello_interval(u_int8_t mobility) {
 int db_nt_increment_hello_interval(u_int8_t mobility) {
 	int new_interval = calc_hello_interval(mobility);
 	if(new_interval < hello_interval) {
-		dessert_periodic_del(periodic_send_hello);
 
+		hello_interval = new_interval;
+
+		dessert_periodic_del(periodic_send_hello);
 		struct timeval hello_interval_t;
-		hello_interval_t.tv_sec = new_interval / 1000;
-		hello_interval_t.tv_usec = (new_interval % 1000) * 1000;
+		hello_interval_t.tv_sec = hello_interval / 1000;
+		hello_interval_t.tv_usec = (hello_interval % 1000) * 1000;
 		periodic_send_hello = dessert_periodic_add(aodv_periodic_send_hello, NULL, NULL, &hello_interval_t);
 
-		dessert_notice("setting HELLO interval from [%d]ms to [%d]ms - new max mobility is [%d]", hello_interval, new_interval, mobility);
-		hello_interval = new_interval;
+		dessert_notice("setting HELLO interval to [%d]ms - new max mobility is [%d]", hello_interval, mobility);
 	}
-	return new_interval;
+	return hello_interval;
 }
 
-int db_nt_decrement_hello_interval() {
-	//NOT IMPLEMENTED
-	return -1;
+int db_nt_decrement_hello_interval(neighbor_entry_t* entry) {
+
+	int entry_interval = calc_hello_interval(entry->mobility);
+	if(entry_interval <= hello_interval) {
+
+		hello_interval = HELLO_INTERVAL;
+
+		dessert_periodic_del(periodic_send_hello);
+		struct timeval hello_interval_t;
+		hello_interval_t.tv_sec = hello_interval / 1000;
+		hello_interval_t.tv_usec = (hello_interval % 1000) * 1000;
+		periodic_send_hello = dessert_periodic_add(aodv_periodic_send_hello, NULL, NULL, &hello_interval_t);
+
+		dessert_notice("setting HELLO interval to [%d]ms - new max mobility is unknown", hello_interval);
+	}
+	return hello_interval;
 }
 
 
