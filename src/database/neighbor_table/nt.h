@@ -49,6 +49,4 @@ int db_nt_cleanup(struct timeval* timestamp);
 
 void db_nt_on_neigbor_timeout(struct timeval* timestamp, void* src_object, void* object);
 
-int db_nt_increment_hello_interval(u_int8_t mobility);
-
 #endif

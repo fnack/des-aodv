@@ -32,6 +32,7 @@ typedef struct neighbor_entry {
 		u_int8_t 				ether_neighbor[ETH_ALEN];
 		const dessert_meshif_t*	iface;
 		u_int8_t 				mobility;
+		u_int8_t 				initial_rssi;
 	};
 	UT_hash_handle				hh;
 } neighbor_entry_t;
@@ -43,13 +44,17 @@ typedef struct neighbor_table {
 
 neighbor_table_t nt;
 
-neighbor_entry_t* db_neighbor_entry_create(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, u_int8_t mobility) {
+int db_nt_increment_hello_interval(u_int8_t mobility);
+int db_nt_decrement_hello_interval(neighbor_entry_t* entry);
+
+neighbor_entry_t* db_neighbor_entry_create(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, u_int8_t mobility, u_int8_t initial_rssi) {
 	neighbor_entry_t* new_entry;
 	new_entry = malloc(sizeof(neighbor_entry_t));
 	if (new_entry == NULL) return NULL;
 	memcpy(new_entry->ether_neighbor, ether_neighbor_addr, ETH_ALEN);
 	new_entry->iface = iface;
 	new_entry->mobility = mobility;
+	new_entry->initial_rssi = initial_rssi;
 	return new_entry;
 }
 
@@ -85,7 +90,9 @@ int db_nt_cap2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshi
 	memcpy(addr_sum + ETH_ALEN, &iface, sizeof(void*));
 	HASH_FIND(hh, nt.entrys, addr_sum, ETH_ALEN + sizeof(void*), curr_entry);
 	if (curr_entry == NULL) {
-		curr_entry = db_neighbor_entry_create(ether_neighbor_addr, iface, mobility);
+		avg_node_result_t result = dessert_rssi_avg(ether_neighbor_addr, iface->if_name);
+		int initial_rssi = result.avg_rssi;
+		curr_entry = db_neighbor_entry_create(ether_neighbor_addr, iface, mobility, initial_rssi);
 		if (curr_entry == NULL)
 			return FALSE;
 		HASH_ADD_KEYPTR(hh, nt.entrys, curr_entry->ether_neighbor, ETH_ALEN + sizeof(void*), curr_entry);
@@ -111,6 +118,18 @@ int db_nt_check2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_mes
 
 int db_nt_cleanup(struct timeval* timestamp) {
 	return timeslot_purgeobjects(nt.ts, timestamp);
+}
+
+int db_nt_get_initial_rssi(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp) {
+	neighbor_entry_t* curr_entry = NULL;
+	u_int8_t addr_sum[ETH_ALEN + sizeof(void*)];
+	memcpy(addr_sum, ether_neighbor_addr, ETH_ALEN);
+	memcpy(addr_sum + ETH_ALEN, &iface, sizeof(void*));
+	HASH_FIND(hh, nt.entrys, addr_sum, ETH_ALEN + sizeof(void*), curr_entry);
+	if (curr_entry == NULL) {
+		return 0;
+	}
+	return curr_entry->initial_rssi;
 }
 
 /** returns the hello_interval in ms */
