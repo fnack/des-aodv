@@ -213,15 +213,19 @@ int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled,
 			              MONITOR_SIGNAL_STRENGTH_GREY_ZONE,
 			              EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l25_source));
 
-			aodv_send_rwarn(aodv_monitor_last_hops_rbuff[i].l25_source,
-			                dessert_l25_defsrc,
-			                aodv_monitor_last_hops_rbuff[i].l2_source,
-			                mobility,
-			                255);
+			u_int8_t *rwarn_dest = malloc(ETH_ALEN);
+			memcpy(rwarn_dest, &aodv_monitor_last_hops_rbuff[i].l25_source, ETH_ALEN);
+
+			u_int8_t *rwarn_next_hop = malloc(ETH_ALEN);
+			memcpy(rwarn_next_hop, &aodv_monitor_last_hops_rbuff[i].l2_source, ETH_ALEN);
+
+			aodv_send_rwarn(rwarn_dest, rwarn_next_hop);
+			free(rwarn_dest);
+			free(rwarn_next_hop);
+
 			aodv_monitor_last_hops_rbuff[i].last_warn = now;
 		}
 	}
 	return 0;
 }
-
 

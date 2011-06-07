@@ -223,10 +223,6 @@ int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled,
 
 void aodv_send_rreq(u_int8_t dhost_ether[ETH_ALEN], struct timeval* ts, u_int8_t ttl);
 
-void aodv_send_rwarn(u_int8_t rwarn_dest[ETH_ALEN],
-                     u_int8_t rwarn_source[ETH_ALEN],
-                     u_int8_t rwarn_next_hop[ETH_ALEN],
-                     u_int8_t source_mobility,
-                     u_int8_t ttl);
+void aodv_send_rwarn(u_int8_t rwarn_dest[ETH_ALEN], u_int8_t rwarn_next_hop[ETH_ALEN]);
 
 #endif

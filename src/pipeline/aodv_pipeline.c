@@ -146,53 +146,39 @@ void aodv_send_rreq(u_int8_t dhost_ether[ETH_ALEN], struct timeval* ts, u_int8_t
 	dessert_msg_destroy(rreq_msg);
 }
 
-dessert_msg_t* _create_rwarn(u_int8_t rwarn_dest[ETH_ALEN],
-                             u_int8_t rwarn_source[ETH_ALEN],
-                             u_int8_t rwarn_next_hop[ETH_ALEN],
-                             u_int8_t source_mobility,
-                             u_int8_t ttl) {
+dessert_msg_t* _create_rwarn(u_int8_t rwarn_dest[ETH_ALEN], u_int8_t rwarn_next_hop[ETH_ALEN]) {
 
 	dessert_msg_t* msg;
+	dessert_ext_t* ext;
 	dessert_msg_new(&msg);
-	msg->ttl = ttl;
+	msg->ttl = 255;
 
 	// add l25h header
-	dessert_ext_t* ext;
 	dessert_msg_addext(msg, &ext, DESSERT_EXT_ETH, ETHER_HDR_LEN);
 	struct ether_header* rwarn_l25h = (struct ether_header*) ext->data;
 	memcpy(rwarn_l25h->ether_shost, rwarn_dest, ETH_ALEN);
-	memcpy(rwarn_l25h->ether_dhost, rwarn_source, ETH_ALEN);
+	memcpy(rwarn_l25h->ether_dhost, dessert_l25_defsrc, ETH_ALEN);
 
 	// set next hop
 	memcpy(msg->l2h.ether_dhost, rwarn_next_hop, ETH_ALEN);
 
-	// and add RREP ext
+	// and add RWARN ext
 	dessert_msg_addext(msg, &ext, RWARN_EXT_TYPE, sizeof(struct aodv_msg_rwarn));
 	struct aodv_msg_rwarn* rwarn_msg = (struct aodv_msg_rwarn*) ext->data;
-	rwarn_msg->source_mobility = source_mobility;
+	rwarn_msg->source_mobility = mobility;
 	return msg;
-	
 }
 
-void aodv_send_rwarn(u_int8_t rwarn_dest[ETH_ALEN],
-                     u_int8_t rwarn_source[ETH_ALEN],
-                     u_int8_t rwarn_next_hop[ETH_ALEN],
-                     u_int8_t source_mobility,
-                     u_int8_t ttl) {
+void aodv_send_rwarn(u_int8_t rwarn_dest[ETH_ALEN], u_int8_t rwarn_next_hop[ETH_ALEN]) {
 
-	dessert_debug("sending rwarn to " MAC " over " MAC " mobility is %d", rwarn_dest, rwarn_next_hop, mobility);
+	dessert_debug("sending rwarn to " MAC " over " MAC " mobility is %d", EXPLODE_ARRAY6(rwarn_dest), EXPLODE_ARRAY6(rwarn_next_hop), mobility);
 
-	dessert_msg_t* rwarn_msg = _create_rwarn(rwarn_dest,
-	                                         rwarn_source,
-	                                         rwarn_next_hop,
-	                                         source_mobility,
-	                                         ttl);
+	dessert_msg_t* rwarn_msg = _create_rwarn(rwarn_dest, rwarn_next_hop);
 	
 	// send out and destroy
 	dessert_meshsend_fast(rwarn_msg, NULL);
 	dessert_msg_destroy(rwarn_msg);
 }
-
 
 int aodv_handle_rwarn(dessert_msg_t* msg,
                       size_t len,
@@ -668,9 +654,8 @@ int is_in_rbuff(mac_addr l2_source) {
 	for(i = 0; i < MONITOR_SIGNAL_STRENGTH_MAX; i++) {
 		if(0 == memcmp(l2_source, aodv_monitor_last_hops_rbuff[i].l2_source, ETHER_ADDR_LEN))
 			return TRUE;
-
-		return FALSE;
 	}
+	return FALSE;
 }
 
 void put_in_rbuff(mac_addr l2_source, mac_addr l25_source, char *if_name) {
