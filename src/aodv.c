@@ -81,7 +81,6 @@ int main(int argc, char** argv) {
     cli_register_command(dessert_cli, dessert_cli_show, "rt", cli_show_rt, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show routing table");
 
     cli_register_command(dessert_cli, NULL, "send_rreq", cli_send_rreq, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "send RREQ to destination");
-    cli_register_command(dessert_cli, NULL, "send_rwarn", cli_send_rwarn, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "send RWARN to destination");
 
     /* registering callbacks */
     dessert_meshrxcb_add(dessert_msg_check_cb, 10);
