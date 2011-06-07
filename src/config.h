@@ -65,6 +65,7 @@ enum bool {TRUE = 1, FALSE = 0};
 #define MONITOR_SIGNAL_STRENGTH_INTERVAL 200		// milliseconds
 #define MONITOR_SIGNAL_STRENGTH_BLACK_ZONE -90
 #define MONITOR_SIGNAL_STRENGTH_GREY_ZONE -70
+#define MONITOR_SIGNAL_STRENGTH_THRESHOLD 10
 #define MONITOR_SIGNAL_STRENGTH_WARN_INTERVAL 2 //seconds
 /**
  * Schedule type = send out packets from FIFO puffer for

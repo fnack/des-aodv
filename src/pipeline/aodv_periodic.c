@@ -26,6 +26,7 @@ For further information and questions please use the web site
 #include "../config.h"
 #include <string.h>
 #include "../database/rl_seq_t/rl_seq.h"
+#include "../database/neighbor_table/nt.h"
 #include <pthread.h>
 #include <utlist.h>
 #include <unistd.h>
@@ -207,6 +208,12 @@ int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled,
 				continue;
 			}
 
+			int initial_rssi = db_nt_get_initial_rssi(aodv_monitor_last_hops_rbuff[i].l2_source, aodv_monitor_last_hops_rbuff[i].iface);
+			if((initial_rssi - MONITOR_SIGNAL_STRENGTH_THRESHOLD) <= result.avg_rssi) {
+				//  -75                   15                  <=      -90
+				dessert_debug("RSSI VAL of %d from " MAC " is bad, but threshold (%d) not reached...doing nothing", result.avg_rssi, EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l2_source), initial_rssi - MONITOR_SIGNAL_STRENGTH_THRESHOLD);
+				continue;
+			}
 			dessert_debug("RSSI VAL of %d from " MAC " is too bad ( < %d ) -> sending RWARN to " MAC,
 			              result.avg_rssi,
 			              EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l2_source),

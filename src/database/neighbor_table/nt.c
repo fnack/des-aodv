@@ -32,7 +32,7 @@ typedef struct neighbor_entry {
 		u_int8_t 				ether_neighbor[ETH_ALEN];
 		const dessert_meshif_t*	iface;
 		u_int8_t 				mobility;
-		u_int8_t 				initial_rssi;
+		int8_t 				initial_rssi;
 	};
 	UT_hash_handle				hh;
 } neighbor_entry_t;
@@ -120,7 +120,7 @@ int db_nt_cleanup(struct timeval* timestamp) {
 	return timeslot_purgeobjects(nt.ts, timestamp);
 }
 
-int db_nt_get_initial_rssi(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp) {
+int db_nt_get_initial_rssi(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface) {
 	neighbor_entry_t* curr_entry = NULL;
 	u_int8_t addr_sum[ETH_ALEN + sizeof(void*)];
 	memcpy(addr_sum, ether_neighbor_addr, ETH_ALEN);
