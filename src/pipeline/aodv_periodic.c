@@ -193,7 +193,7 @@ int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled,
 		if(0 == memcmp(aodv_monitor_last_hops_rbuff[i].l2_source, invalid_mac, ETHER_ADDR_LEN))
 			continue;
 
-		avg_node_result_t result = dessert_rssi_avg(aodv_monitor_last_hops_rbuff[i].l2_source, aodv_monitor_last_hops_rbuff[i].if_name);
+		avg_node_result_t result = dessert_rssi_avg(aodv_monitor_last_hops_rbuff[i].l2_source, aodv_monitor_last_hops_rbuff[i].iface->if_name);
 
 		if(result.avg_rssi < MONITOR_SIGNAL_STRENGTH_GREY_ZONE) {
 
@@ -214,12 +214,11 @@ int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled,
 			              EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l25_source));
 
 			u_int8_t *rwarn_dest = malloc(ETH_ALEN);
-			memcpy(rwarn_dest, &aodv_monitor_last_hops_rbuff[i].l25_source, ETH_ALEN);
-
+			memcpy(rwarn_dest, aodv_monitor_last_hops_rbuff[i].l25_source, ETH_ALEN);
 			u_int8_t *rwarn_next_hop = malloc(ETH_ALEN);
-			memcpy(rwarn_next_hop, &aodv_monitor_last_hops_rbuff[i].l2_source, ETH_ALEN);
+			memcpy(rwarn_next_hop, aodv_monitor_last_hops_rbuff[i].l2_source, ETH_ALEN);
 
-			aodv_send_rwarn(rwarn_dest, rwarn_next_hop);
+			aodv_send_rwarn(rwarn_dest, rwarn_next_hop, aodv_monitor_last_hops_rbuff[i].iface);
 			free(rwarn_dest);
 			free(rwarn_next_hop);
 

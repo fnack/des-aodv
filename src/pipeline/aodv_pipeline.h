@@ -161,7 +161,7 @@ void rlfile_log(const u_int8_t src_addr[ETH_ALEN], const u_int8_t dest_addr[ETH_
 typedef struct aodv_monitor_last_hops_rbuff {
 	mac_addr l2_source;
 	mac_addr l25_source;
-	char if_name[IFNAMSIZ];
+	dessert_meshif_t *iface;
 	time_t last_warn;
 } aodv_monitor_last_hops_rbuff_t;
 
@@ -223,6 +223,6 @@ int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled,
 
 void aodv_send_rreq(u_int8_t dhost_ether[ETH_ALEN], struct timeval* ts, u_int8_t ttl);
 
-void aodv_send_rwarn(u_int8_t rwarn_dest[ETH_ALEN], u_int8_t rwarn_next_hop[ETH_ALEN]);
+void aodv_send_rwarn(u_int8_t rwarn_dest[ETH_ALEN], u_int8_t rwarn_next_hop[ETH_ALEN], dessert_meshif_t *iface);
 
 #endif

@@ -134,7 +134,7 @@ void aodv_send_rreq(u_int8_t dhost_ether[ETH_ALEN], struct timeval* ts, u_int8_t
 		}
 	}
 	aodv_db_putrreq(ts);
-	dessert_debug("RREQ to " MAC " ttl=%i rreq_count=%d", EXPLODE_ARRAY6(dhost_ether), (ttl > TTL_THRESHOLD) ? 255 : ttl, rreq_count);
+	dessert_debug("send RREQ to " MAC " ttl=%i rreq_count=%d", EXPLODE_ARRAY6(dhost_ether), (ttl > TTL_THRESHOLD) ? 255 : ttl, rreq_count);
 
 	void* payload;
 	uint16_t size = max(rreq_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
@@ -156,8 +156,8 @@ dessert_msg_t* _create_rwarn(u_int8_t rwarn_dest[ETH_ALEN], u_int8_t rwarn_next_
 	// add l25h header
 	dessert_msg_addext(msg, &ext, DESSERT_EXT_ETH, ETHER_HDR_LEN);
 	struct ether_header* rwarn_l25h = (struct ether_header*) ext->data;
-	memcpy(rwarn_l25h->ether_shost, rwarn_dest, ETH_ALEN);
-	memcpy(rwarn_l25h->ether_dhost, dessert_l25_defsrc, ETH_ALEN);
+	memcpy(rwarn_l25h->ether_dhost, rwarn_dest, ETH_ALEN);
+	memcpy(rwarn_l25h->ether_shost, dessert_l25_defsrc, ETH_ALEN);
 
 	// set next hop
 	memcpy(msg->l2h.ether_dhost, rwarn_next_hop, ETH_ALEN);
@@ -169,14 +169,14 @@ dessert_msg_t* _create_rwarn(u_int8_t rwarn_dest[ETH_ALEN], u_int8_t rwarn_next_
 	return msg;
 }
 
-void aodv_send_rwarn(u_int8_t rwarn_dest[ETH_ALEN], u_int8_t rwarn_next_hop[ETH_ALEN]) {
+void aodv_send_rwarn(u_int8_t rwarn_dest[ETH_ALEN], u_int8_t rwarn_next_hop[ETH_ALEN], dessert_meshif_t *iface) {
 
 	dessert_debug("sending rwarn to " MAC " over " MAC " mobility is %d", EXPLODE_ARRAY6(rwarn_dest), EXPLODE_ARRAY6(rwarn_next_hop), mobility);
 
 	dessert_msg_t* rwarn_msg = _create_rwarn(rwarn_dest, rwarn_next_hop);
 	
 	// send out and destroy
-	dessert_meshsend_fast(rwarn_msg, NULL);
+	dessert_meshsend_fast(rwarn_msg, iface);
 	dessert_msg_destroy(rwarn_msg);
 }
 
@@ -197,20 +197,20 @@ int aodv_handle_rwarn(dessert_msg_t* msg,
 	}
 
 	struct ether_header* l25h = dessert_msg_getl25ether(msg);
-	if (memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) == FALSE) {
+	if (memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) != 0) {
 		//not for me
 		const dessert_meshif_t* output_iface;
 		u_int8_t next_hop[ETH_ALEN];
 		if(aodv_db_getprevhop(l25h->ether_shost, l25h->ether_dhost, next_hop, &output_iface)) {
-			dessert_debug("re-send RWARN to " MAC, EXPLODE_ARRAY6(l25h->ether_dhost));
+			dessert_debug("re-send RWARN to " MAC " got over " MAC, EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
 			memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
 			dessert_meshsend_fast(msg, output_iface);
 		} else {
-			dessert_debug("DO NOT re-send RWARN to " MAC, EXPLODE_ARRAY6(l25h->ether_dhost));
+			dessert_debug("DO NOT re-send RWARN to " MAC " got over " MAC , EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
 		}
 	} else {
 		//for me
-		dessert_debug("got RWARN from " MAC " send rreq...", EXPLODE_ARRAY6(l25h->ether_dhost));
+		dessert_debug("got RWARN from " MAC " over " MAC " send rreq...", EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
 		struct timeval ts;
 		gettimeofday(&ts, NULL);
 		aodv_send_rreq(l25h->ether_shost, &ts, TTL_START);	 // create and send RREQ
@@ -658,13 +658,13 @@ int is_in_rbuff(mac_addr l2_source) {
 	return FALSE;
 }
 
-void put_in_rbuff(mac_addr l2_source, mac_addr l25_source, char *if_name) {
+void put_in_rbuff(mac_addr l2_source, mac_addr l25_source, dessert_meshif_t *iface) {
 	if(aodv_monitor_last_hops_rbuff_pos >= MONITOR_SIGNAL_STRENGTH_MAX)
 		aodv_monitor_last_hops_rbuff_pos = 0;
 
 	memcpy(aodv_monitor_last_hops_rbuff[aodv_monitor_last_hops_rbuff_pos].l2_source, l2_source, ETHER_ADDR_LEN);
 	memcpy(aodv_monitor_last_hops_rbuff[aodv_monitor_last_hops_rbuff_pos].l25_source, l25_source, ETHER_ADDR_LEN);
-	memcpy(&aodv_monitor_last_hops_rbuff[aodv_monitor_last_hops_rbuff_pos].if_name, if_name, IFNAMSIZ);
+	aodv_monitor_last_hops_rbuff[aodv_monitor_last_hops_rbuff_pos].iface = iface;
 
 	aodv_monitor_last_hops_rbuff_pos++;
 	if(aodv_monitor_last_hops_rbuff_pos >= MONITOR_SIGNAL_STRENGTH_MAX)
@@ -677,10 +677,10 @@ int aodv_monitor_last_hops(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *p
 		struct ether_header l2h = msg->l2h;
 		struct ether_header* l25h = dessert_msg_getl25ether(msg);
 		
-		dessert_debug("DATA Packet from " MAC " over " MAC, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
+		dessert_debug("got DATA Packet from " MAC " over " MAC, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
 		
 		if(!is_in_rbuff(l2h.ether_shost))
-			put_in_rbuff(l2h.ether_shost, l25h->ether_shost, iface->if_name);
+			put_in_rbuff(l2h.ether_shost, l25h->ether_shost, iface);
 
 	}
 	return DESSERT_MSG_KEEP;
