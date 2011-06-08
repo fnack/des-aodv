@@ -66,7 +66,7 @@ enum bool {TRUE = 1, FALSE = 0};
 #define MONITOR_SIGNAL_STRENGTH_BLACK_ZONE -90
 #define MONITOR_SIGNAL_STRENGTH_GREY_ZONE -70
 #define MONITOR_SIGNAL_STRENGTH_THRESHOLD 10
-#define MONITOR_SIGNAL_STRENGTH_WARN_INTERVAL 2 //seconds
+#define MONITOR_SIGNAL_STRENGTH_WARN_INTERVAL 4 //seconds
 /**
  * Schedule type = send out packets from FIFO puffer for
  * destination with ether_addr
@@ -86,7 +86,7 @@ enum bool {TRUE = 1, FALSE = 0};
 #define HELLO_INTERVAL				1000 	// milliseconds
 #define RREQ_SIZE					128
 
-#define MOBILITY			0 /* 0==no; 255==max */
+#define MOBILITY			200 /* 0==no; 255==max */
 
 // --- Database Flags
 #define AODV_FLAGS_ROUTE_INVALID 	1

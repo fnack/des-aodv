@@ -103,7 +103,7 @@ int db_nt_cap2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshi
 		//if we know the neighbor, we update the max_rssi
 		avg_node_result_t result = dessert_rssi_avg(ether_neighbor_addr, iface->if_name);
 		int current_rssi = result.avg_rssi;
-		if(current_rssi > curr_entry->max_rssi) {
+		if(0 != current_rssi && current_rssi > curr_entry->max_rssi) {
 			dessert_debug("updateting neighbor rssi of " MAC " from %d to %d", EXPLODE_ARRAY6(ether_neighbor_addr) ,curr_entry->max_rssi, current_rssi);
 			curr_entry->max_rssi = current_rssi;
 		}

@@ -211,20 +211,20 @@ int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled,
 
 		//get max rssi of the neighbor
 		int max_rssi = db_nt_get_max_rssi(aodv_monitor_last_hops_rbuff[i].l2_source, aodv_monitor_last_hops_rbuff[i].iface);
-		if((max_rssi - MONITOR_SIGNAL_STRENGTH_THRESHOLD) <= result.avg_rssi) {
-			//  -75                   15                  <=      -90
-			dessert_debug("RSSI VAL of %d from " MAC " is bad, but threshold (%d) not reached...doing nothing",
+		if((max_rssi - MONITOR_SIGNAL_STRENGTH_THRESHOLD) > result.avg_rssi) {
+		//    -35    -               15                   >      -50
+/*			dessert_debug("RSSI VAL of %d from " MAC " threshold (%d) not reached...doing nothing",
 			              result.avg_rssi,
 			              EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l2_source),
 			              max_rssi - MONITOR_SIGNAL_STRENGTH_THRESHOLD);
-			continue;
+*/			continue;
 		}
 
 		//current_rssi is MONITOR_SIGNAL_STRENGTH_THRESHOLD below the max_rssi -> sending rwarn
-		dessert_debug("RSSI VAL of %d from " MAC " is too bad ( < %d ) -> sending RWARN to " MAC,
+		dessert_debug("RSSI VAL %d from " MAC " is too bad ( < %d ) -> sending RWARN to " MAC,
 		              result.avg_rssi,
 		              EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l2_source),
-		              MONITOR_SIGNAL_STRENGTH_GREY_ZONE,
+		              max_rssi - MONITOR_SIGNAL_STRENGTH_THRESHOLD,
 		              EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l25_source));
 
 		u_int8_t *rwarn_dest = malloc(ETH_ALEN);
