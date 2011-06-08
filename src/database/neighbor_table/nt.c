@@ -89,9 +89,9 @@ int db_nt_cap2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshi
 	memcpy(addr_sum, ether_neighbor_addr, ETH_ALEN);
 	memcpy(addr_sum + ETH_ALEN, &iface, sizeof(void*));
 	HASH_FIND(hh, nt.entrys, addr_sum, ETH_ALEN + sizeof(void*), curr_entry);
+	avg_node_result_t result = dessert_rssi_avg(ether_neighbor_addr, iface->if_name);
 	if (curr_entry == NULL) {
 		//this neigbor is new, so create an entry with rssi val
-		avg_node_result_t result = dessert_rssi_avg(ether_neighbor_addr, iface->if_name);
 		int initial_rssi = result.avg_rssi;
 		curr_entry = db_neighbor_entry_create(ether_neighbor_addr, iface, mobility, initial_rssi);
 		if (curr_entry == NULL)
@@ -101,9 +101,8 @@ int db_nt_cap2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshi
 		db_nt_increment_hello_interval(mobility);
 	} else {
 		//if we know the neighbor, we update the max_rssi
-		avg_node_result_t result = dessert_rssi_avg(ether_neighbor_addr, iface->if_name);
 		int current_rssi = result.avg_rssi;
-		if(0 != current_rssi && current_rssi > curr_entry->max_rssi) {
+		if(0 != current_rssi && (current_rssi > curr_entry->max_rssi || curr_entry->max_rssi == 0)) {
 			dessert_debug("updateting neighbor rssi of " MAC " from %d to %d", EXPLODE_ARRAY6(ether_neighbor_addr) ,curr_entry->max_rssi, current_rssi);
 			curr_entry->max_rssi = current_rssi;
 		}
