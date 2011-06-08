@@ -32,7 +32,7 @@ typedef struct neighbor_entry {
 		u_int8_t 				ether_neighbor[ETH_ALEN];
 		const dessert_meshif_t*	iface;
 		u_int8_t 				mobility;
-		int8_t 				initial_rssi;
+		int8_t 				max_rssi;
 	};
 	UT_hash_handle				hh;
 } neighbor_entry_t;
@@ -54,7 +54,7 @@ neighbor_entry_t* db_neighbor_entry_create(u_int8_t ether_neighbor_addr[ETH_ALEN
 	memcpy(new_entry->ether_neighbor, ether_neighbor_addr, ETH_ALEN);
 	new_entry->iface = iface;
 	new_entry->mobility = mobility;
-	new_entry->initial_rssi = initial_rssi;
+	new_entry->max_rssi = initial_rssi;
 	return new_entry;
 }
 
@@ -90,6 +90,7 @@ int db_nt_cap2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshi
 	memcpy(addr_sum + ETH_ALEN, &iface, sizeof(void*));
 	HASH_FIND(hh, nt.entrys, addr_sum, ETH_ALEN + sizeof(void*), curr_entry);
 	if (curr_entry == NULL) {
+		//this neigbor is new, so create an entry with rssi val
 		avg_node_result_t result = dessert_rssi_avg(ether_neighbor_addr, iface->if_name);
 		int initial_rssi = result.avg_rssi;
 		curr_entry = db_neighbor_entry_create(ether_neighbor_addr, iface, mobility, initial_rssi);
@@ -98,6 +99,14 @@ int db_nt_cap2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshi
 		HASH_ADD_KEYPTR(hh, nt.entrys, curr_entry->ether_neighbor, ETH_ALEN + sizeof(void*), curr_entry);
 		dessert_debug("%s <=====> " MAC, iface->if_name, EXPLODE_ARRAY6(ether_neighbor_addr));
 		db_nt_increment_hello_interval(mobility);
+	} else {
+		//if we know the neighbor, we update the max_rssi
+		avg_node_result_t result = dessert_rssi_avg(ether_neighbor_addr, iface->if_name);
+		int current_rssi = result.avg_rssi;
+		if(current_rssi > curr_entry->max_rssi) {
+			dessert_debug("updateting neighbor rssi of " MAC " from %d to %d", EXPLODE_ARRAY6(ether_neighbor_addr) ,curr_entry->max_rssi, current_rssi);
+			curr_entry->max_rssi = current_rssi;
+		}
 	}
 	timeslot_addobject(nt.ts, timestamp, curr_entry);
 	return TRUE;
@@ -120,7 +129,7 @@ int db_nt_cleanup(struct timeval* timestamp) {
 	return timeslot_purgeobjects(nt.ts, timestamp);
 }
 
-int db_nt_get_initial_rssi(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface) {
+int db_nt_get_max_rssi(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface) {
 	neighbor_entry_t* curr_entry = NULL;
 	u_int8_t addr_sum[ETH_ALEN + sizeof(void*)];
 	memcpy(addr_sum, ether_neighbor_addr, ETH_ALEN);
@@ -129,7 +138,7 @@ int db_nt_get_initial_rssi(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert
 	if (curr_entry == NULL) {
 		return 0;
 	}
-	return curr_entry->initial_rssi;
+	return curr_entry->max_rssi;
 }
 
 /** returns the hello_interval in ms */
