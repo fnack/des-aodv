@@ -78,13 +78,13 @@ static FILE *read_config_from_params(int argc, char** argv) {
     
     FILE *cfg;
     if(cfg_file_name) {
-            cfg = fopen(cfg_file_name, "r");
-            if (cfg == NULL) {
-                    printf("Config file '%s' not found. Exit ...\n", cfg_file_name);
-                    return EXIT_FAILURE;
-            }
+        cfg = fopen(cfg_file_name, "r");
+        if (cfg == NULL) {
+            printf("Config file '%s' not found. Exit ...\n", cfg_file_name);
+            return EXIT_FAILURE;
+        }
     } else {
-            cfg = dessert_cli_get_cfg(argc, argv);
+        cfg = dessert_cli_get_cfg(argc, argv);
     }
     
     return cfg;
@@ -125,17 +125,10 @@ int main(int argc, char** argv) {
     dessert_meshrxcb_add(aodv_handle_rerr, 60);
     dessert_meshrxcb_add(aodv_handle_rrep, 70);
     dessert_meshrxcb_add(dessert_mesh_ipttl, 75);
-    dessert_meshrxcb_add(aodv_forward_broadcast, 80);
-    dessert_meshrxcb_add(aodv_forward_multicast, 80);
-    dessert_meshrxcb_add(aodv_forward_unicast, 80);
-    dessert_meshrxcb_add(mesh2sys_broadcast, 100);
-    dessert_meshrxcb_add(mesh2sys_multicast, 105);
-    dessert_meshrxcb_add(mesh2sys_unicast, 110);
-    dessert_meshrxcb_add(mesh2sys_end, 115);
+    dessert_meshrxcb_add(aodv_fwd2dest, 80);
+    dessert_meshrxcb_add(rp2sys, 100);
 
-    dessert_sysrxcb_add(aodv_sys2mesh_broadcast, 10);
-    dessert_sysrxcb_add(aodv_sys2mesh_unicast, 10);
-    dessert_sysrxcb_add(aodv_sys2mesh_end, 10);
+    dessert_sysrxcb_add(aodv_sys2rp, 10);
 
     /* registering periodic tasks */
     struct timeval hello_interval_t;

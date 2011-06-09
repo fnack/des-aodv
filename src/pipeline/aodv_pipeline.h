@@ -136,11 +136,6 @@ typedef struct _onlb_dest_list_element {
 } _onlb_element_t;
 
 // ------------- pipeline -----------------------------------------------------
-
-/** drop errors (drop corrupt packets, packets from myself and etc...)*/
-int aodv_drop_errors(dessert_msg_t* msg, size_t len,
-		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
-
 int aodv_handle_hello(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
@@ -153,23 +148,24 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len,
 int aodv_handle_rrep(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
-int aodv_forward_broadcast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
-int aodv_forward_multicast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
-int aodv_forward_unicast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
+int aodv_fwd2dest(dessert_msg_t* msg, size_t len,
+		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
 /**
  * Encapsulate packets as dessert_msg,
  * set NEXT HOP if known and send via AODV routing protocol
  */
-int aodv_sys2mesh_broadcast(dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, dessert_sysif_t *sysif, dessert_frameid_t id);
-int aodv_sys2mesh_unicast(dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, dessert_sysif_t *sysif, dessert_frameid_t id);
-int aodv_sys2mesh_end(dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, dessert_sysif_t *sysif, dessert_frameid_t id);
+int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc,
+		dessert_sysif_t *sysif, dessert_frameid_t id);
 
 /** forward packets received via AODV to tun interface */
-int mesh2sys_broadcast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
-int mesh2sys_multicast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
-int mesh2sys_unicast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
-int mesh2sys_end(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
+int rp2sys(dessert_msg_t* msg, size_t len,
+		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
+
+/** drop errors (drop corrupt packets, packets from myself and etc...)*/
+int aodv_drop_errors(dessert_msg_t* msg, size_t len,
+		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
+
 
 // ------------------------------ periodic ----------------------------------------------------
 
