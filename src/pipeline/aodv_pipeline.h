@@ -74,12 +74,6 @@ struct aodv_msg_rreq {
 	 * route towards the destination.
 	 */
 	u_int32_t		seq_num_dest;
-	/**
-	 * Originator Sequence Number;
-	 * The current sequence number to be used in the route entry pointing towards
-	 * the originator of the route request.
-	 */
-	u_int32_t		seq_num_src;
 } __attribute__ ((__packed__));
 
 /** RREP - Route Reply Message */
@@ -94,7 +88,11 @@ struct aodv_msg_rrep {
 	u_int8_t		prefix_size;
 	/**  Hop Count: The number of hops from the originator to destination */
 	u_int8_t		hop_count;
-	/** Destination sequence number */
+	/**
+	 * Destination Sequence Number;
+	 * The latest sequence number received in the past by the originator for any
+	 * route towards the destination.
+	 */
 	u_int32_t		seq_num_dest;
 	/**
 	 * LifeTime:
