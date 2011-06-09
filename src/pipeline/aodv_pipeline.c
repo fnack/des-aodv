@@ -98,6 +98,9 @@ dessert_msg_t* _create_rrep(u_int8_t route_dest[ETH_ALEN], u_int8_t route_source
 	dessert_msg_addext(msg, &ext, RREP_EXT_TYPE, sizeof(struct aodv_msg_rrep));
 	struct aodv_msg_rrep* rrep_msg = (struct aodv_msg_rrep*) ext->data;
 	rrep_msg->flags = flags;
+	pthread_rwlock_wrlock(&pp_rwlock);
+	msg->u16 = ++seq_num_management;
+	pthread_rwlock_unlock(&pp_rwlock);
 	rrep_msg->hop_count = 0;
 	rrep_msg->lifetime = 0;
 	rrep_msg->seq_num_dest = route_seq_num;
@@ -160,6 +163,9 @@ void aodv_send_packets_from_buffer(u_int8_t ether_dhost[ETH_ALEN], u_int8_t next
 		              EXPLODE_ARRAY6(next_hop));
 		/*  no need to search for next hop. Next hop is the last_hop that send RREP */
 		memcpy(buffered_msg->l2h.ether_dhost, next_hop, ETH_ALEN);
+		pthread_rwlock_wrlock(&pp_rwlock);
+		buffered_msg->u16 = ++seq_num_data;
+		pthread_rwlock_unlock(&pp_rwlock);
 		dessert_meshsend_fast(buffered_msg, iface);
 		dessert_msg_destroy(buffered_msg);
 	}
@@ -224,6 +230,9 @@ int aodv_handle_hello(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, 
 	msg->ttl--;
 	if (msg->ttl >= 1) {
 		// hello req
+		pthread_rwlock_wrlock(&pp_rwlock);
+		msg->u16 = ++seq_num_management;
+		pthread_rwlock_unlock(&pp_rwlock);
 		memcpy(msg->l2h.ether_dhost, msg->l2h.ether_shost, ETH_ALEN);
 		dessert_meshsend(msg, iface);
 	} else {
@@ -267,7 +276,9 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 			dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_rreq_seq, AODV_FLAGS_RREP_A);
 
 			dessert_debug("repair link to " MAC, EXPLODE_ARRAY6(l25h->ether_dhost));
-
+			pthread_rwlock_wrlock(&pp_rwlock);
+			msg->u16 = ++seq_num_management;
+			pthread_rwlock_unlock(&pp_rwlock);
 			dessert_meshsend_fast(rrep_msg, iface);
 			dessert_msg_destroy(rrep_msg);
 		} else if (msg->ttl > 0 && cap_result) {
@@ -471,6 +482,9 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, desse
 		if (aodv_db_getroute2dest(l25h->ether_dhost, dhost_next_hop, &output_iface, &ts) == TRUE) {
 			// route is known -> send
 			memcpy(msg->l2h.ether_dhost, dhost_next_hop, ETH_ALEN);
+			pthread_rwlock_wrlock(&pp_rwlock);
+			msg->u16 = ++seq_num_data;
+			pthread_rwlock_unlock(&pp_rwlock);
 			dessert_meshsend_fast(msg, output_iface);
 		} else {
 			aodv_db_push_packet(l25h->ether_dhost, msg, &ts);    // route is unknown -> push packet to FIFO and send RREQ
