@@ -32,8 +32,9 @@ For further information and questions please use the web site
 
 pthread_rwlock_t pp_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
-u_int32_t seq_num = 0;
-u_int32_t broadcast_id = 0;
+u_int16_t seq_num_management = 0;
+u_int16_t seq_num_data = 0;
+u_int16_t broadcast_id = 0;
 
 // ---------------------------- help functions ---------------------------------------
 
@@ -56,7 +57,7 @@ dessert_msg_t* _create_rreq(u_int8_t dhost_ether[ETH_ALEN], u_int8_t ttl) {
 	rreq_msg->hop_count = 0;
 	rreq_msg->flags = 0;
 	pthread_rwlock_wrlock(&pp_rwlock);
-	rreq_msg->seq_num_src = ++seq_num;
+	rreq_msg->seq_num_src = ++seq_num_management;
 	pthread_rwlock_unlock(&pp_rwlock);
 	u_int32_t dhost_seq_num;
 	if (aodv_db_getrouteseqnum(dhost_ether, &dhost_seq_num) == TRUE) {
@@ -278,7 +279,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 		return DESSERT_MSG_KEEP;
 	} else { // RREQ for me
 
-		dessert_debug("incoming RREQ from " MAC " seqSRC=%i -> answer with RREP seqDEST=%i", EXPLODE_ARRAY6(l25h->ether_shost), rreq_msg->seq_num_src, seq_num);
+		dessert_debug("incoming RREQ from " MAC " seqSRC=%i -> answer with RREP seqDEST=%i", EXPLODE_ARRAY6(l25h->ether_shost), rreq_msg->seq_num_src, seq_num_management);
 
 		u_int32_t last_rreq_seq;
 		int s = !aodv_db_getrouteseqnum(l25h->ether_shost, &last_rreq_seq);
@@ -287,7 +288,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 			// RREQ for me -> answer with RREP
 			dessert_debug("RREQ for me -> answer with RREP to " MAC " over " MAC, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
 			pthread_rwlock_wrlock(&pp_rwlock);
-			u_int8_t seq_num_copy = ++seq_num;
+			u_int8_t seq_num_copy = ++seq_num_management;
 			pthread_rwlock_unlock(&pp_rwlock);
 			dessert_msg_t* rrep_msg = _create_rrep(dessert_l25_defsrc, l25h->ether_shost, msg->l2h.ether_shost, seq_num_copy, AODV_FLAGS_RREP_A);
 			dessert_meshsend_fast(rrep_msg, iface);
