@@ -70,9 +70,10 @@ static FILE *read_config_from_params(int argc, char** argv) {
     
     if(daemonize) {
         dessert_info("starting HELLO in daemonize mode");
+        dessert_init("AODV", 0x03, DESSERT_OPT_DAEMONIZE);
     } else {
         dessert_info("starting HELLO in non daemonize mode");
-            dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
+        dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
     }
     
     FILE *cfg;
