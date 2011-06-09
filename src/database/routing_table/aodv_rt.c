@@ -170,6 +170,9 @@ int aodv_db_rt_capt_rreq(u_int8_t dhost_ether[ETH_ALEN],
                          u_int32_t shost_seq_num,
                          u_int8_t path_weight,
                          struct timeval* timestamp) {
+
+	dessert_trace("input " MAC ": shost_seq_num=%d path_weight=%d", EXPLODE_ARRAY6(shost_ether), shost_seq_num, path_weight);
+
 	aodv_rt_entry_t* rt_entry;
 	aodv_rt_srclist_entry_t* srclist_entry;
 
@@ -191,6 +194,8 @@ int aodv_db_rt_capt_rreq(u_int8_t dhost_ether[ETH_ALEN],
 		}
 		HASH_ADD_KEYPTR(hh, rt_entry->src_list, srclist_entry->shost_ether, ETH_ALEN, srclist_entry);
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
+		dessert_trace("create " MAC ": shost_seq_num=%d path_weight=%d",
+	              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num, srclist_entry->path_weight);
 		return TRUE;
 	} else if (hf_seq_comp_i_j(srclist_entry->shost_seq_num, shost_seq_num) < 0 ||
 	           (hf_seq_comp_i_j(srclist_entry->shost_seq_num, shost_seq_num) == 0 &&
@@ -201,6 +206,8 @@ int aodv_db_rt_capt_rreq(u_int8_t dhost_ether[ETH_ALEN],
 		srclist_entry->shost_seq_num = shost_seq_num;
 		srclist_entry->path_weight = path_weight;
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
+		dessert_trace("get " MAC ": shost_seq_num=%d path_weight=%d",
+	              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num, srclist_entry->path_weight);
 		return TRUE;
 	}
 	return FALSE;
@@ -318,11 +325,12 @@ int aodv_db_rt_getrouteseqnum(u_int8_t dhost_ether[ETH_ALEN], u_int32_t* dhost_s
 	return TRUE;
 }
 
-int aodv_db_rt_getpathweight(u_int8_t dhost_ether[ETH_ALEN], u_int32_t* dhost_path_weight_out) {
+int aodv_db_rt_getpathweight(u_int8_t dhost_ether[ETH_ALEN], u_int8_t* dhost_path_weight_out) {
 	aodv_rt_entry_t* rt_entry;
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
-	if (rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN)
+	if (rt_entry == NULL)
 		return FALSE;
+	
 	*dhost_path_weight_out = rt_entry->path_weight;
 	return TRUE;
 }

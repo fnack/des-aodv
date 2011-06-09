@@ -78,7 +78,7 @@ dessert_msg_t* _create_rreq(u_int8_t dhost_ether[ETH_ALEN], u_int8_t ttl) {
 
 
 dessert_msg_t* _create_rrep(u_int8_t route_dest[ETH_ALEN], u_int8_t route_source[ETH_ALEN],
-		u_int8_t rrep_next_hop[ETH_ALEN], u_int32_t route_seq_num, u_int8_t flags) {
+		u_int8_t rrep_next_hop[ETH_ALEN], u_int32_t seq_num_dest, u_int8_t flags) {
 	dessert_msg_t* msg;
 	dessert_ext_t* ext;
 	dessert_msg_new(&msg);
@@ -100,7 +100,7 @@ dessert_msg_t* _create_rrep(u_int8_t route_dest[ETH_ALEN], u_int8_t route_source
 	rrep_msg->flags = flags;
 	rrep_msg->hop_count = 0;
 	rrep_msg->lifetime = 0;
-	rrep_msg->seq_num_dest = route_seq_num;
+	rrep_msg->seq_num_dest = seq_num_dest;
 	return msg;
 }
 
@@ -136,7 +136,7 @@ void aodv_send_rreq(u_int8_t dhost_ether[ETH_ALEN], struct timeval* ts, u_int8_t
 		}
 	}
 	aodv_db_putrreq(ts);
-	dessert_debug("RREQ to " MAC " ttl=%i rreq_count=%d", EXPLODE_ARRAY6(dhost_ether), (ttl > TTL_THRESHOLD) ? 255 : ttl, rreq_count);
+//	dessert_trace("RREQ to " MAC " ttl=%i rreq_count=%d", EXPLODE_ARRAY6(dhost_ether), (ttl > TTL_THRESHOLD) ? 255 : ttl, rreq_count);
 
 	void* payload;
 	uint16_t size = max(rreq_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
@@ -296,16 +296,17 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 	else
 		rreq_msg->path_weight += interval;
 
+	int cap_result = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->seq_num_src, rreq_msg->path_weight, &ts);
+
 	if (memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) != 0) { // RREQ is not for me
 		u_int32_t dhost_seq_num;
-		u_int32_t dhost_path_weight;
-		int cap_result = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->seq_num_src, rreq_msg->path_weight, &ts);
+		u_int8_t dhost_path_weight;
 
-		int route_seq_num = aodv_db_getrouteseqnum(l25h->ether_dhost, &dhost_seq_num);
-		int route_path_weight = aodv_db_getpathweight(l25h->ether_dhost, &dhost_path_weight);
+		int route_seq_num_result = aodv_db_getrouteseqnum(l25h->ether_dhost, &dhost_seq_num);
+		int route_path_weight_result = aodv_db_getpathweight(l25h->ether_dhost, &dhost_path_weight);
 		if (!(rreq_msg->flags & AODV_FLAGS_RREQ_D) &&
 		    !(rreq_msg->flags & AODV_FLAGS_RREQ_U) &&
-		    (route_seq_num == TRUE && dhost_path_weight == TRUE) && //there is an seq num and a path weight
+		    (route_seq_num_result == TRUE && dhost_path_weight == TRUE) && //there is an seq num and a path weight
 		    (dhost_seq_num > rreq_msg->seq_num_dest || // if rreq is newer
 		    (dhost_seq_num == rreq_msg->seq_num_dest) && (dhost_path_weight > rreq_msg->path_weight))) { //or if rreq has better path weight and seq is not old
 			// i know route to destination that have seq_num greater then that of source (route is newer)
@@ -328,8 +329,8 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 		int seq_num_res = aodv_db_getrouteseqnum(l25h->ether_shost, &last_rreq_seq);
 		int comp_seq_num_res = hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq);
 		
-		u_int32_t dhost_path_weight;
-		int route_path_weight = aodv_db_getpathweight(l25h->ether_dhost, &dhost_path_weight);
+		u_int8_t dhost_path_weight;
+		int route_path_weight_result = aodv_db_getpathweight(l25h->ether_dhost, &dhost_path_weight);
 		
 		dessert_debug("known path_weight was %d, incomming path_weight is %d", dhost_path_weight, rreq_msg->path_weight);
 		dessert_debug("known rreq_seq was %d, incomming rreq_seq is %d", last_rreq_seq, rreq_msg->seq_num_src);
