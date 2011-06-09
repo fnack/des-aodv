@@ -331,6 +331,9 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 		u_int32_t dhost_path_weight;
 		int route_path_weight = aodv_db_getpathweight(l25h->ether_dhost, &dhost_path_weight);
 		
+		dessert_debug("known path_weight was %d, incomming path_weight is %d", dhost_path_weight, rreq_msg->path_weight);
+		dessert_debug("known rreq_seq was %d, incomming rreq_seq is %d", last_rreq_seq, rreq_msg->seq_num_src);
+
 		if (seq_num_res && comp_seq_num_res > 0 ||
 		    (comp_seq_num_res == 0 && dhost_path_weight > rreq_msg->path_weight)) {
 			// RREQ for me -> answer with RREP
