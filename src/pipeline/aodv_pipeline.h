@@ -167,7 +167,6 @@ typedef struct aodv_monitor_last_hops_rbuff {
 
 aodv_monitor_last_hops_rbuff_t aodv_monitor_last_hops_rbuff[MONITOR_SIGNAL_STRENGTH_MAX];
 u_int32_t aodv_monitor_last_hops_rbuff_pos;
-mac_addr invalid_mac;
 
 // ------------- pipeline -----------------------------------------------------
 

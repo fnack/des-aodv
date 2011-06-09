@@ -201,16 +201,16 @@ int aodv_handle_rwarn(dessert_msg_t* msg,
 		//not for me
 		const dessert_meshif_t* output_iface;
 		u_int8_t next_hop[ETH_ALEN];
-		if(aodv_db_getprevhop(l25h->ether_shost, l25h->ether_dhost, next_hop, &output_iface)) {
-			dessert_debug("re-send RWARN to " MAC " got over " MAC, EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
+		if(aodv_db_getprevhop(l25h->ether_shost, l25h->ether_dhost, next_hop, &output_iface) == TRUE) {
+			dessert_debug("forward RWARN to " MAC " got over " MAC, EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
 			memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
 			dessert_meshsend_fast(msg, output_iface);
 		} else {
-			dessert_debug("DO NOT re-send RWARN to " MAC " got over " MAC , EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
+			dessert_debug("DO NOT forward RWARN to " MAC " got over " MAC , EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
 		}
 	} else {
 		//for me
-		dessert_debug("got RWARN from " MAC " over " MAC " send rreq...", EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
+		dessert_debug("got RWARN from " MAC " over " MAC " send rreq...", EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
 		struct timeval ts;
 		gettimeofday(&ts, NULL);
 		aodv_send_rreq(l25h->ether_shost, &ts, TTL_START);	 // create and send RREQ

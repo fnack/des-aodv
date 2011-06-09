@@ -49,6 +49,6 @@ int db_nt_cleanup(struct timeval* timestamp);
 
 void db_nt_on_neigbor_timeout(struct timeval* timestamp, void* src_object, void* object);
 
-int db_nt_get_initial_rssi(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface);
+int db_nt_get_max_rssi(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface);
 
 #endif
