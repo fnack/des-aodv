@@ -35,64 +35,27 @@ For further information and questions please use the web site
 int     hello_size	        = HELLO_SIZE;
 int     hello_interval      = HELLO_INTERVAL;
 int     rreq_size	        = RREQ_SIZE;
-char*   routing_log_file    = NULL;
 
 dessert_periodic_t* periodic_send_hello;
 
-static const char NON_DAEMONIZE_PARAM[] = "-nondaemonize";
-
-/** Opens config file and sets DESSERT_OPT_NODAEMONIZE if appropriate */
-static FILE *read_config_from_params(int argc, char** argv) {
-    int daemonize = 1;
-    const char *cfg_file_name = NULL;
-    switch(argc) {
-        case 1: break;
-        case 2: 
-            if(strcmp(argv[1], NON_DAEMONIZE_PARAM) == 0) {
-                daemonize = 0;
-            } else {
-                cfg_file_name = argv[1];
-            }
-            break;
-        case 3:
-            daemonize = 0;
-            if(strcmp(argv[1], NON_DAEMONIZE_PARAM) == 0) {
-                cfg_file_name = argv[2];
-                break;
-            } else if(strcmp(argv[2], NON_DAEMONIZE_PARAM) == 0) {
-                cfg_file_name = argv[1];
-                break;
-            }
-            // fallthrough
-        default:
-            printf("Usage: %s [%s] [config file]\n", argv[0], NON_DAEMONIZE_PARAM);
-            return EXIT_FAILURE;
-    }
-    
-    if(daemonize) {
-        dessert_info("starting HELLO in daemonize mode");
-    } else {
-        dessert_info("starting HELLO in non daemonize mode");
-        dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
-    }
-    
-    FILE *cfg;
-    if(cfg_file_name) {
-        cfg = fopen(cfg_file_name, "r");
-        if (cfg == NULL) {
-            printf("Config file '%s' not found. Exit ...\n", cfg_file_name);
-            return EXIT_FAILURE;
-        }
-    } else {
-        cfg = dessert_cli_get_cfg(argc, argv);
-    }
-    
-    return cfg;
-}
-
 int main(int argc, char** argv) {
+
     /* initialize daemon with correct parameters */
-    FILE *cfg = read_config_from_params(argc, argv);
+    FILE *cfg = NULL;
+    if ((argc == 2) && (strcmp(argv[1], "-nondaemonize") == 0)) {
+            dessert_info("starting AODV in non daemonize mode");
+            dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
+            char cfg_file_name[] = "./des-aodv.cli";
+            cfg = fopen(cfg_file_name, "r");
+            if (cfg == NULL) {
+                    printf("Config file '%s' not found. Exit ...\n", cfg_file_name);
+                    return EXIT_FAILURE;
+            }
+    } else {
+            dessert_info("starting AODV in daemonize mode");
+            cfg = dessert_cli_get_cfg(argc, argv);
+            dessert_init("AODV", 0x03, DESSERT_OPT_DAEMONIZE);
+    }
 
     /* routing table initialization */
     aodv_db_init();
@@ -108,7 +71,6 @@ int main(int argc, char** argv) {
     cli_register_command(dessert_cli, cli_cfg_set, "hello_size", cli_set_hello_size, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set HELLO packet size");
     cli_register_command(dessert_cli, cli_cfg_set, "hello_interval", cli_set_hello_interval, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set HELLO packet interval");
     cli_register_command(dessert_cli, cli_cfg_set, "rreq_size", cli_set_rreq_size, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set RREQ packet size");
-    cli_register_command(dessert_cli, cli_cfg_set, "routing_log", cli_set_routing_log, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set path to routing logging file");
 
     cli_register_command(dessert_cli, dessert_cli_show, "hello_size", cli_show_hello_size, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show HELLO packet size");
     cli_register_command(dessert_cli, dessert_cli_show, "hello_interval", cli_show_hello_interval, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show HELLO packet interval");
@@ -126,10 +88,17 @@ int main(int argc, char** argv) {
     dessert_meshrxcb_add(aodv_handle_rerr, 60);
     dessert_meshrxcb_add(aodv_handle_rrep, 70);
     dessert_meshrxcb_add(dessert_mesh_ipttl, 75);
-    dessert_meshrxcb_add(aodv_fwd2dest, 80);
-    dessert_meshrxcb_add(rp2sys, 100);
+    dessert_meshrxcb_add(aodv_forward_broadcast, 80);
+    dessert_meshrxcb_add(aodv_forward_multicast, 80);
+    dessert_meshrxcb_add(aodv_forward_unicast, 80);
+    dessert_meshrxcb_add(mesh2sys_broadcast, 100);
+    dessert_meshrxcb_add(mesh2sys_multicast, 105);
+    dessert_meshrxcb_add(mesh2sys_unicast, 110);
+    dessert_meshrxcb_add(mesh2sys_end, 115);
 
-    dessert_sysrxcb_add(aodv_sys2rp, 10);
+    dessert_sysrxcb_add(aodv_sys2mesh_broadcast, 10);
+    dessert_sysrxcb_add(aodv_sys2mesh_unicast, 10);
+    dessert_sysrxcb_add(aodv_sys2mesh_end, 10);
 
     /* registering periodic tasks */
     struct timeval hello_interval_t;

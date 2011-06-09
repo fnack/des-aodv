@@ -121,16 +121,3 @@ int cli_show_rt(struct cli_def* cli, char* command, char* argv[], int argc){
 	return CLI_OK;
 }
 
-// -------------------- common cli functions ----------------------------------------------
-
-int cli_set_routing_log(struct cli_def *cli, char *command, char *argv[], int argc) {
-	routing_log_file = malloc(strlen(argv[0]));
-	strcpy(routing_log_file, argv[0]);
-	FILE* f = fopen(routing_log_file, "a+");
-	time_t lt;
-	lt = time(NULL);
-	fprintf(f, "\n--- %s\n", ctime(&lt));
-	fclose(f);
-	dessert_info("logging routing data at file %s", routing_log_file);
-	return CLI_OK;
-}

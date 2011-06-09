@@ -57,76 +57,59 @@ int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct
 }
 
 dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, u_int16_t count) {
-        if (*head == NULL) return NULL;
-        dessert_msg_t* msg;
-        dessert_ext_t* ext;
-        dessert_msg_new(&msg);
+	if (*head == NULL || count == 0) return NULL;
+	dessert_msg_t* msg;
+	dessert_ext_t* ext;
+	dessert_msg_new(&msg);
 
-        // set ttl
-        msg->ttl = 255;
+	// set ttl
+	msg->ttl = 255;
 
-        // add l25h header
-        dessert_msg_addext(msg, &ext, DESSERT_EXT_ETH, ETHER_HDR_LEN);
-        struct ether_header* rreq_l25h = (struct ether_header*) ext->data;
-        memcpy(rreq_l25h->ether_shost, dessert_l25_defsrc, ETH_ALEN);
-        memcpy(rreq_l25h->ether_dhost, ether_broadcast, ETH_ALEN);
+	// add l25h header
+	dessert_msg_addext(msg, &ext, DESSERT_EXT_ETH, ETHER_HDR_LEN);
+	struct ether_header* rreq_l25h = (struct ether_header*) ext->data;
+	memcpy(rreq_l25h->ether_shost, dessert_l25_defsrc, ETH_ALEN);
+	memcpy(rreq_l25h->ether_dhost, ether_broadcast, ETH_ALEN);
 
-        // add RERR ext
-        dessert_msg_addext(msg, &ext, RERR_EXT_TYPE, sizeof(struct aodv_msg_rerr));
-        struct aodv_msg_rerr* rerr_msg = (struct aodv_msg_rerr*) ext->data;
-        rerr_msg->flags = AODV_FLAGS_RERR_N;
+	// add RERR ext
+	dessert_msg_addext(msg, &ext, RERR_EXT_TYPE, sizeof(struct aodv_msg_rerr));
+	struct aodv_msg_rerr* rerr_msg = (struct aodv_msg_rerr*) ext->data;
+	rerr_msg->flags = AODV_FLAGS_RERR_N;
 
-        // write addresses of all my mesh interfaces
-        dessert_meshif_t* iface = dessert_meshiflist_get();
-        void* ifaceaddr_pointer = rerr_msg->ifaces;
-        u_int8_t ifaces_count = 0;
-        while (iface != NULL && ifaces_count < MAX_MESH_IFACES_COUNT) {
-                memcpy(ifaceaddr_pointer, iface->hwaddr, ETH_ALEN);
-                ifaceaddr_pointer += ETH_ALEN;
-                iface = iface->next;
-                ifaces_count++;
-        }
+	// write addresses of all my mesh interfaces
+	void* ifaceaddr_pointer = rerr_msg->ifaces;
+	u_int8_t ifaces_count = 0;
+	dessert_meshif_t *iface;
+	MESHIFLIST_ITERATOR_START(iface)
+		if(ifaces_count >= MAX_MESH_IFACES_COUNT)
+			break;
+		memcpy(ifaceaddr_pointer, iface->hwaddr, ETH_ALEN);
+		ifaceaddr_pointer += ETH_ALEN;
+		ifaces_count++;
+	MESHIFLIST_ITERATOR_STOP;
 
-        rerr_msg->iface_addr_count = ifaces_count;
+	rerr_msg->iface_addr_count = ifaces_count;
 
-        // write addresses of affected destinations in RERRDL_EXT
-        u_int8_t rerrdl_count = 0;
-        u_int8_t ext_el_num = 0;
-        void* dl = NULL;
-        u_int8_t max_dl_len = DESSERT_MAXEXTDATALEN / ETH_ALEN;
-        u_int8_t MAX_RERRDL_COUNT = (dessert_maxlen -
-                        sizeof(dessert_msg_t) - sizeof(struct ether_header) -
-                        sizeof(struct aodv_msg_rerr) - sizeof(struct aodv_msg_broadcast)) / DESSERT_MAXEXTDATALEN;
+	u_int8_t max_dl_len = DESSERT_MAXEXTDATALEN / ETH_ALEN;
+	while(dessert_msg_addext(msg, &ext, RERRDL_EXT_TYPE,
+	      ((count >= max_dl_len)? max_dl_len : count) * ETH_ALEN) == DESSERT_OK) {
+		u_int8_t *iter;
+		for(iter = ext->data; iter < ext->data + DESSERT_MAXEXTDATALEN; iter += ETH_ALEN) {
+			_onlb_element_t* el = *head;
+			memcpy(iter, el->dhost_ether, ETH_ALEN);
+			DL_DELETE(*head, el);
+			free(el);
+		}
+	}
 
-        while(*head != NULL && rerrdl_count < MAX_RERRDL_COUNT) {
-                if (ext_el_num == 0) {
-                        dessert_msg_addext(msg, &ext, RERRDL_EXT_TYPE, ((count >= max_dl_len)? max_dl_len : count) * ETH_ALEN);
-                        dl = ext->data;
-                }
+	// add broadcast id ext since RERR is an broadcast message
+	dessert_msg_addext(msg, &ext, BROADCAST_EXT_TYPE, sizeof(struct aodv_msg_broadcast));
+	struct aodv_msg_broadcast* brc_str = (struct aodv_msg_broadcast*) ext->data;
+	pthread_rwlock_wrlock(&pp_rwlock);
+	brc_str->id = ++broadcast_id;
+	pthread_rwlock_unlock(&pp_rwlock);
 
-                _onlb_element_t* el = *head;
-                memcpy(dl, el->dhost_ether, ETH_ALEN);
-                dl += ETH_ALEN;
-                ext_el_num++;
-
-                if (ext_el_num == max_dl_len) {
-                        rerrdl_count++;
-                        ext_el_num = 0;
-                }
-
-                DL_DELETE(*head, el);
-                count--;
-                free(el);
-        }
-
-        // add broadcast id ext since RERR is an broadcast message
-        dessert_msg_addext(msg, &ext, BROADCAST_EXT_TYPE, sizeof(struct aodv_msg_broadcast));
-        struct aodv_msg_broadcast* brc_str = (struct aodv_msg_broadcast*) ext->data;
-        pthread_rwlock_wrlock(&pp_rwlock);
-        brc_str->id = ++broadcast_id;
-        pthread_rwlock_unlock(&pp_rwlock);
-
-        return msg;
+	return msg;
 }
 
 int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval) {
