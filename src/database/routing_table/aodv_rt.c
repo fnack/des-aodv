@@ -207,7 +207,7 @@ int aodv_db_rt_capt_rrep (u_int8_t dhost_ether[ETH_ALEN], u_int8_t dhost_next_ho
 		const dessert_meshif_t* output_iface, u_int32_t dhost_seq_num, u_int8_t hop_count, struct timeval* timestamp) {
 	aodv_rt_entry_t* rt_entry;
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
-	if (!rt_entry) {
+	if (rt_entry == NULL) {
 		// if not found -> create routing entry
 		if (rt_entry_create(&rt_entry, dhost_ether) == FALSE) {
 			return -1;

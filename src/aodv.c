@@ -38,61 +38,24 @@ int     rreq_size	        = RREQ_SIZE;
 
 dessert_periodic_t* periodic_send_hello;
 
-static const char NON_DAEMONIZE_PARAM[] = "-nondaemonize";
-
-/** Opens config file and sets DESSERT_OPT_NODAEMONIZE if appropriate */
-static FILE *read_config_from_params(int argc, char** argv) {
-    int daemonize = 1;
-    const char *cfg_file_name = NULL;
-    switch(argc) {
-        case 1: break;
-        case 2: 
-            if(strcmp(argv[1], NON_DAEMONIZE_PARAM) == 0) {
-                daemonize = 0;
-            } else {
-                cfg_file_name = argv[1];
-            }
-            break;
-        case 3:
-            daemonize = 0;
-            if(strcmp(argv[1], NON_DAEMONIZE_PARAM) == 0) {
-                cfg_file_name = argv[2];
-                break;
-            } else if(strcmp(argv[2], NON_DAEMONIZE_PARAM) == 0) {
-                cfg_file_name = argv[1];
-                break;
-            }
-            // fallthrough
-        default:
-            printf("Usage: %s [%s] [config file]\n", argv[0], NON_DAEMONIZE_PARAM);
-            return EXIT_FAILURE;
-    }
-    
-    if(daemonize) {
-        dessert_info("starting HELLO in daemonize mode");
-        dessert_init("AODV", 0x03, DESSERT_OPT_DAEMONIZE);
-    } else {
-        dessert_info("starting HELLO in non daemonize mode");
-        dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
-    }
-    
-    FILE *cfg;
-    if(cfg_file_name) {
-        cfg = fopen(cfg_file_name, "r");
-        if (cfg == NULL) {
-            printf("Config file '%s' not found. Exit ...\n", cfg_file_name);
-            return EXIT_FAILURE;
-        }
-    } else {
-        cfg = dessert_cli_get_cfg(argc, argv);
-    }
-    
-    return cfg;
-}
 
 int main(int argc, char** argv) {
     /* initialize daemon with correct parameters */
-    FILE *cfg = read_config_from_params(argc, argv);
+    FILE *cfg = NULL;
+    if ((argc == 2) && (strcmp(argv[1], "-nondaemonize") == 0)) {
+            dessert_info("starting AODV in non daemonize mode");
+            dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
+            char cfg_file_name[] = "/etc/des-aodv.conf";
+            cfg = fopen(cfg_file_name, "r");
+            if (cfg == NULL) {
+                    printf("Config file '%s' not found. Exit ...\n", cfg_file_name);
+                    return EXIT_FAILURE;
+            }
+    } else {
+            dessert_info("starting AODV in daemonize mode");
+            cfg = dessert_cli_get_cfg(argc, argv);
+            dessert_init("AODV", 0x03, DESSERT_OPT_DAEMONIZE);
+    }
 
     /* routing table initialization */
     aodv_db_init();

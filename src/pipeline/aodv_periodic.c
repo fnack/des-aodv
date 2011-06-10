@@ -57,7 +57,7 @@ int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct
 }
 
 dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, u_int16_t count) {
-	if (*head == NULL || count == 0) return NULL;
+	if (*head == NULL) return NULL;
 	dessert_msg_t* msg;
 	dessert_ext_t* ext;
 	dessert_msg_new(&msg);
@@ -103,6 +103,7 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, u_int16_t count) {
                         dessert_msg_addext(msg, &ext, RERRDL_EXT_TYPE, ((count >= max_dl_len)? max_dl_len : count) * ETH_ALEN);
                         dl = ext->data;
                 }
+
 			_onlb_element_t* el = *head;
                 memcpy(dl, el->dhost_ether, ETH_ALEN);
                 dl += ETH_ALEN;
@@ -112,6 +113,7 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, u_int16_t count) {
                         rerrdl_count++;
                         ext_el_num = 0;
                 }
+
 			DL_DELETE(*head, el);
                 count--;
 			free(el);
