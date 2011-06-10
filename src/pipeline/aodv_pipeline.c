@@ -267,20 +267,16 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 	if (memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) != 0) { // RREQ not for me
 
 		int x = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, msg->u16, &ts);
-		if(x == FALSE) {
-			dessert_crit("aodv_db_capt_rreq returns FLASE");
+		if(x == -1) {
+			dessert_crit("aodv_db_capt_rreq returns error");
 			return DESSERT_MSG_DROP;
 		}
 
 		u_int32_t last_rreq_seq;
 		int a = aodv_db_getrouteseqnum(l25h->ether_dhost, &last_rreq_seq);
-		if(a == FALSE) {
-			dessert_crit("aodv_db_getrouteseqnum returns FLASE");
-			return DESSERT_MSG_DROP;
-		}
-		int b = !(rreq_msg->flags & (AODV_FLAGS_RREQ_D | AODV_FLAGS_RREQ_U));
-		int c = (hf_seq_comp_i_j(msg->u16, last_rreq_seq) < 0);
-		if(b && c) {
+		int b = (hf_seq_comp_i_j(msg->u16, last_rreq_seq) < 0);
+		int c = !(rreq_msg->flags & (AODV_FLAGS_RREQ_D | AODV_FLAGS_RREQ_U));
+		if(a && b && c) {
 			// i know route to destination that have seq_num greater then that of source (route is newer)
 			dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_rreq_seq, AODV_FLAGS_RREP_A);
 
@@ -304,17 +300,15 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 		if (x == TRUE) {
 			// no need to search for next hop. Next hop is RREQ.prev_hop
 			aodv_send_packets_from_buffer(l25h->ether_shost, prev_hop, iface);
+		} else {
+			// we know a better route already
 		}
 
 		u_int32_t last_rreq_seq;
 		int a = aodv_db_getrouteseqnum(l25h->ether_shost, &last_rreq_seq);
-		if(a == FALSE) {
-			dessert_crit("aodv_db_getrouteseqnum returns FLASE");
-			return DESSERT_MSG_DROP;
-		}
 		int b = (hf_seq_comp_i_j(msg->u16, last_rreq_seq) < 0);
-		dessert_debug("msg->u16=%u last_rreq_seq=%u -> hf_seq_comp_i_j(msg->u16, last_rreq_seq)=%d", msg->u16, last_rreq_seq, hf_seq_comp_i_j(msg->u16, last_rreq_seq));
-		if(b) {
+//		dessert_debug("msg->u16=%u last_rreq_seq=%u -> hf_seq_comp_i_j(msg->u16, last_rreq_seq)=%d", msg->u16, last_rreq_seq, hf_seq_comp_i_j(msg->u16, last_rreq_seq));
+		if(a && b) {
 			// RREQ for me -> answer with RREP
 			dessert_debug("got RREQ for me -> answer with RREP to " MAC " over " MAC, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
 			pthread_rwlock_wrlock(&pp_rwlock);
