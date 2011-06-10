@@ -280,14 +280,14 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 			// i know route to destination that have seq_num greater then that of source (route is newer)
 			dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_rreq_seq, AODV_FLAGS_RREP_A);
 
-			dessert_debug("repair link to " MAC, EXPLODE_ARRAY6(l25h->ether_dhost));
+			dessert_debug("repair link to " MAC " id=%d", EXPLODE_ARRAY6(l25h->ether_dhost), msg->u16);
 			pthread_rwlock_wrlock(&pp_rwlock);
 			msg->u16 = ++seq_num_management;
 			pthread_rwlock_unlock(&pp_rwlock);
 			dessert_meshsend_fast(rrep_msg, iface);
 			dessert_msg_destroy(rrep_msg);
 		} else if (msg->ttl > 0 && a == FALSE) {
-			dessert_debug("route to this host is unknown for me -> rebroadcast RREQ " MAC, EXPLODE_ARRAY6(l25h->ether_dhost));
+			dessert_debug("route to " MAC " id=%d is unknown for me -> rebroadcast RREQ", EXPLODE_ARRAY6(l25h->ether_dhost), msg->u16);
 			dessert_meshsend_fast(msg, NULL);
 		}
 	} else { // RREQ for me
