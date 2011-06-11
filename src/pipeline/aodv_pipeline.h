@@ -53,7 +53,6 @@ extern u_int32_t broadcast_id;
  */
 #define AODV_FLAGS_RERR_N			1 << 7
 
-
 /** RREQ - Route Request Message */
 struct aodv_msg_rreq {
 	/**
