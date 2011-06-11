@@ -434,9 +434,14 @@ int aodv_forward_multicast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *p
 }
 
 int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
+
 	if(proc->lflags & DESSERT_LFLAG_DST_SELF)
 		return DESSERT_MSG_KEEP;
-	if (!proc->lflags & DESSERT_LFLAG_NEXTHOP_SELF && !proc->lflags & DESSERT_LFLAG_NEXTHOP_BROADCAST)
+	if(proc->lflags & DESSERT_LFLAG_DST_SELF_OVERHEARD)
+		return DESSERT_MSG_KEEP;
+	if(proc->lflags & DESSERT_LFLAG_NEXTHOP_SELF)
+		return DESSERT_MSG_KEEP;
+	if(proc->lflags & DESSERT_LFLAG_NEXTHOP_SELF_OVERHEARD)
 		return DESSERT_MSG_KEEP;
 
 	const dessert_meshif_t* output_iface;
