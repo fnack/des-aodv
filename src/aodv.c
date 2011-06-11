@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
     if ((argc == 2) && (strcmp(argv[1], "-nondaemonize") == 0)) {
             dessert_info("starting AODV in non daemonize mode");
             dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
-            char cfg_file_name[] = "/etc/des-aodv.conf";
+            char cfg_file_name[] = "./des-aodv.cli";
             cfg = fopen(cfg_file_name, "r");
             if (cfg == NULL) {
                     printf("Config file '%s' not found. Exit ...\n", cfg_file_name);
@@ -90,9 +90,7 @@ int main(int argc, char** argv) {
     dessert_meshrxcb_add(aodv_forward_broadcast, 80);
     dessert_meshrxcb_add(aodv_forward_multicast, 81);
     dessert_meshrxcb_add(aodv_forward, 90);
-    dessert_meshrxcb_add(aodv_local_broadcast, 100);
-    dessert_meshrxcb_add(aodv_local_multicast, 101);
-    dessert_meshrxcb_add(aodv_local, 102);
+    dessert_meshrxcb_add(aodv_local_unicast, 100);
 
     dessert_sysrxcb_add(aodv_sys2rp, 10);
 
