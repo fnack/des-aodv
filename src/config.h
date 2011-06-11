@@ -33,7 +33,7 @@ enum bool {TRUE = 1, FALSE = 0};
 #define TTL_START					2
 #define TTL_INCREMENT				2
 #define TTL_THRESHOLD				7
-#define SEQNO_MAX					UINT16_MAX
+#define SEQNO_MAX					UINT32_MAX
 
 #define ACTIVE_ROUTE_TIMEOUT		6000 	// milliseconds
 #define ALLOWED_HELLO_LOST			5
@@ -58,7 +58,7 @@ enum bool {TRUE = 1, FALSE = 0};
 #define FIFO_BUFFER_MAX_ENTRY_SIZE	128 	// maximal packet count that can be stored in FIFO for one destination
 #define DB_CLEANUP_INTERVAL			NET_TRAVERSAL_TIME
 #define BUFFER_SENDOUT_DELAY		5
-#define SCHEDULE_CHECK_INTERVAL		20 		// milliseconds
+#define SCHEDULE_CHECK_INTERVAL		30 		// milliseconds
 
 /**
  * Schedule type = send out packets from FIFO puffer for
