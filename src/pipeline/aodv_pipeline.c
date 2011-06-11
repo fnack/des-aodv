@@ -158,6 +158,7 @@ void aodv_send_packets_from_buffer(u_int8_t ether_dhost[ETH_ALEN], u_int8_t next
 		dessert_debug("new route to " MAC " over " MAC " found -> send out packet from buffer",
 		              EXPLODE_ARRAY6(ether_dhost),
 		              EXPLODE_ARRAY6(next_hop));
+
 		/*  no need to search for next hop. Next hop is the last_hop that send RREP */
 		memcpy(buffered_msg->l2h.ether_dhost, next_hop, ETH_ALEN);
 		pthread_rwlock_wrlock(&pp_rwlock);
@@ -275,6 +276,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 			dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_rreq_seq, AODV_FLAGS_RREP_A);
 
 			dessert_debug("repair link to " MAC " id=%d", EXPLODE_ARRAY6(l25h->ether_dhost), rreq_msg->seq_num_src);
+
 			dessert_meshsend_fast(rrep_msg, iface);
 			dessert_msg_destroy(rrep_msg);
 		} else if (msg->ttl > 0 && a == FALSE) {
@@ -383,7 +385,6 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 	gettimeofday(&ts, NULL);
 	rrep_msg->hop_count++;
 
-
 	int x = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->seq_num_dest, rrep_msg->hop_count, &ts);
 	if(x == -1) {
 		dessert_crit("aodv_db_capt_rreq returns error");
@@ -459,7 +460,6 @@ int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const
 	struct ether_header* l25h = dessert_msg_getl25ether(msg);
 	if (aodv_db_getroute2dest(l25h->ether_dhost, next_hop, &output_iface, &timestamp)) {
 		dessert_debug(MAC " -------> " MAC, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(l25h->ether_dhost));
-
 		memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
 		dessert_meshsend_fast(msg, output_iface);
 	} else {
