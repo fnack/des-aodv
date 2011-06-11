@@ -38,7 +38,6 @@ int     rreq_size	        = RREQ_SIZE;
 
 dessert_periodic_t* periodic_send_hello;
 
-
 int main(int argc, char** argv) {
     /* initialize daemon with correct parameters */
     FILE *cfg = NULL;
@@ -88,7 +87,9 @@ int main(int argc, char** argv) {
     dessert_meshrxcb_add(aodv_handle_rerr, 60);
     dessert_meshrxcb_add(aodv_handle_rrep, 70);
     dessert_meshrxcb_add(dessert_mesh_ipttl, 75);
-    dessert_meshrxcb_add(aodv_fwd2dest, 80);
+    dessert_meshrxcb_add(aodv_forward_broadcast, 80);
+    dessert_meshrxcb_add(aodv_forward_multicast, 81);
+    dessert_meshrxcb_add(aodv_fwd2dest, 90);
     dessert_meshrxcb_add(rp2sys, 100);
 
     dessert_sysrxcb_add(aodv_sys2rp, 10);

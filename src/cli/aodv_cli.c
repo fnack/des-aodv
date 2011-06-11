@@ -85,7 +85,7 @@ int cli_set_rreq_size(struct cli_def *cli, char *command, char *argv[], int argc
 int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
 	u_int8_t dhost_hwaddr[ETHER_ADDR_LEN];
 
-	if (argc < 1 || argc > 2 || sscanf(argv[0], "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
+	if (argc < 1 || argc > 2 || sscanf(argv[0], MAC,
 			&dhost_hwaddr[0], &dhost_hwaddr[1], &dhost_hwaddr[2], &dhost_hwaddr[3],
 			&dhost_hwaddr[4], &dhost_hwaddr[5]) != 6) { // args are not correct
 		cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX]\n", command);
@@ -120,4 +120,3 @@ int cli_show_rt(struct cli_def* cli, char* command, char* argv[], int argc){
 	free(rt_report);
 	return CLI_OK;
 }
-

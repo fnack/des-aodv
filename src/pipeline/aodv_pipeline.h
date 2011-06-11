@@ -32,7 +32,7 @@ For further information and questions please use the web site
 #include "../config.h"
 
 extern pthread_rwlock_t pp_rwlock;
-extern u_int16_t broadcast_id;
+extern u_int32_t broadcast_id;
 
 /**
  * Unknown sequence number
@@ -74,6 +74,12 @@ struct aodv_msg_rreq {
 	 * route towards the destination.
 	 */
 	u_int32_t		seq_num_dest;
+	/**
+	 * Originator Sequence Number;
+	 * The current sequence number to be used in the route entry pointing towards
+	 * the originator of the route request.
+	 */
+	u_int32_t		seq_num_src;
 } __attribute__ ((__packed__));
 
 /** RREP - Route Reply Message */
@@ -125,8 +131,9 @@ struct aodv_msg_broadcast {
 	 * A sequence number uniqiely identifying the broadcast packet (RREQ or simple packet)
 	 * in combination with ether_shost
 	 */
-	u_int16_t		id;
+	u_int32_t		id;
 } __attribute__ ((__packed__));
+
 
 typedef struct _onlb_dest_list_element {
 	u_int8_t 							dhost_ether[ETH_ALEN];
@@ -146,6 +153,12 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len,
 int aodv_handle_rrep(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
+int aodv_forward_broadcast(dessert_msg_t* msg, size_t len,
+		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
+
+int aodv_forward_multicast(dessert_msg_t* msg, size_t len,
+		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
+
 int aodv_fwd2dest(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
@@ -163,7 +176,6 @@ int rp2sys(dessert_msg_t* msg, size_t len,
 /** drop errors (drop corrupt packets, packets from myself and etc...)*/
 int aodv_drop_errors(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
-
 
 // ------------------------------ periodic ----------------------------------------------------
 

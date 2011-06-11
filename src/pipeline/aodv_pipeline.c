@@ -32,9 +32,9 @@ For further information and questions please use the web site
 
 pthread_rwlock_t pp_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
-u_int16_t seq_num_management = 0;
+u_int32_t seq_num = 0;
+u_int32_t broadcast_id = 0;
 u_int16_t seq_num_data = 0;
-u_int16_t broadcast_id = 0;
 
 // ---------------------------- help functions ---------------------------------------
 
@@ -57,7 +57,7 @@ dessert_msg_t* _create_rreq(u_int8_t dhost_ether[ETH_ALEN], u_int8_t ttl) {
 	rreq_msg->hop_count = 0;
 	rreq_msg->flags = 0;
 	pthread_rwlock_wrlock(&pp_rwlock);
-	msg->u16 = ++seq_num_management;
+	rreq_msg->seq_num_src = ++seq_num;
 	pthread_rwlock_unlock(&pp_rwlock);
 	u_int32_t dhost_seq_num;
 	if (aodv_db_getrouteseqnum(dhost_ether, &dhost_seq_num) == TRUE) {
@@ -98,9 +98,6 @@ dessert_msg_t* _create_rrep(u_int8_t route_dest[ETH_ALEN], u_int8_t route_source
 	dessert_msg_addext(msg, &ext, RREP_EXT_TYPE, sizeof(struct aodv_msg_rrep));
 	struct aodv_msg_rrep* rrep_msg = (struct aodv_msg_rrep*) ext->data;
 	rrep_msg->flags = flags;
-	pthread_rwlock_wrlock(&pp_rwlock);
-	msg->u16 = ++seq_num_management;
-	pthread_rwlock_unlock(&pp_rwlock);
 	rrep_msg->hop_count = 0;
 	rrep_msg->lifetime = 0;
 	rrep_msg->seq_num_dest = route_seq_num;
@@ -230,9 +227,6 @@ int aodv_handle_hello(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, 
 	msg->ttl--;
 	if (msg->ttl >= 1) {
 		// hello req
-		pthread_rwlock_wrlock(&pp_rwlock);
-		msg->u16 = ++seq_num_management;
-		pthread_rwlock_unlock(&pp_rwlock);
 		memcpy(msg->l2h.ether_dhost, msg->l2h.ether_shost, ETH_ALEN);
 		dessert_meshsend(msg, iface);
 	} else {
@@ -281,9 +275,6 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 			dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_rreq_seq, AODV_FLAGS_RREP_A);
 
 			dessert_debug("repair link to " MAC " id=%d", EXPLODE_ARRAY6(l25h->ether_dhost), msg->u16);
-			pthread_rwlock_wrlock(&pp_rwlock);
-			msg->u16 = ++seq_num_management;
-			pthread_rwlock_unlock(&pp_rwlock);
 			dessert_meshsend_fast(rrep_msg, iface);
 			dessert_msg_destroy(rrep_msg);
 		} else if (msg->ttl > 0 && a == FALSE) {
@@ -302,7 +293,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 			// RREQ for me -> answer with RREP
 			dessert_debug("got RREQ for me -> answer with RREP to " MAC " over " MAC, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
 			pthread_rwlock_wrlock(&pp_rwlock);
-			u_int8_t seq_num_copy = ++seq_num_management;
+			u_int32_t seq_num_copy = ++seq_num;
 			pthread_rwlock_unlock(&pp_rwlock);
 			dessert_msg_t* rrep_msg = _create_rrep(dessert_l25_defsrc, l25h->ether_shost, msg->l2h.ether_shost, seq_num_copy, AODV_FLAGS_RREP_A);
 			dessert_meshsend_fast(rrep_msg, iface);
@@ -426,16 +417,26 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 	return DESSERT_MSG_DROP;
 }
 
+int aodv_forward_broadcast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
+	if (proc->lflags & DESSERT_LFLAG_DST_BROADCAST) {
+		dessert_meshsend_fast(msg, NULL);
+		return DESSERT_MSG_DROP;
+	}
+	return DESSERT_MSG_KEEP;
+}
+
+int aodv_forward_multicast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
+	if (proc->lflags & DESSERT_LFLAG_DST_MULTICAST) {
+		dessert_meshsend_fast(msg, NULL);
+		return DESSERT_MSG_DROP;
+	}
+	return DESSERT_MSG_KEEP;
+}
+
 int aodv_fwd2dest(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
 	struct ether_header* l25h = dessert_msg_getl25ether(msg);
-	dessert_ext_t* rl_ext;
-	u_int32_t rl_seq_num = 0;
-	u_int8_t rl_hop_count = 0;
 
-	if (proc->lflags & DESSERT_LFLAG_DST_BROADCAST || proc->lflags & DESSERT_LFLAG_DST_MULTICAST) { // BROADCAST
-		dessert_meshsend_fast(msg, NULL);
-		return DESSERT_MSG_KEEP;
-	} else if (((proc->lflags & DESSERT_LFLAG_NEXTHOP_SELF
+	if (((proc->lflags & DESSERT_LFLAG_NEXTHOP_SELF
 			&& !(proc->lflags & DESSERT_LFLAG_NEXTHOP_SELF_OVERHEARD)) || proc->lflags & DESSERT_LFLAG_NEXTHOP_BROADCAST)
 			&& !(proc->lflags & DESSERT_LFLAG_DST_SELF)){ // Directed message
 		u_int8_t dhost_next_hop[ETH_ALEN];
@@ -516,5 +517,3 @@ int rp2sys(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const desse
 	}
 	return DESSERT_MSG_DROP;
 }
-
-
