@@ -383,10 +383,17 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 	gettimeofday(&ts, NULL);
 	rrep_msg->hop_count++;
 
-	// capture and re-send only if route is unknown OR
-	// sequence number is greater then that in database OR
-	// if seq_nums are equals and known hop count is greater than that in RREP
-	if (!aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->seq_num_dest, rrep_msg->hop_count, &ts)) {
+
+	int x = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->seq_num_dest, rrep_msg->hop_count, &ts)
+	if(x == -1)
+		dessert_crit("aodv_db_capt_rreq returns error");
+		return DESSERT_MSG_DROP;
+	}
+
+	if(x == FALSE) {
+		// capture and re-send only if route is unknown OR
+		// sequence number is greater then that in database OR
+		// if seq_nums are equals and known hop count is greater than that in RREP
 		return DESSERT_MSG_DROP;
 	}
 
