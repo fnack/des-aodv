@@ -525,7 +525,7 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, desse
  */
 int aodv_local_broadcast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
 	if(proc->lflags & DESSERT_LFLAG_DST_BROADCAST) {
-		dessert_syssend_msg(msg, NULL);
+		dessert_syssend_msg(msg);
 		return DESSERT_MSG_DROP;
 	}
 	return DESSERT_MSG_KEEP;
@@ -533,13 +533,13 @@ int aodv_local_broadcast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *pro
 
 int aodv_local_multicast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
 	if(proc->lflags & DESSERT_LFLAG_DST_MULTICAST) {
-		dessert_syssend_msg(msg, NULL);
+		dessert_syssend_msg(msg);
 		return DESSERT_MSG_DROP;
 	}
 	return DESSERT_MSG_KEEP;
 }
 int aodv_local(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
-	if(proc->lflags & DESSERT_LFLAG_DST_SELF)
+	if(proc->lflags & DESSERT_LFLAG_DST_SELF) {
 		dessert_syssend_msg(msg);
 	}
 	return DESSERT_MSG_DROP;

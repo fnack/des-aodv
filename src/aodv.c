@@ -91,8 +91,8 @@ int main(int argc, char** argv) {
     dessert_meshrxcb_add(aodv_forward_multicast, 81);
     dessert_meshrxcb_add(aodv_forward, 90);
     dessert_meshrxcb_add(aodv_local_broadcast, 100);
-    dessert_meshrxcb_add(aodv_local_multicast, 100);
-    dessert_meshrxcb_add(aodv_local, 100);
+    dessert_meshrxcb_add(aodv_local_multicast, 101);
+    dessert_meshrxcb_add(aodv_local, 102);
 
     dessert_sysrxcb_add(aodv_sys2rp, 10);
 
