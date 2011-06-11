@@ -304,8 +304,8 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 		}
 
 		/* RREQ gives route to his source. Process RREQ also as RREP */
-		int x = aodv_db_capt_rrep(l25h->ether_shost, prev_hop, iface, rreq_msg->seq_num_src, rreq_msg->hop_count, &ts);
-		if (x == TRUE) {
+		int y = aodv_db_capt_rrep(l25h->ether_shost, prev_hop, iface, rreq_msg->seq_num_src, rreq_msg->hop_count, &ts);
+		if (y == TRUE) {
 			// no need to search for next hop. Next hop is RREQ.prev_hop
 			aodv_send_packets_from_buffer(l25h->ether_shost, prev_hop, iface);
 		} else {
@@ -384,8 +384,8 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 	rrep_msg->hop_count++;
 
 
-	int x = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->seq_num_dest, rrep_msg->hop_count, &ts)
-	if(x == -1)
+	int x = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->seq_num_dest, rrep_msg->hop_count, &ts);
+	if(x == -1) {
 		dessert_crit("aodv_db_capt_rreq returns error");
 		return DESSERT_MSG_DROP;
 	}

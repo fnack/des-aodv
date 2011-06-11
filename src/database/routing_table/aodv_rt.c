@@ -161,7 +161,7 @@ int nht_entry_create (nht_entry_t** entry_out, u_int8_t dhost_next_hop[ETH_ALEN]
 }
 
 //returns TRUE if input entry is used (newer)
-//        FALSE if input entry is known
+//        FALSE if input entry is unknown
 //        -1 if error
 int aodv_db_rt_capt_rreq (u_int8_t dhost_ether[ETH_ALEN], u_int8_t shost_ether[ETH_ALEN],
 		u_int8_t shost_prev_hop[ETH_ALEN], const dessert_meshif_t* output_iface,
