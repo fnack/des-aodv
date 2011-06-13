@@ -307,22 +307,22 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 			dessert_debug("got RREQ for me -> don't answer with RREP route unknown or DUP (rreq_msg->seq_num_src=%u last_rreq_seq=%u) to " MAC " over " MAC,
 			              rreq_msg->seq_num_src, last_rreq_seq, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
 		}
-
-		/* RREQ gives route to his source. Process RREQ also as RREP */
-		int y = aodv_db_capt_rrep(l25h->ether_shost, prev_hop, iface, rreq_msg->seq_num_src, rreq_msg->hop_count, &ts);
-		if (y == TRUE) {
-			// no need to search for next hop. Next hop is RREQ.prev_hop
-			aodv_send_packets_from_buffer(l25h->ether_shost, prev_hop, iface);
-		} else {
-			// we know a better route already
-		}
 	}
 
 	int x = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->seq_num_src, &ts);
 	if(x == -1) {
 		dessert_crit("aodv_db_capt_rreq returns error");
+		return DESSERT_MSG_DROP;
 	}
 
+	/* RREQ gives route to his source. Process RREQ also as RREP */
+	int y = aodv_db_capt_rrep(l25h->ether_shost, prev_hop, iface, rreq_msg->seq_num_src, rreq_msg->hop_count, &ts);
+	if (y == TRUE) {
+		// no need to search for next hop. Next hop is RREQ.prev_hop
+		aodv_send_packets_from_buffer(l25h->ether_shost, prev_hop, iface);
+	} else {
+		// we know a better route already
+	}
 	return DESSERT_MSG_DROP;
 }
 

@@ -189,7 +189,7 @@ int aodv_db_rt_capt_rreq (u_int8_t dhost_ether[ETH_ALEN], u_int8_t shost_ether[E
 		HASH_ADD_KEYPTR(hh, rt_entry->src_list, srclist_entry->shost_ether, ETH_ALEN, srclist_entry);
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
 		return TRUE;
-	} else if (hf_seq_comp_i_j(srclist_entry->shost_seq_num, shost_seq_num) > 0) {
+	} else if (hf_seq_comp_i_j(srclist_entry->shost_seq_num, shost_seq_num) < 0) {
 		// overwrite several fields of source entry if source seq_num is newer
 		memcpy(srclist_entry->shost_prev_hop, shost_prev_hop, ETH_ALEN);
 		srclist_entry->output_iface = output_iface;
