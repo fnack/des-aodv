@@ -137,7 +137,6 @@ void aodv_send_rreq(u_int8_t dhost_ether[ETH_ALEN], struct timeval* ts, u_int8_t
 		}
 	}
 	aodv_db_putrreq(ts);
-	dessert_trace("RREQ to " MAC " ttl=%i rreq_count=%d", EXPLODE_ARRAY6(dhost_ether), (ttl > TTL_THRESHOLD) ? 255 : ttl, rreq_count);
 
 	void* payload;
 	uint16_t size = max(rreq_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
@@ -292,17 +291,8 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 
 		dessert_debug("incoming RREQ from " MAC " seq=%i -> answer with RREP seq=%i", EXPLODE_ARRAY6(l25h->ether_shost), rreq_msg->seq_num_src, seq_num);
 
-		/* RREQ gives route to his source. Process RREQ also as RREP */
-		int y = aodv_db_capt_rrep(l25h->ether_shost, prev_hop, iface, rreq_msg->seq_num_src, rreq_msg->hop_count, &ts);
-		if (y == TRUE) {
-			// no need to search for next hop. Next hop is RREQ.prev_hop
-			aodv_send_packets_from_buffer(l25h->ether_shost, prev_hop, iface);
-		} else {
-			// we know a better route already
-		}
-
 		u_int32_t last_rreq_seq;
-		int a = aodv_db_getlastrreqseq(l25h->ether_dhost, l25h->ether_shost, &last_rreq_seq); //returns true if the host is unknown -> last_rreq_seq is set to 0
+		int a = aodv_db_getlastrreqseq(l25h->ether_dhost, l25h->ether_shost, &last_rreq_seq); //returns true if the host is known -> last_rreq_seq is set to 0
 		int b = (hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq) > 0);
 		dessert_trace("rreq_msg->seq_num_src=%u last_rreq_seq=%u -> hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq)=%d", rreq_msg->seq_num_src, last_rreq_seq, hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq));
 		if(b) {
@@ -317,6 +307,15 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 		} else {
 			dessert_debug("got RREQ for me -> don't answer with RREP route unknown or DUP (rreq_msg->seq_num_src=%u last_rreq_seq=%u) to " MAC " over " MAC,
 			              rreq_msg->seq_num_src, last_rreq_seq, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
+		}
+
+		/* RREQ gives route to his source. Process RREQ also as RREP */
+		int y = aodv_db_capt_rrep(l25h->ether_shost, prev_hop, iface, rreq_msg->seq_num_src, rreq_msg->hop_count, &ts);
+		if (y == TRUE) {
+			// no need to search for next hop. Next hop is RREQ.prev_hop
+			aodv_send_packets_from_buffer(l25h->ether_shost, prev_hop, iface);
+		} else {
+			// we know a better route already
 		}
 	}
 
@@ -438,6 +437,8 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 
 int aodv_forward_broadcast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
 	if (proc->lflags & DESSERT_LFLAG_DST_BROADCAST) {
+		struct ether_header* l25h = dessert_msg_getl25ether(msg);
+		dessert_debug("got BROADCAST from " MAC " over " MAC, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
 		dessert_meshsend_fast(msg, NULL); //forward to mesh
 		dessert_syssend_msg(msg); //forward to sys
 		return DESSERT_MSG_DROP;
@@ -531,11 +532,11 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, desse
 			memcpy(msg->l2h.ether_dhost, dhost_next_hop, ETH_ALEN);
 			dessert_meshsend_fast(msg, output_iface);
 
-			dessert_trace("data packet to mesh - to " MAC " id=%d route is known - send over " MAC, EXPLODE_ARRAY6(l25h->ether_dhost), seq_num, EXPLODE_ARRAY6(dhost_next_hop));
+			dessert_trace("send data packet to mesh - to " MAC " over " MAC " id=%d route is known", EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(dhost_next_hop), seq_num);
 		} else {
 			aodv_db_push_packet(l25h->ether_dhost, msg, &ts);
 			aodv_send_rreq(l25h->ether_dhost, &ts, TTL_START); // create and send RREQ
-			dessert_trace("data packet to mesh - to " MAC " id=%d but route is unknown -> push packet to FIFO and send RREQ", EXPLODE_ARRAY6(l25h->ether_dhost), seq_num);
+			dessert_trace("send data packet to mesh - to " MAC " id=%d but route is unknown -> push packet to FIFO and send RREQ", EXPLODE_ARRAY6(l25h->ether_dhost), seq_num);
 		}
 	}
 	return DESSERT_MSG_DROP;
