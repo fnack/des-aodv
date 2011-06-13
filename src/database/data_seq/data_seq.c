@@ -28,13 +28,13 @@ For further information and questions please use the web site
 
 typedef struct data_packet_id {
 	u_int8_t src_dest_addr[ETH_ALEN * 2]; // key
-	u_int32_t seq_num;
+	u_int16_t seq_num;
 	UT_hash_handle hh;
 } data_packet_id_t;
 
 data_packet_id_t* entrys = NULL;
 
-u_int32_t data_get_nextseq(u_int8_t src_addr[ETH_ALEN], u_int8_t dest_addr[ETH_ALEN]) {
+u_int16_t data_get_nextseq(u_int8_t src_addr[ETH_ALEN], u_int8_t dest_addr[ETH_ALEN]) {
 	u_int8_t key[ETH_ALEN * 2];
 	memcpy(key, src_addr, ETH_ALEN);
 	memcpy(key + ETH_ALEN, dest_addr, ETH_ALEN);
@@ -51,7 +51,7 @@ u_int32_t data_get_nextseq(u_int8_t src_addr[ETH_ALEN], u_int8_t dest_addr[ETH_A
 	return entry->seq_num;
 }
 
-void data_set_seq(u_int8_t src_addr[ETH_ALEN], u_int8_t dest_addr[ETH_ALEN], u_int32_t seq_num) {
+void data_set_seq(u_int8_t src_addr[ETH_ALEN], u_int8_t dest_addr[ETH_ALEN], u_int16_t seq_num) {
 	u_int8_t key[ETH_ALEN * 2];
 	memcpy(key, src_addr, ETH_ALEN);
 	memcpy(key + ETH_ALEN, dest_addr, ETH_ALEN);
