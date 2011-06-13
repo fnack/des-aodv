@@ -263,19 +263,18 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 	gettimeofday(&ts, NULL);
 	struct aodv_msg_rreq* rreq_msg = (struct aodv_msg_rreq*) rreq_ext->data;
 
-	dessert_trace("incoming RREQ from " MAC " to " MAC " seq=%i", EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(l25h->ether_dhost), rreq_msg->seq_num_src);
-
 	u_int8_t prev_hop[ETH_ALEN];
 	rreq_msg->hop_count++;
 	memcpy(prev_hop, msg->l2h.ether_shost, ETH_ALEN);
 
 	if (memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) != 0) { // RREQ not for me
+		dessert_trace("incoming RREQ from " MAC " to " MAC " seq=%i", EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(l25h->ether_dhost), rreq_msg->seq_num_src);
 
 		u_int32_t last_rreq_seq;
-		int a = !(rreq_msg->flags & (AODV_FLAGS_RREQ_D | AODV_FLAGS_RREQ_U));
-		int b = aodv_db_getlastrreqseq(l25h->ether_dhost, l25h->ether_shost, &last_rreq_seq);
-		int c = (hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq) > 0);
-		if(a && b && c) {
+		int f = !(rreq_msg->flags & (AODV_FLAGS_RREQ_D | AODV_FLAGS_RREQ_U));
+		int a = aodv_db_getlastrreqseq(l25h->ether_dhost, l25h->ether_shost, &last_rreq_seq);
+		int b = (hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq) > 0);
+		if(a && b && f) {
 			// i know route to destination that have seq_num greater then that of source (route is newer)
 			dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_rreq_seq, AODV_FLAGS_RREP_A);
 
@@ -289,13 +288,13 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 		}
 	} else { // RREQ for me
 
-		dessert_debug("incoming RREQ from " MAC " seq=%i -> answer with RREP seq=%i", EXPLODE_ARRAY6(l25h->ether_shost), rreq_msg->seq_num_src, seq_num);
+		dessert_debug("incoming RREQ from " MAC " for me seq=%i -> answer with RREP seq=%i", EXPLODE_ARRAY6(l25h->ether_shost), rreq_msg->seq_num_src, seq_num);
 
 		u_int32_t last_rreq_seq;
-		int a = aodv_db_getlastrreqseq(l25h->ether_dhost, l25h->ether_shost, &last_rreq_seq); //returns true if the host is known -> last_rreq_seq is set to 0
+		int a = aodv_db_getlastrreqseq(l25h->ether_dhost, l25h->ether_shost, &last_rreq_seq);
 		int b = (hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq) > 0);
 		dessert_trace("rreq_msg->seq_num_src=%u last_rreq_seq=%u -> hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq)=%d", rreq_msg->seq_num_src, last_rreq_seq, hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq));
-		if(b) {
+		if(!a || (a && b)) {
 			// RREQ for me -> answer with RREP
 			dessert_debug("got RREQ for me -> answer with RREP to " MAC " over " MAC " id=%d", EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost), seq_num);
 			pthread_rwlock_wrlock(&pp_rwlock);
@@ -509,7 +508,7 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, desse
 	struct ether_header* l25h = dessert_msg_getl25ether(msg);
 
 	if (memcmp(l25h->ether_dhost, ether_broadcast, ETH_ALEN) == 0) {
-		dessert_trace("broadcast message -> add broadcast extension to avoid broadcast loops");
+		dessert_trace("send broadcast message -> add broadcast extension to avoid broadcast loops");
 		dessert_ext_t* ext;
 		dessert_msg_addext(msg, &ext, BROADCAST_EXT_TYPE, sizeof(struct aodv_msg_broadcast));
 		struct aodv_msg_broadcast* brc_str = (struct aodv_msg_broadcast*) ext->data;
