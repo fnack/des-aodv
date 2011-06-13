@@ -271,12 +271,6 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 
 		dessert_trace("incoming RREQ from " MAC " to " MAC " seq=%i", EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(l25h->ether_dhost), rreq_msg->seq_num_src);
 
-		int x = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->seq_num_src, &ts);
-		if(x == -1) {
-			dessert_crit("aodv_db_capt_rreq returns error");
-			return DESSERT_MSG_DROP;
-		}
-
 		u_int32_t last_rreq_seq;
 		int f = !(rreq_msg->flags & (AODV_FLAGS_RREQ_D | AODV_FLAGS_RREQ_U));
 		int a = aodv_db_getrouteseqnum(l25h->ether_dhost, &last_rreq_seq);
@@ -323,6 +317,12 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, c
 		} else {
 			// we know a better route already
 		}
+	}
+
+	int x = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->seq_num_src, &ts);
+	if(x == -1) {
+		dessert_crit("aodv_db_capt_rreq returns error");
+		return DESSERT_MSG_DROP;
 	}
 	return DESSERT_MSG_DROP;
 }
@@ -550,7 +550,7 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, desse
 int aodv_local_unicast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
 	if(proc->lflags & DESSERT_LFLAG_DST_SELF) {
 		struct ether_header* l25h = dessert_msg_getl25ether(msg);
-		if(aodv_db_data_capt_data_seq(l25h->ether_shost, msg->u16)) {
+		if(TRUE == aodv_db_data_capt_data_seq(l25h->ether_shost, msg->u16)) {
 			dessert_trace("data packet from mesh - from " MAC " over " MAC " id=%d", EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost), msg->u16);
 			dessert_syssend_msg(msg);
 		} else {
