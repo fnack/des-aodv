@@ -532,8 +532,6 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, desse
 			dessert_meshsend_fast(msg, output_iface);
 
 			dessert_trace("data packet - id=%d - to mesh - to " MAC " route is known - send over " MAC, seq_num, EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(dhost_next_hop));
-
-			dessert_msg_destroy(msg);
 		} else {
 			aodv_db_push_packet(l25h->ether_dhost, msg, &ts);
 			aodv_send_rreq(l25h->ether_dhost, &ts, TTL_START); // create and send RREQ
