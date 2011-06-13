@@ -35,6 +35,7 @@ pthread_rwlock_t data_seq_lock = PTHREAD_RWLOCK_INITIALIZER;
 
 u_int32_t seq_num = 0;
 u_int32_t broadcast_id = 0;
+u_int16_t data_seq_num = 0;
 
 // ---------------------------- help functions ---------------------------------------
 
@@ -163,7 +164,7 @@ void aodv_send_packets_from_buffer(u_int8_t ether_dhost[ETH_ALEN], u_int8_t next
 		struct ether_header* l25h = dessert_msg_getl25ether(buffered_msg);
 		u_int16_t seq_num = 0;
 		pthread_rwlock_wrlock(&data_seq_lock);
-		seq_num = data_get_nextseq(dessert_l25_defsrc, l25h->ether_dhost);
+		seq_num = ++data_seq_num;
 		pthread_rwlock_unlock(&data_seq_lock);
 		buffered_msg->u16 = seq_num;
 
@@ -468,8 +469,13 @@ int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const
 	struct timeval timestamp;
 	gettimeofday(&timestamp, NULL);
 	u_int8_t next_hop[ETH_ALEN];
-
 	struct ether_header* l25h = dessert_msg_getl25ether(msg);
+	
+	if(TRUE != aodv_db_data_capt_data_seq(l25h->ether_shost, msg->u16)) {
+		//data packet is known -> DUP
+		return DESSERT_MSG_DROP;
+	}
+		
 	if (aodv_db_getroute2dest(l25h->ether_dhost, next_hop, &output_iface, &timestamp)) {
 		dessert_debug(MAC " -------> " MAC, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(l25h->ether_dhost));
 		memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
@@ -518,7 +524,7 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, desse
 		if (aodv_db_getroute2dest(l25h->ether_dhost, dhost_next_hop, &output_iface, &ts) == TRUE) {
 			u_int16_t seq_num = 0;
 			pthread_rwlock_wrlock(&data_seq_lock);
-			seq_num = data_get_nextseq(dessert_l25_defsrc, l25h->ether_dhost);
+			seq_num = ++data_seq_num;
 			pthread_rwlock_unlock(&data_seq_lock);
 			msg->u16 = seq_num;
 
@@ -544,7 +550,13 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, desse
  */
 int aodv_local_unicast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
 	if(proc->lflags & DESSERT_LFLAG_DST_SELF) {
-		dessert_syssend_msg(msg);
+		struct ether_header* l25h = dessert_msg_getl25ether(msg);
+		if(aodv_db_data_capt_data_seq(l25h->ether_shost, msg->u16)) {
+			//packet is new
+			dessert_syssend_msg(msg);
+		} else {
+			//DUP
+		}
 	}
 	return DESSERT_MSG_DROP;
 }
