@@ -188,55 +188,14 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
         return 0;
 }
 
-int del_from_rbuff(mac_addr l2_source) {
-	int i;
-	for(i = 0; i < MONITOR_SIGNAL_STRENGTH_MAX; i++) {
-		if(0 == memcmp(l2_source, aodv_monitor_last_hops_rbuff[i].l2_source, ETHER_ADDR_LEN)) {
-			memset(&(aodv_monitor_last_hops_rbuff[i]), 0, sizeof(aodv_monitor_last_hops_rbuff_t));
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-
 int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled, struct timeval *interval) {
-	time_t now = time(0);
-	int i;
-	for(i = 0; i < MONITOR_SIGNAL_STRENGTH_MAX; i++) {
-		//entry is not used
-		if(0 == memcmp(aodv_monitor_last_hops_rbuff[i].l2_source, "\x0\x0\x0\x0\x0\x0", ETHER_ADDR_LEN))
-			continue;
 
-		//get rssi of this neighbor
-		avg_node_result_t result = dessert_rssi_avg(aodv_monitor_last_hops_rbuff[i].l2_source, aodv_monitor_last_hops_rbuff[i].iface->if_name);
-		time_t last_warn = aodv_monitor_last_hops_rbuff[i].last_warn;
+	struct timeval ts;
+	gettimeofday(&ts, NULL);
+	aodv_db_data_monitor_signal_strength_update(&ts);
 
-		if(result.avg_rssi == 0) {
-			//no neighbor
-			del_from_rbuff(aodv_monitor_last_hops_rbuff[i].l2_source);
-			continue;
-		}
-
-		if((last_warn != 0) && ((last_warn + MONITOR_SIGNAL_STRENGTH_WARN_INTERVAL) > now)) {
-			//send only every MONITOR_SIGNAL_STRENGTH_WARN_INTERVAL seconds
-			dessert_trace("RSSI VAL of %d from " MAC " -> but SIGNAL_STRENGTH_MIN_WARN_INTERVAL*5 is not reached",
-				      result.avg_rssi,
-				      EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l2_source),
-				      MONITOR_SIGNAL_STRENGTH_GREY_ZONE);
-			continue;
-		}
-
-		//get max rssi of the neighbor
-		int max_rssi = db_nt_get_max_rssi(aodv_monitor_last_hops_rbuff[i].l2_source, aodv_monitor_last_hops_rbuff[i].iface);
-		if((max_rssi - MONITOR_SIGNAL_STRENGTH_THRESHOLD) <= result.avg_rssi) {
-		//    -35    -               20                   <=      -50
-/*			dessert_debug("RSSI VAL of %d from " MAC " threshold (%d) not reached...doing nothing",
-			              result.avg_rssi,
-			              EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l2_source),
-			              max_rssi - MONITOR_SIGNAL_STRENGTH_THRESHOLD);
-*/			continue;
-		}
-
+	aodv_dm_t* dm;
+	while((dm = aodv_db_data_monitor_pop()) != NULL) {
 		//current_rssi is MONITOR_SIGNAL_STRENGTH_THRESHOLD below the max_rssi -> sending rwarn
 		dessert_debug("RSSI VAL %d from " MAC " is too bad ( < %d-%d ) -> sending RWARN to " MAC,
 		              result.avg_rssi,
@@ -244,19 +203,7 @@ int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled,
 		              max_rssi,
 		              MONITOR_SIGNAL_STRENGTH_THRESHOLD,
 		              EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l25_source));
-
-		u_int8_t *rwarn_dest = malloc(ETH_ALEN);
-		memcpy(rwarn_dest, aodv_monitor_last_hops_rbuff[i].l25_source, ETH_ALEN);
-		u_int8_t *rwarn_next_hop = malloc(ETH_ALEN);
-		memcpy(rwarn_next_hop, aodv_monitor_last_hops_rbuff[i].l2_source, ETH_ALEN);
-
-		aodv_send_rwarn(rwarn_dest, rwarn_next_hop, aodv_monitor_last_hops_rbuff[i].iface);
-
-		free(rwarn_dest);
-		free(rwarn_next_hop);
-
-		//update last warn
-		aodv_monitor_last_hops_rbuff[i].last_warn = now;
+		aodv_send_rwarn(dm->l25_source, dm->entry.l25.source, dm->iface);
 	}
 	return 0;
 }

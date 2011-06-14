@@ -33,6 +33,7 @@ For further information and questions please use the web site
 pthread_rwlock_t pp_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
 u_int32_t seq_num = 0;
+u_int16_t rwarn_seq_num = 0;
 u_int32_t broadcast_id = 0;
 
 // ---------------------------- help functions ---------------------------------------
@@ -166,6 +167,9 @@ dessert_msg_t* _create_rwarn(u_int8_t rwarn_dest[ETH_ALEN], u_int8_t rwarn_next_
 	dessert_msg_addext(msg, &ext, RWARN_EXT_TYPE, sizeof(struct aodv_msg_rwarn));
 	struct aodv_msg_rwarn* rwarn_msg = (struct aodv_msg_rwarn*) ext->data;
 	rwarn_msg->source_mobility = mobility;
+	pthread_rwlock_wrlock(&pp_rwlock);
+	rwarn_msg->seq_num->++rwarn_seq_num;
+	pthread_rwlock_unlock(&pp_rwlock);
 	return msg;
 }
 
@@ -649,39 +653,16 @@ int rp2sys(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const desse
 	return DESSERT_MSG_DROP;
 }
 
-int is_in_rbuff(mac_addr l2_source) {
-	int i;
-	for(i = 0; i < MONITOR_SIGNAL_STRENGTH_MAX; i++) {
-		if(0 == memcmp(l2_source, aodv_monitor_last_hops_rbuff[i].l2_source, ETHER_ADDR_LEN))
-			return TRUE;
-	}
-	return FALSE;
-}
-
-void put_in_rbuff(mac_addr l2_source, mac_addr l25_source, dessert_meshif_t *iface) {
-	if(aodv_monitor_last_hops_rbuff_pos >= MONITOR_SIGNAL_STRENGTH_MAX)
-		aodv_monitor_last_hops_rbuff_pos = 0;
-
-	memcpy(aodv_monitor_last_hops_rbuff[aodv_monitor_last_hops_rbuff_pos].l2_source, l2_source, ETHER_ADDR_LEN);
-	memcpy(aodv_monitor_last_hops_rbuff[aodv_monitor_last_hops_rbuff_pos].l25_source, l25_source, ETHER_ADDR_LEN);
-	aodv_monitor_last_hops_rbuff[aodv_monitor_last_hops_rbuff_pos].iface = iface;
-
-	aodv_monitor_last_hops_rbuff_pos++;
-	if(aodv_monitor_last_hops_rbuff_pos >= MONITOR_SIGNAL_STRENGTH_MAX)
-		aodv_monitor_last_hops_rbuff_pos = 0;
-}
-
 int aodv_monitor_last_hops(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
-	if(proc->lflags & DESSERT_LFLAG_DST_SELF && !(proc->lflags & DESSERT_LFLAG_DST_SELF_OVERHEARD)) {
+	if(proc->lflags & DESSERT_LFLAG_DST_SELF) {
 
-		struct ether_header l2h = msg->l2h;
 		struct ether_header* l25h = dessert_msg_getl25ether(msg);
 		
 		dessert_debug("got DATA Packet from " MAC " over " MAC, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
-		
-		if(!is_in_rbuff(l2h.ether_shost))
-			put_in_rbuff(l2h.ether_shost, l25h->ether_shost, iface);
 
+		struct timeval ts;
+		gettimeofday(&ts, NULL);
+		aodv_db_data_monitor_capture_packet(msg->l2h.ether_shost, l25h->ether_shost, iface, &ts);
 	}
 	return DESSERT_MSG_KEEP;
 }

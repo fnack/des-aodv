@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright 2009, Freie Universitaet Berlin (FUB). All rights reserved.
+Copyright 2011, Freie Universitaet Berlin (FUB). All rights reserved.
 
 These sources were developed at the Freie Universitaet Berlin,
 Computer Systems and Telematics / Distributed, embedded Systems (DES) group
@@ -21,32 +21,12 @@ For further information and questions please use the web site
        http://www.des-testbed.net
 *******************************************************************************/
 
-#ifndef AODV_NT
-#define AODV_NT
-
-#include <dessert.h>
-
-#ifdef ANDROID
 #include <linux/if_ether.h>
-#endif
 
+int aodv_db_data_monitor_signal_strength_update(struct timeval ts);
 
-/** initialize neighbor table */
-int db_nt_init();
+aodv_dm_t* aodv_db_data_monitor_pop();
 
-/**
- * Take a record that the given neighbor seems to be
- * 1 hop bidirectional neighbor
- */
-int db_nt_cap2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp, u_int8_t mobility);
-
-/**
- * Check whether given neighbor is 1 hop bidirectional neighbor
- */
-int db_nt_check2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp);
-
-int db_nt_cleanup(struct timeval* timestamp);
-
-void db_nt_on_neigbor_timeout(struct timeval* timestamp, void* src_object, void* object);
+int aodv_db_data_monitor_capture_packet(u_int8_t l2_source[ETH_ALEN], u_int8_t l25_source[ETH_ALEN], const dessert_meshif_t* iface, struct timeval ts);
 
 #endif

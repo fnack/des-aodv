@@ -121,6 +121,7 @@ struct aodv_msg_rerr {
 /** RWARN - Route Warn Message */
 struct aodv_msg_rwarn {
 	u_int8_t		source_mobility;
+	u_int16_t		seq_num;
 } __attribute__ ((__packed__));
 
 /** HELLO - Hello Message */
@@ -157,16 +158,6 @@ extern pthread_rwlock_t rlseqlock;
 void rlfile_log(const u_int8_t src_addr[ETH_ALEN], const u_int8_t dest_addr[ETH_ALEN],
 		const u_int32_t seq_num, const u_int8_t hop_count, const u_int8_t in_iface[ETH_ALEN],
 		const u_int8_t out_iface[ETH_ALEN], const u_int8_t next_hop_addr[ETH_ALEN]);
-
-typedef struct aodv_monitor_last_hops_rbuff {
-	mac_addr l2_source;
-	mac_addr l25_source;
-	dessert_meshif_t *iface;
-	time_t last_warn;
-} aodv_monitor_last_hops_rbuff_t;
-
-aodv_monitor_last_hops_rbuff_t aodv_monitor_last_hops_rbuff[MONITOR_SIGNAL_STRENGTH_MAX];
-u_int32_t aodv_monitor_last_hops_rbuff_pos;
 
 // ------------- pipeline -----------------------------------------------------
 
