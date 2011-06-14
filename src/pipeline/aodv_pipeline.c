@@ -169,7 +169,7 @@ dessert_msg_t* _create_rwarn(u_int8_t rwarn_dest[ETH_ALEN], u_int8_t rwarn_next_
 	struct aodv_msg_rwarn* rwarn_msg = (struct aodv_msg_rwarn*) ext->data;
 	rwarn_msg->source_mobility = mobility;
 	pthread_rwlock_wrlock(&pp_rwlock);
-	rwarn_msg->seq_num->++rwarn_seq_num;
+	rwarn_msg->seq_num = ++rwarn_seq_num;
 	pthread_rwlock_unlock(&pp_rwlock);
 	return msg;
 }
@@ -203,7 +203,7 @@ int aodv_handle_rwarn(dessert_msg_t* msg,
 	}
 
 	struct ether_header* l25h = dessert_msg_getl25ether(msg);
-	int s = aodv_db_rwarn_capt_rwarn_seq(l25h->shost_ether, rwarn_msg->seq_num);
+	int s = aodv_db_rwarn_capt_rwarn_seq(l25h->ether_shost, rwarn_msg->seq_num);
 	if(s == FALSE) {
 		dessert_debug("forward RWARN to " MAC " got over " MAC " is DUP - id=%d mobility=%d",
 		              EXPLODE_ARRAY6(l25h->ether_dhost),

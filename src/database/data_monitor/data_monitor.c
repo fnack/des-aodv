@@ -24,28 +24,11 @@ For further information and questions please use the web site
 #include <uthash.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "data_seq.h"
+#include <utlist.h>
+#include "data_monitor.h"
 #include "../../config.h"
 
-typedef struct aodv_dm_source {
-	aodv_dm_t                 *next;
-	u_int8_t                  l25_source[ETH_ALEN];
-	timeslot_t*               last_seen;
-	timeslot_t*               last_warn;
-	aodv_dm_t                 *prev;
-} aodv_dm_source_t;
-
-typedef struct aodv_dm {
-	aodv_dm_t                 *next;
-	u_int8_t                  l2_source[ETH_ALEN]; // ID
-	u_int8_t                  max_rssi;
-	u_int8_t                  last_rssi;
-	const dessert_meshif_t*   iface;
-	aodv_dm_source_t*         l25_list;
-	aodv_dm_t                 *prev;
-} aodv_dm_t;
-
-aodv_dm_t                         dm;
+aodv_dm_t *dm = NULL;
 
 static int dm_cmp(aodv_dm_t *left, aodv_dm_t *right) {
 	return memcmp(left->l2_source, right->l2_source, sizeof(left->l2_source));
@@ -55,23 +38,19 @@ static int dm_source_cmp(aodv_dm_source_t *left, aodv_dm_source_t *right) {
 	return memcmp(left->l25_source, right->l25_source, sizeof(left->l25_source));
 }
 
-void purge_dm_entrys() {
-	DL_FORALL_SAFE() {
-		if(entry->ts < xxx)
-			DL_DELETE(entry);
+void purge_dm_entrys(struct timeval *ts) {
+
+	aodv_dm_t *iter;
+	DL_FOREACH(dm, iter) {
+		aodv_dm_source_t *dm_source_iter;
+		DL_FOREACH(iter->l25_list, dm_source_iter) {
+			if((dm_source_iter->last_seen->tv_sec + MONITOR_SIGNAL_STRENGTH_TIMEOUT) < ts->tv_sec) {
+				DL_DELETE(iter->l25_list, dm_source_iter);
+			}
+		}
 	}
 	return;
 }
-
-int aodv_db_dm_init() {
-	dm = NULL;
-
-	struct timeval dmt;
-	dmt.tv_sec = MY_ROUTE_TIMEOUT / 1000;
-	dmt.tv_usec = (MY_ROUTE_TIMEOUT % 1000) * 1000;
-	return timeslot_create(&dm.ts, &dmt, &dm, purge_dm_entry);
-}
-
 
 dm_result* create_dm(u_int8_t l2_source[ETH_ALEN], const dessert_meshif_t* iface, struct timeval ts) {
 	aodv_dm_t *dm;
@@ -93,15 +72,16 @@ aodv_dm_source_t* create_dm_source(u_int8_t l25_source[ETH_ALEN]) {
 	return dm_source;
 }
 
-int aodv_db_data_monitor_signal_strength_update(struct timeval ts) {
+int aodv_db_data_monitor_signal_strength_update(struct timeval *ts) {
 
-	purge_dm_entrys();
+	purge_dm_entrys(ts);
 
-	DL_FOREACH(dm) {
-		avg_node_result_t result = dessert_rssi_avg(aodv_monitor_last_hops_rbuff[i].l2_source, aodv_monitor_last_hops_rbuff[i].iface->if_name);
+	aodv_dm_t *iter;
+	DL_FOREACH(dm, iter) {
+		avg_node_result_t result = dessert_rssi_avg(iter->l2_source, iter->if_name);
 		if(result.avg_rssi != 0) {
-			dm->last_rssi = result.avg_rssi;
-			dm->max_rssi = max(dm->max_rssi, result.avg_rssi);
+			iter->last_rssi = result.avg_rssi;
+			iter->max_rssi = max(dm->max_rssi, result.avg_rssi);
 		}
 	}
 	return 0;
@@ -109,10 +89,12 @@ int aodv_db_data_monitor_signal_strength_update(struct timeval ts) {
 
 aodv_dm_t* aodv_db_data_monitor_pop() {
 
-	DL_FOREACH(dm) {
-		DL_FOREACH(dm_source) {
+	aodv_dm_t *dm_iter;
+	DL_FOREACH(dm, iter) {
+		aodv_dm_t *dm_source_iter;
+		DL_FOREACH(dm_source, dm_source_iter) {
 
-			if((max_rssi - MONITOR_SIGNAL_STRENGTH_THRESHOLD) <= last_rssi) {
+/*			if((dm_iter->max_rssi - MONITOR_SIGNAL_STRENGTH_THRESHOLD) <= dm_iter->last_rssi) {
 				//    -35    -               20                   <=      -50
 				dessert_trace("RSSI VAL of %d from " MAC " threshold (%d) not reached...doing nothing",
 					      result.avg_rssi,
@@ -131,7 +113,7 @@ aodv_dm_t* aodv_db_data_monitor_pop() {
 			}
 
 			return dm_source;
-		}
+*/		}
 	}
 	return NULL;
 }

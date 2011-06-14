@@ -30,6 +30,7 @@ For further information and questions please use the web site
 #include <pthread.h>
 #include <utlist.h>
 #include <unistd.h>
+#include "../database/data_monitor/data_monitor.h"
 
 int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timeval *interval) {
 
@@ -196,14 +197,18 @@ int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled,
 
 	aodv_dm_t* dm;
 	while((dm = aodv_db_data_monitor_pop()) != NULL) {
-		//current_rssi is MONITOR_SIGNAL_STRENGTH_THRESHOLD below the max_rssi -> sending rwarn
-		dessert_debug("RSSI VAL %d from " MAC " is too bad ( < %d-%d ) -> sending RWARN to " MAC,
-		              result.avg_rssi,
-		              EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l2_source),
-		              max_rssi,
-		              MONITOR_SIGNAL_STRENGTH_THRESHOLD,
-		              EXPLODE_ARRAY6(aodv_monitor_last_hops_rbuff[i].l25_source));
-		aodv_send_rwarn(dm->l25_source, dm->entry.l25.source, dm->iface);
+
+		aodv_dm_source_t *dm_source;
+		DL_FOREACH(dm->l25_list, dm_source) {
+			//current_rssi is MONITOR_SIGNAL_STRENGTH_THRESHOLD below the max_rssi -> sending rwarn
+			dessert_debug("RSSI VAL from " MAC " is too bad (%d < %d-%d ) -> sending RWARN to " MAC,
+				      EXPLODE_ARRAY6(dm->l2_source),
+				      dm->last_rssi,
+				      dm->max_rssi,
+				      MONITOR_SIGNAL_STRENGTH_THRESHOLD,
+				      EXPLODE_ARRAY6(dm_source->l25_source));
+			aodv_send_rwarn(dm_source->l25_source, dm->l2_source, dm->iface);
+		}
 	}
 	return 0;
 }
