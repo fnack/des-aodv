@@ -136,7 +136,7 @@ aodv_dm_t* aodv_db_data_monitor_pop() {
 	return NULL;
 }
 
-int aodv_db_data_monitor_capture_packet(u_int8_t l2_source[ETH_ALEN], u_int8_t l25_source[ETH_ALEN], const dessert_meshif_t* iface, struct timeval ts)
+int aodv_db_data_monitor_capture_packet(u_int8_t l2_source[ETH_ALEN], u_int8_t l25_source[ETH_ALEN], const dessert_meshif_t* iface, struct timeval ts) {
 	//lock
 	aodv_rt_entry_t dm_needle, dm_result;
 	memcpy(dm_needle.l2_source, l2_source, sizeof(l2_source));
