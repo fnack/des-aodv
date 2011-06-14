@@ -29,6 +29,7 @@ For further information and questions please use the web site
 #include "../config.h"
 #include "../helper.h"
 #include "../database/rl_seq_t/rl_seq.h"
+#include "../database/rwarn_seq/rwarn_seq.h"
 
 pthread_rwlock_t pp_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
@@ -194,6 +195,7 @@ int aodv_handle_rwarn(dessert_msg_t* msg,
 
 	if (dessert_msg_getext(msg, &rwarn_ext, RWARN_EXT_TYPE, 0) == FALSE)
 		return DESSERT_MSG_KEEP;
+	struct aodv_msg_rwarn* rwarn_msg = (struct aodv_msg_rwarn*) rwarn_ext->data;
 
 	msg->ttl--;
 	if (msg->ttl <= 0) {
@@ -201,20 +203,41 @@ int aodv_handle_rwarn(dessert_msg_t* msg,
 	}
 
 	struct ether_header* l25h = dessert_msg_getl25ether(msg);
+	int s = aodv_db_rwarn_capt_rwarn_seq(l25h->shost_ether, rwarn_msg->seq_num);
+	if(s == FALSE) {
+		dessert_debug("forward RWARN to " MAC " got over " MAC " is DUP - id=%d mobility=%d",
+		              EXPLODE_ARRAY6(l25h->ether_dhost),
+		              EXPLODE_ARRAY6(msg->l2h.ether_shost),
+		              rwarn_msg->seq_num,
+		              rwarn_msg->source_mobility);
+		return DESSERT_MSG_DROP;
+	}
+
 	if (memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) != 0) {
 		//not for me
 		const dessert_meshif_t* output_iface;
 		u_int8_t next_hop[ETH_ALEN];
 		if(aodv_db_getprevhop(l25h->ether_shost, l25h->ether_dhost, next_hop, &output_iface) == TRUE) {
-			dessert_debug("forward RWARN to " MAC " got over " MAC, EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
+			dessert_debug("forward RWARN to " MAC " got over " MAC "sending to " MAC " - id=%d mobility=%d",
+			              EXPLODE_ARRAY6(l25h->ether_dhost),
+			              EXPLODE_ARRAY6(msg->l2h.ether_shost),
+			              EXPLODE_ARRAY6(next_hop),
+			              rwarn_msg->seq_num,
+			              rwarn_msg->source_mobility);
 			memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
 			dessert_meshsend_fast(msg, output_iface);
 		} else {
-			dessert_debug("DO NOT forward RWARN to " MAC " got over " MAC , EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
+			dessert_debug("DO NOT forward RWARN to " MAC " got over " MAC ,
+			              EXPLODE_ARRAY6(l25h->ether_dhost),
+			              EXPLODE_ARRAY6(msg->l2h.ether_shost));
 		}
 	} else {
 		//for me
-		dessert_debug("got RWARN from " MAC " over " MAC " send rreq...", EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
+		dessert_debug("got RWARN for ME from " MAC " over " MAC " - id=%d mobility=%d send rreq...",
+		              EXPLODE_ARRAY6(l25h->ether_shost),
+		              EXPLODE_ARRAY6(msg->l2h.ether_shost),
+		              rwarn_msg->seq_num,
+		              rwarn_msg->source_mobility);
 		struct timeval ts;
 		gettimeofday(&ts, NULL);
 		aodv_send_rreq(l25h->ether_shost, &ts, TTL_START);	 // create and send RREQ
