@@ -508,12 +508,8 @@ int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const
 // --------------------------- TUN ----------------------------------------------------------
 
 int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, dessert_sysif_t *sysif, dessert_frameid_t id) {
-
-//	if (proc->lflags & DESSERT_RX_FLAG_L25_MULTICAST) {
-//		return DESSERT_MSG_DROP;
-//	}
-
 	struct ether_header* l25h = dessert_msg_getl25ether(msg);
+
 	if (memcmp(l25h->ether_dhost, ether_broadcast, ETH_ALEN) == 0) {
 		dessert_trace("send broadcast message -> add broadcast extension to avoid broadcast loops");
 		dessert_ext_t* ext;
