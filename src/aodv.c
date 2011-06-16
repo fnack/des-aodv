@@ -35,18 +35,16 @@ For further information and questions please use the web site
 int     hello_size	        = HELLO_SIZE;
 int     hello_interval      = HELLO_INTERVAL;
 int     rreq_size	        = RREQ_SIZE;
-char*   routing_log_file    = NULL;
 
 dessert_periodic_t* periodic_send_hello;
 
 int main(int argc, char** argv) {
-
     /* initialize daemon with correct parameters */
     FILE *cfg = NULL;
     if ((argc == 2) && (strcmp(argv[1], "-nondaemonize") == 0)) {
             dessert_info("starting AODV in non daemonize mode");
             dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
-            char cfg_file_name[] = "/tmp/des-aodv.cli";
+            char cfg_file_name[] = "./des-aodv.cli";
             cfg = fopen(cfg_file_name, "r");
             if (cfg == NULL) {
                     printf("Config file '%s' not found. Exit ...\n", cfg_file_name);
@@ -72,7 +70,6 @@ int main(int argc, char** argv) {
     cli_register_command(dessert_cli, cli_cfg_set, "hello_size", cli_set_hello_size, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set HELLO packet size");
     cli_register_command(dessert_cli, cli_cfg_set, "hello_interval", cli_set_hello_interval, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set HELLO packet interval");
     cli_register_command(dessert_cli, cli_cfg_set, "rreq_size", cli_set_rreq_size, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set RREQ packet size");
-    cli_register_command(dessert_cli, cli_cfg_set, "routing_log", cli_set_routing_log, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set path to routing logging file");
 
     cli_register_command(dessert_cli, dessert_cli_show, "hello_size", cli_show_hello_size, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show HELLO packet size");
     cli_register_command(dessert_cli, dessert_cli_show, "hello_interval", cli_show_hello_interval, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show HELLO packet interval");
@@ -90,8 +87,10 @@ int main(int argc, char** argv) {
     dessert_meshrxcb_add(aodv_handle_rerr, 60);
     dessert_meshrxcb_add(aodv_handle_rrep, 70);
     dessert_meshrxcb_add(dessert_mesh_ipttl, 75);
-    dessert_meshrxcb_add(aodv_fwd2dest, 80);
-    dessert_meshrxcb_add(rp2sys, 100);
+    dessert_meshrxcb_add(aodv_forward_broadcast, 80);
+    dessert_meshrxcb_add(aodv_forward_multicast, 81);
+    dessert_meshrxcb_add(aodv_forward, 90);
+    dessert_meshrxcb_add(aodv_local_unicast, 100);
 
     dessert_sysrxcb_add(aodv_sys2rp, 10);
 

@@ -21,13 +21,13 @@ For further information and questions please use the web site
        http://www.des-testbed.net
 *******************************************************************************/
 
-#ifndef RL_SEQ
-#define RL_SEQ
+#ifndef DATA_SEQ
+#define DATA_SEQ
 
 #include <linux/if_ether.h>
 
-u_int32_t rl_get_nextseq(u_int8_t src_addr[ETH_ALEN], u_int8_t dest_addr[ETH_ALEN]);
+uint16_t data_get_nextseq(uint8_t src_addr[ETH_ALEN], uint8_t dest_addr[ETH_ALEN]);
 
-void rl_set_seq(u_int8_t src_addr[ETH_ALEN], u_int8_t dest_addr[ETH_ALEN], u_int32_t seq_num);
+void data_set_seq(uint8_t src_addr[ETH_ALEN], uint8_t dest_addr[ETH_ALEN], uint16_t seq_num);
 
 #endif

@@ -26,10 +26,10 @@ For further information and questions please use the web site
 
 #include <dessert.h>
 
-enum bool {TRUE = 1, FALSE = 0};
+enum aodv_bool {TRUE = 1, FALSE = 0};
 
-#define RREQ_RETRIES				2
-#define RREQ_RATELIMIT				10
+#define RREQ_RETRIES				4
+#define RREQ_RATELIMIT				16
 #define TTL_START					2
 #define TTL_INCREMENT				2
 #define TTL_THRESHOLD				7
@@ -37,8 +37,8 @@ enum bool {TRUE = 1, FALSE = 0};
 
 #define ACTIVE_ROUTE_TIMEOUT		6000 	// milliseconds
 #define ALLOWED_HELLO_LOST			7
-#define NODE_TRAVERSAL_TIME			10 		// milliseconds
-#define NET_DIAMETER				20
+#define NODE_TRAVERSAL_TIME			4 		// milliseconds
+#define NET_DIAMETER				8
 #define NET_TRAVERSAL_TIME			2 * NODE_TRAVERSAL_TIME * NET_DIAMETER
 #define BLACKLIST_TIMEOUT			RREQ_RETRIES * NET_TRAVERSAL_TIME
 #define MY_ROUTE_TIMEOUT			2 * ACTIVE_ROUTE_TIMEOUT
