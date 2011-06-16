@@ -137,6 +137,7 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, uint8_t t
 		}
 	}
 	aodv_db_putrreq(ts);
+	dessert_debug("send RREQ to " MAC " ttl=%i rreq_count=%d", EXPLODE_ARRAY6(dhost_ether), (ttl > TTL_THRESHOLD) ? 255 : ttl, rreq_count);
 
 	void* payload;
 	uint16_t size = max(rreq_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
@@ -180,7 +181,7 @@ void aodv_send_packets_from_buffer(uint8_t ether_dhost[ETH_ALEN], uint8_t next_h
 // ---------------------------- pipeline callbacks ---------------------------------------------
 
 int aodv_drop_errors(dessert_msg_t* msg, size_t len,
-		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id){
+		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
 	// drop packets sent by myself.
 	if (proc->lflags & DESSERT_RX_FLAG_L2_SRC) {
 		return DESSERT_MSG_DROP;
@@ -233,23 +234,26 @@ int aodv_handle_hello(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, 
 		return DESSERT_MSG_KEEP;
 	}
 
+//	dessert_debug("got HELLO from " MAC, EXPLODE_ARRAY6(msg->l2h.ether_shost));
 	msg->ttl--;
 	if (msg->ttl >= 1) {
 		// hello req
 		memcpy(msg->l2h.ether_dhost, msg->l2h.ether_shost, ETH_ALEN);
 		dessert_meshsend(msg, iface);
+//		dessert_debug("got hello-req from " MAC, EXPLODE_ARRAY6(msg->l2h.ether_shost));
 	} else {
 		//hello rep
 		if (memcmp(iface->hwaddr, msg->l2h.ether_dhost, ETH_ALEN) == 0) {
 			struct timeval ts;
 			gettimeofday(&ts, NULL);
+//		dessert_debug("got hello-rep from " MAC " mobility is %d", EXPLODE_ARRAY6(msg->l2h.ether_dhost), mobility);
 			aodv_db_cap2Dneigh(msg->l2h.ether_shost, iface, &ts);
 		}
 	}
 	return DESSERT_MSG_DROP;
 }
 
-int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id){
+int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
 	dessert_ext_t* rreq_ext;
 
 	if (dessert_msg_getext(msg, &rreq_ext, RREQ_EXT_TYPE, 0) == 0) {

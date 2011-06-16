@@ -30,17 +30,22 @@ For further information and questions please use the web site
 #include <utlist.h>
 
 int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timeval *interval) {
-        dessert_msg_t* hello_msg;
-        dessert_ext_t* ext;
 
-        // create new HELLO message with hello_ext.
-        dessert_msg_new(&hello_msg);
-        hello_msg->ttl = 2;
+	//insert some jitter
+	useconds_t jitter = rand() & 0x1FFFF; // jitter of 131 072 µs -> http://www.kernel.org/doc/man-pages/online/pages/man3/rand.3.html
+	usleep(jitter);
 
-        dessert_msg_addext(hello_msg, &ext, HELLO_EXT_TYPE, sizeof(struct aodv_msg_hello));
+	// create new HELLO message with hello_ext.
+	dessert_msg_t* hello_msg;
+	dessert_msg_new(&hello_msg);
+	hello_msg->ttl = 2;
+
+	dessert_ext_t* ext;
+	dessert_msg_addext(hello_msg, &ext, HELLO_EXT_TYPE, sizeof(struct aodv_msg_hello));
 
         void* payload;
         uint16_t size = max(hello_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
+
         dessert_msg_addpayload(hello_msg, &payload, size);
         memset(payload, 0xA, size);
 
