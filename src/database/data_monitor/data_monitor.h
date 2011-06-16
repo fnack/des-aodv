@@ -24,10 +24,13 @@ For further information and questions please use the web site
 #include <linux/if_ether.h>
 #include "../../config.h"
 
-#define MONITOR_SIGNAL_STRENGTH_TIMEOUT       1000 //ms
-#define ROUTE_CHECK_INTERVAL                   100 //ms
-#define MONITOR_SIGNAL_STRENGTH_THRESHOLD       15 //dmb
-#define MONITOR_SIGNAL_STRENGTH_WARN_INTERVAL 1000 //ms
+#define SIGNAL_STRENGTH_MONITOR_TIMEOUT      1000 //ms
+#define SIGNAL_STRENGTH_ROUTE_CHECK_INTERVAL  100 //ms
+#define SIGNAL_STRENGTH_WARN_INTERVAL        1000 //ms
+
+#define SIGNAL_STRENGTH_BLACK_ZONE            -90 //dbm
+#define SIGNAL_STRENGTH_GREY_ZONE             -80 //dbm
+#define SIGNAL_STRENGTH_THRESHOLD              20 //dbm
 
 typedef struct aodv_dm_source {
 	struct aodv_dm_source     *next;

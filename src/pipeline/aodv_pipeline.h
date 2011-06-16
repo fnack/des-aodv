@@ -32,7 +32,7 @@ For further information and questions please use the web site
 #include "../config.h"
 
 extern pthread_rwlock_t pp_rwlock;
-extern u_int32_t broadcast_id;
+extern uint32_t broadcast_id;
 
 /**
  * Unknown sequence number
@@ -53,7 +53,6 @@ extern u_int32_t broadcast_id;
  */
 #define AODV_FLAGS_RERR_N			1 << 7
 
-
 /** RREQ - Route Request Message */
 struct aodv_msg_rreq {
 	/**
@@ -65,21 +64,21 @@ struct aodv_msg_rreq {
 	 * D - Destination only flag; indicates only the destiantion may respond to this RREQ
 	 * U - Unknown sequence number; indicates the destination sequence number is unknown
 	 */
-	u_int16_t		flags;
+	uint16_t		flags;
 	/** The number of hops from the originator to the node habdling the request */
-	u_int8_t		hop_count;
+	uint8_t		hop_count;
 	/**
 	 * Destination Sequence Number;
 	 * The latest sequence number received in the past by the originator for any
 	 * route towards the destination.
 	 */
-	u_int32_t		seq_num_dest;
+	uint32_t		seq_num_dest;
 	/**
 	 * Originator Sequence Number;
 	 * The current sequence number to be used in the route entry pointing towards
 	 * the originator of the route request.
 	 */
-	u_int32_t		seq_num_src;
+	uint32_t		seq_num_src;
 } __attribute__ ((__packed__));
 
 /** RREP - Route Reply Message */
@@ -89,13 +88,17 @@ struct aodv_msg_rrep {
 	 * R - repair flag;
 	 * A - acknowledgement required;
 	 */
-	u_int8_t		flags;
+	uint8_t		flags;
 	/** not used */
-	u_int8_t		prefix_size;
+	uint8_t		prefix_size;
 	/**  Hop Count: The number of hops from the originator to destination */
-	u_int8_t		hop_count;
-	/** Destination sequence number */
-	u_int32_t		seq_num_dest;
+	uint8_t		hop_count;
+	/**
+	 * Destination Sequence Number;
+	 * The latest sequence number received in the past by the originator for any
+	 * route towards the destination.
+	 */
+	uint32_t		seq_num_dest;
 	/**
 	 * LifeTime:
 	 * The time in millisecond for which nodes receiving the RREP consider the
@@ -110,11 +113,11 @@ struct aodv_msg_rerr {
 	 * flags format: N 0 0 0 0 0 0 0
 	 * N - No delete flag; set when a node has performed a local repair of a link
 	 */
-	u_int8_t		flags;
+	uint8_t		flags;
 	/** The number of interfaces of the RERR last hop */
-	u_int8_t 		iface_addr_count;
+	uint8_t 		iface_addr_count;
 	/** all of mesh interfaces of current host listed i this message */
-	u_int8_t		ifaces[ETH_ALEN * MAX_MESH_IFACES_COUNT];
+	uint8_t		ifaces[ETH_ALEN * MAX_MESH_IFACES_COUNT];
 } __attribute__ ((__packed__));
 
 
@@ -134,33 +137,16 @@ struct aodv_msg_broadcast {
 	 * A sequence number uniqiely identifying the broadcast packet (RREQ or simple packet)
 	 * in combination with ether_shost
 	 */
-	u_int32_t		id;
+	uint32_t		id;
 } __attribute__ ((__packed__));
 
-/**
- * Struct for routing log sequence number
- */
-struct rl_seq {
-	u_int32_t 	seq_num;
-	u_int8_t	hop_count;
-} __attribute__ ((__packed__));
 
 typedef struct _onlb_dest_list_element {
-	u_int8_t 							dhost_ether[ETH_ALEN];
+	uint8_t 							dhost_ether[ETH_ALEN];
 	struct _onlb_dest_list_element		*prev, *next;
 } _onlb_element_t;
 
-// ------------- helper -------------------------------------------------------
-
-extern pthread_rwlock_t rlflock;
-extern pthread_rwlock_t rlseqlock;
-
-void rlfile_log(const u_int8_t src_addr[ETH_ALEN], const u_int8_t dest_addr[ETH_ALEN],
-		const u_int32_t seq_num, const u_int8_t hop_count, const u_int8_t in_iface[ETH_ALEN],
-		const u_int8_t out_iface[ETH_ALEN], const u_int8_t next_hop_addr[ETH_ALEN]);
-
 // ------------- pipeline -----------------------------------------------------
-
 int aodv_handle_hello(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
@@ -176,7 +162,13 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len,
 int aodv_handle_rrep(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
-int aodv_fwd2dest(dessert_msg_t* msg, size_t len,
+int aodv_forward_broadcast(dessert_msg_t* msg, size_t len,
+		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
+
+int aodv_forward_multicast(dessert_msg_t* msg, size_t len,
+		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
+
+int aodv_forward(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
 int aodv_monitor_last_hops(dessert_msg_t* msg, size_t len,
@@ -190,7 +182,7 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc,
 		dessert_sysif_t *sysif, dessert_frameid_t id);
 
 /** forward packets received via AODV to tun interface */
-int rp2sys(dessert_msg_t* msg, size_t len,
+int aodv_local_unicast(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
 /** drop errors (drop corrupt packets, packets from myself and etc...)*/
@@ -204,14 +196,14 @@ int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timev
 /** clean up database from old entrys */
 int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct timeval *interval);
 
-dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, u_int16_t count);
+dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count);
 
 int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval);
 
 int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled, struct timeval *interval);
 // ------------------------------ helper ------------------------------------------------------
 
-void aodv_send_rreq(u_int8_t dhost_ether[ETH_ALEN], struct timeval* ts, u_int8_t ttl);
+void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, uint8_t ttl);
 
 void aodv_send_rwarn(u_int8_t rwarn_dest[ETH_ALEN], u_int8_t rwarn_next_hop[ETH_ALEN], dessert_meshif_t *iface);
 

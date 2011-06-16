@@ -36,12 +36,10 @@ int     hello_size	        = HELLO_SIZE;
 int     hello_interval      = HELLO_INTERVAL;
 int     rreq_size	        = RREQ_SIZE;
 int     mobility            = MOBILITY;//flag in hello_msg
-char*   routing_log_file    = NULL;
 
 dessert_periodic_t* periodic_send_hello;
 
 int main(int argc, char** argv) {
-
     /* initialize daemon with correct parameters */
     FILE *cfg = NULL;
     if ((argc == 2) && (strcmp(argv[1], "-nondaemonize") == 0)) {
@@ -73,7 +71,6 @@ int main(int argc, char** argv) {
     cli_register_command(dessert_cli, cli_cfg_set, "hello_size", cli_set_hello_size, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set HELLO packet size");
     cli_register_command(dessert_cli, cli_cfg_set, "hello_interval", cli_set_hello_interval, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set HELLO packet interval");
     cli_register_command(dessert_cli, cli_cfg_set, "rreq_size", cli_set_rreq_size, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set RREQ packet size");
-    cli_register_command(dessert_cli, cli_cfg_set, "routing_log", cli_set_routing_log, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set path to routing logging file");
 
     cli_register_command(dessert_cli, dessert_cli_show, "hello_size", cli_show_hello_size, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show HELLO packet size");
     cli_register_command(dessert_cli, dessert_cli_show, "hello_interval", cli_show_hello_interval, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show HELLO packet interval");
@@ -92,9 +89,10 @@ int main(int argc, char** argv) {
     dessert_meshrxcb_add(aodv_handle_rerr, 60);
     dessert_meshrxcb_add(aodv_handle_rrep, 70);
     dessert_meshrxcb_add(dessert_mesh_ipttl, 75);
-    dessert_meshrxcb_add(aodv_monitor_last_hops, 76);
-    dessert_meshrxcb_add(aodv_fwd2dest, 80);
-    dessert_meshrxcb_add(rp2sys, 100);
+    dessert_meshrxcb_add(aodv_forward_broadcast, 80);
+    dessert_meshrxcb_add(aodv_forward_multicast, 81);
+    dessert_meshrxcb_add(aodv_forward, 90);
+    dessert_meshrxcb_add(aodv_local_unicast, 100);
 
     dessert_sysrxcb_add(aodv_sys2rp, 10);
 

@@ -28,7 +28,7 @@ For further information and questions please use the web site
 
 enum aodv_bool {TRUE = 1, FALSE = 0};
 
-#define RREQ_RETRIES				5
+#define RREQ_RETRIES				4
 #define RREQ_RATELIMIT				16
 #define TTL_START					2
 #define TTL_INCREMENT				2
@@ -37,8 +37,8 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 
 #define ACTIVE_ROUTE_TIMEOUT		6000 	// milliseconds
 #define ALLOWED_HELLO_LOST			7
-#define NODE_TRAVERSAL_TIME			10 		// milliseconds
-#define NET_DIAMETER				6
+#define NODE_TRAVERSAL_TIME			4 		// milliseconds
+#define NET_DIAMETER				8
 #define NET_TRAVERSAL_TIME			2 * NODE_TRAVERSAL_TIME * NET_DIAMETER
 #define BLACKLIST_TIMEOUT			RREQ_RETRIES * NET_TRAVERSAL_TIME
 #define MY_ROUTE_TIMEOUT			2 * ACTIVE_ROUTE_TIMEOUT
@@ -61,12 +61,6 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define BUFFER_SENDOUT_DELAY		10
 #define SCHEDULE_CHECK_INTERVAL		30 		// milliseconds
 
-#define MONITOR_SIGNAL_STRENGTH_MAX	5		//monitor last MONITOR_SIGNAL_STRENGTH_MAX sources
-#define MONITOR_SIGNAL_STRENGTH_INTERVAL 200		// milliseconds
-#define MONITOR_SIGNAL_STRENGTH_BLACK_ZONE -90
-#define MONITOR_SIGNAL_STRENGTH_GREY_ZONE -80
-#define MONITOR_SIGNAL_STRENGTH_THRESHOLD 20
-#define MONITOR_SIGNAL_STRENGTH_WARN_INTERVAL 4 //seconds
 /**
  * Schedule type = send out packets from FIFO puffer for
  * destination with ether_addr
@@ -83,9 +77,8 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
  */
 #define AODV_SC_SEND_OUT_RERR		3
 #define HELLO_SIZE					128
-#define HELLO_INTERVAL				1000 	// milliseconds
+#define HELLO_INTERVAL				2000 	// milliseconds
 #define RREQ_SIZE					128
-
 #define MOBILITY			200 /* 0==no; 255==max */
 
 // --- Database Flags
@@ -102,6 +95,5 @@ extern int 							hello_size;
 extern int 							hello_interval;
 extern int 							rreq_size;
 extern int 							mobility;
-extern mac_addr						invalid_mac;
 
 #endif
