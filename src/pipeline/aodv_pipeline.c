@@ -450,8 +450,8 @@ int aodv_forward_broadcast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *p
 
 int aodv_forward_multicast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
 	if (proc->lflags & DESSERT_RX_FLAG_L25_MULTICAST) {
-		dessert_meshsend_fast(msg, NULL); //forward to mesh
-		dessert_syssend_msg(msg); //forward to sys
+//		dessert_meshsend_fast(msg, NULL); //forward to mesh
+//		dessert_syssend_msg(msg); //forward to sys
 		return DESSERT_MSG_DROP;
 	}
 	return DESSERT_MSG_KEEP;
@@ -459,15 +459,11 @@ int aodv_forward_multicast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *p
 
 int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
 
-	if(proc->lflags & DESSERT_RX_FLAG_L25_DST)
+	int a = (proc->lflags & DESSERT_RX_FLAG_L2_DST);
+	int b = (proc->lflags & DESSERT_RX_FLAG_L25_DST);
+	if(!a || b) {
 		return DESSERT_MSG_KEEP;
-	if(proc->lflags & DESSERT_RX_FLAG_L25_OVERHEARD)
-		return DESSERT_MSG_KEEP;
-	if(proc->lflags & DESSERT_RX_FLAG_L2_DST)
-		return DESSERT_MSG_KEEP;
-	if(proc->lflags & DESSERT_RX_FLAG_L2_OVERHEARD)
-		return DESSERT_MSG_KEEP;
-
+	}
 	const dessert_meshif_t* output_iface;
 	struct timeval timestamp;
 	gettimeofday(&timestamp, NULL);
@@ -480,9 +476,13 @@ int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const
 	}
 		
 	if (aodv_db_getroute2dest(l25h->ether_dhost, next_hop, &output_iface, &timestamp)) {
-		dessert_debug(MAC " -------> " MAC, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(l25h->ether_dhost));
 		memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
 		dessert_meshsend_fast(msg, output_iface);
+		dessert_debug(MAC " over " MAC " ----ME----> " MAC " to " MAC,
+		              EXPLODE_ARRAY6(l25h->ether_shost),
+		              EXPLODE_ARRAY6(msg->l2h.ether_shost),
+		              EXPLODE_ARRAY6(msg->l2h.ether_dhost),
+		              EXPLODE_ARRAY6(l25h->ether_dhost));
 	} else {
 		uint32_t rerr_count;
 		aodv_db_getrerrcount(&timestamp, &rerr_count);
@@ -508,8 +508,12 @@ int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const
 // --------------------------- TUN ----------------------------------------------------------
 
 int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, dessert_sysif_t *sysif, dessert_frameid_t id) {
-	struct ether_header* l25h = dessert_msg_getl25ether(msg);
 
+//	if (proc->lflags & DESSERT_RX_FLAG_L25_MULTICAST) {
+//		return DESSERT_MSG_DROP;
+//	}
+
+	struct ether_header* l25h = dessert_msg_getl25ether(msg);
 	if (memcmp(l25h->ether_dhost, ether_broadcast, ETH_ALEN) == 0) {
 		dessert_trace("send broadcast message -> add broadcast extension to avoid broadcast loops");
 		dessert_ext_t* ext;

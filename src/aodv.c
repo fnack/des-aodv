@@ -94,6 +94,7 @@ int main(int argc, char** argv) {
     dessert_meshrxcb_add(aodv_forward, 90);
     dessert_meshrxcb_add(aodv_local_unicast, 100);
 
+//    dessert_sysrxcb_add(dessert_msg_ifaceflags_cb, 5);
     dessert_sysrxcb_add(aodv_sys2rp, 10);
 
     /* registering periodic tasks */

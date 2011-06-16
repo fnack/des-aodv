@@ -28,7 +28,7 @@ For further information and questions please use the web site
 
 enum aodv_bool {TRUE = 1, FALSE = 0};
 
-#define RREQ_RETRIES				2
+#define RREQ_RETRIES				4
 #define RREQ_RATELIMIT				16
 #define TTL_START					2
 #define TTL_INCREMENT				2
