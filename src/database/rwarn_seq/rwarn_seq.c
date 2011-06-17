@@ -33,7 +33,7 @@ typedef struct rwan_packet_id {
 	UT_hash_handle hh;
 } rwarn_packet_id_t;
 
-rwarn_packet_id_t* entrys = NULL;
+rwarn_packet_id_t* rwarn_entrys = NULL;
 
 //returns TRUE if input entry is newer
 //        FALSE if input entry is older
@@ -41,7 +41,7 @@ rwarn_packet_id_t* entrys = NULL;
 int aodv_db_rwarn_capt_rwarn_seq(u_int8_t shost_ether[ETH_ALEN], u_int16_t shost_seq_num) {
 
 	rwarn_packet_id_t* entry = NULL;
-	HASH_FIND(hh, entrys, shost_ether, ETH_ALEN, entry);
+	HASH_FIND(hh, rwarn_entrys, shost_ether, ETH_ALEN, entry);
 	if (entry == NULL) {
 		//never got rwarn from this host
 		entry = malloc(sizeof(rwarn_packet_id_t));
@@ -49,7 +49,7 @@ int aodv_db_rwarn_capt_rwarn_seq(u_int8_t shost_ether[ETH_ALEN], u_int16_t shost
 			return -1;
 		}
 		memcpy(entry->src_addr, shost_ether, ETH_ALEN);
-		HASH_ADD_KEYPTR(hh, entrys, entry->src_addr, ETH_ALEN, entry);
+		HASH_ADD_KEYPTR(hh, rwarn_entrys, entry->src_addr, ETH_ALEN, entry);
 		entry->seq_num = shost_seq_num;
 		return TRUE;
 	}

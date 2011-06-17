@@ -81,6 +81,14 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define RREQ_SIZE					128
 #define MOBILITY			200 /* 0==no; 255==max */
 
+#define SIGNAL_STRENGTH_MONITOR_TIMEOUT      1000 //ms
+#define SIGNAL_STRENGTH_ROUTE_CHECK_INTERVAL  100 //ms
+#define SIGNAL_STRENGTH_WARN_INTERVAL        1000 //ms
+
+#define SIGNAL_STRENGTH_BLACK_ZONE            -90 //dbm
+#define SIGNAL_STRENGTH_GREY_ZONE             -80 //dbm
+#define SIGNAL_STRENGTH_THRESHOLD              20 //dbm
+
 // --- Database Flags
 #define AODV_FLAGS_ROUTE_INVALID 	1
 #define AODV_FLAGS_NEXT_HOP_UNKNOWN	1 << 1

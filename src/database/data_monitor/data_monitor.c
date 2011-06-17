@@ -21,10 +21,6 @@ For further information and questions please use the web site
        http://www.des-testbed.net
 *******************************************************************************/
 
-#include <uthash.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <utlist.h>
 #include "data_monitor.h"
 #include "../../config.h"
 
@@ -39,13 +35,13 @@ static int dm_source_cmp(aodv_dm_source_t *left, aodv_dm_source_t *right) {
 	return memcmp(left->l25_source, right->l25_source, sizeof(left->l25_source));
 }
 
-void purge_dm_entrys(struct timeval ts) {
+void purge_dm_entrys(struct timeval *ts) {
 
 	aodv_dm_t *iter;
 	DL_FOREACH(dm, iter) {
 		aodv_dm_source_t *dm_source_iter;
 		DL_FOREACH(iter->l25_list, dm_source_iter) {
-			if((dm_source_iter->last_seen->tv_sec + MONITOR_SIGNAL_STRENGTH_TIMEOUT) < ts->tv_sec) {
+			if((dm_source_iter->last_seen->tv_sec + SIGNAL_STRENGTH_MONITOR_TIMEOUT) < ts->tv_sec) {
 				DL_DELETE(iter->l25_list, dm_source_iter);
 			}
 		}
@@ -53,26 +49,24 @@ void purge_dm_entrys(struct timeval ts) {
 	return;
 }
 
-dm_result* create_dm(u_int8_t l2_source[ETH_ALEN], const dessert_meshif_t* iface, uint8_t last_rssi) {
-	aodv_dm_t *dm;
-	malloc(dm, sizeof(aodv_dm_t));
+aodv_dm_t* create_dm(u_int8_t l2_source[ETH_ALEN], const dessert_meshif_t* iface, uint8_t last_rssi) {
+	aodv_dm_t *dm = malloc(sizeof(aodv_dm_t));
 
-	memset(dm_source, 0x0, sizeof(aodv_dm_source_t));
-	memcpy(dm.l2_source, l2_source, sizeof(l2_source));
-	dm->dessert_meshif_t = iface;
+	memset(dm, 0x0, sizeof(aodv_dm_t));
+	memcpy(dm->l2_source, l2_source, sizeof(l2_source));
+	dm->iface = iface;
 	dm->max_rssi = last_rssi;
 	dm->last_rssi = last_rssi;
 
 	return dm;
 }
 
-aodv_dm_source_t* create_dm_source(u_int8_t l25_source[ETH_ALEN], struct timeval last_seen) {
-	aodv_dm_sourcet *dm_source;
-	malloc(dm_source, sizeof(aodv_dm_source_t));
+aodv_dm_source_t* create_dm_source(u_int8_t l25_source[ETH_ALEN], struct timeval *last_seen) {
+	aodv_dm_source_t *dm_source = malloc(sizeof(aodv_dm_source_t));
 
 	memset(dm_source, 0x0, sizeof(aodv_dm_source_t));
-	memcpy(dm.l25_source, l25_source, sizeof(l25_source));
-	memcpy(dm.last_seen, last_seen, sizeof(last_seen));
+	memcpy(dm_source->l25_source, l25_source, sizeof(l25_source));
+	memcpy(dm_source->last_seen, last_seen, sizeof(last_seen));
 
 	return dm_source;
 }
@@ -83,7 +77,7 @@ int aodv_db_data_monitor_signal_strength_update(struct timeval *ts) {
 
 	aodv_dm_t *sample;
 	DL_FOREACH(dm, sample) {
-		avg_node_result_t result = dessert_rssi_avg(sample->l2_source, sample->if_name);
+		avg_node_result_t result = dessert_rssi_avg(sample->l2_source, sample->iface->if_name);
 		if(result.avg_rssi != 0) {
 			sample->last_rssi = result.avg_rssi;
 			sample->max_rssi = max(dm->max_rssi, result.avg_rssi);
@@ -99,17 +93,17 @@ aodv_dm_t* aodv_db_data_monitor_pop(struct timeval *now) {
 	pthread_rwlock_wrlock(&data_monitor_lock);
 	aodv_dm_t *dm_sample;
 	DL_FOREACH(dm, dm_sample) {
-		aodv_dm_t *dm_source_sample;
-		DL_FOREACH(dm_source, dm_source_sample) {
+		aodv_dm_source_t *dm_source_sample;
+		DL_FOREACH(dm_sample, dm_source_sample) {
 
 			//signal is lower than allowed
-			int a = (dm_source_sample->max_rssi - MONITOR_SIGNAL_STRENGTH_THRESHOLD) <= dm_source_sample->last_rssi;
+			int a = (dm_sample->max_rssi - SIGNAL_STRENGTH_THRESHOLD) <= dm_sample->last_rssi;
 
 			//we need to send a new warn
-			int b = (dm_source_sample->last_warn + MONITOR_SIGNAL_STRENGTH_WARN_INTERVAL) > now->tv_sec;
+			int b = (dm_source_sample->last_warn->tv_sec + SIGNAL_STRENGTH_WARN_INTERVAL) > now->tv_sec;
 
 			if(a && b) {
-				memcpy(dm_source_sample->last_warn, now, sizeof(struct timeval);
+				memcpy(dm_source_sample->last_warn, now, sizeof(struct timeval));
 				return dm_sample;
 			}
 		}
@@ -118,7 +112,7 @@ aodv_dm_t* aodv_db_data_monitor_pop(struct timeval *now) {
 	return NULL;
 }
 
-int aodv_db_data_monitor_capture_packet(u_int8_t l2_source[ETH_ALEN], u_int8_t l25_source[ETH_ALEN], const dessert_meshif_t* iface, struct timeval ts) {
+int aodv_db_data_monitor_capture_packet(u_int8_t l2_source[ETH_ALEN], u_int8_t l25_source[ETH_ALEN], const dessert_meshif_t* iface, struct timeval *ts) {
 	pthread_rwlock_wrlock(&data_monitor_lock);
 	aodv_dm_t *dm_needle = NULL;
 	aodv_dm_t *dm_result = NULL;
@@ -134,12 +128,12 @@ int aodv_db_data_monitor_capture_packet(u_int8_t l2_source[ETH_ALEN], u_int8_t l
 
 	aodv_dm_source_t *dm_source_needle = NULL;
 	aodv_dm_source_t *dm_source_result = NULL;
-	memcpy(dm_source_needle.l25_source, l25_source, sizeof(l25_source));
+	memcpy(dm_source_needle->l25_source, l25_source, sizeof(l25_source));
 	DL_SEARCH(dm->l25_list, dm_source_needle, dm_source_result, dm_source_cmp);
 
 	if(!dm_source_result) {
 		dm_source_result = create_dm_source(l25_source, ts);
-		DL_APPEND(dm_source_source->l25_list, dm_source_result);
+		DL_APPEND(dm_result->l25_list, dm_source_result);
 		pthread_rwlock_unlock(&data_monitor_lock);
 		return TRUE;
 	}

@@ -21,16 +21,13 @@ For further information and questions please use the web site
        http://www.des-testbed.net
 *******************************************************************************/
 
+#include <uthash.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <utlist.h>
+#include <pthread.h>
 #include <linux/if_ether.h>
 #include "../../config.h"
-
-#define SIGNAL_STRENGTH_MONITOR_TIMEOUT      1000 //ms
-#define SIGNAL_STRENGTH_ROUTE_CHECK_INTERVAL  100 //ms
-#define SIGNAL_STRENGTH_WARN_INTERVAL        1000 //ms
-
-#define SIGNAL_STRENGTH_BLACK_ZONE            -90 //dbm
-#define SIGNAL_STRENGTH_GREY_ZONE             -80 //dbm
-#define SIGNAL_STRENGTH_THRESHOLD              20 //dbm
 
 typedef struct aodv_dm_source {
 	struct aodv_dm_source     *next;
@@ -46,7 +43,7 @@ typedef struct aodv_dm {
 	u_int8_t                  max_rssi;
 	u_int8_t                  last_rssi;
 	const dessert_meshif_t*   iface;
-	const aodv_dm_source_t*   l25_list;
+	aodv_dm_source_t*   l25_list;
 	struct aodv_dm            *prev;
 } aodv_dm_t;
 
@@ -55,5 +52,4 @@ int aodv_db_data_monitor_signal_strength_update(struct timeval *ts);
 
 aodv_dm_t* aodv_db_data_monitor_pop();
 
-int aodv_db_data_monitor_capture_packet(u_int8_t l2_source[ETH_ALEN], u_int8_t l25_source[ETH_ALEN], const dessert_meshif_t* iface, struct timeval ts);
-
+int aodv_db_data_monitor_capture_packet(u_int8_t l2_source[ETH_ALEN], u_int8_t l25_source[ETH_ALEN], const dessert_meshif_t* iface, struct timeval *ts);

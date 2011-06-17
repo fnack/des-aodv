@@ -113,8 +113,8 @@ int main(int argc, char** argv) {
     dessert_periodic_add(aodv_periodic_scexecute, NULL, NULL, &schedule_chec_interval);
 
     struct timeval schedule_monitor_signal_strength_interval;
-    schedule_monitor_signal_strength_interval.tv_sec = MONITOR_SIGNAL_STRENGTH_INTERVAL / 1000;
-    schedule_monitor_signal_strength_interval.tv_usec = (MONITOR_SIGNAL_STRENGTH_INTERVAL % 1000) * 1000;
+    schedule_monitor_signal_strength_interval.tv_sec = SIGNAL_STRENGTH_ROUTE_CHECK_INTERVAL / 1000;
+    schedule_monitor_signal_strength_interval.tv_usec = (SIGNAL_STRENGTH_ROUTE_CHECK_INTERVAL % 1000) * 1000;
     dessert_periodic_add(aodv_schedule_monitor_signal_strength, NULL, NULL, &schedule_monitor_signal_strength_interval);
 
     /* running cli & daemon */

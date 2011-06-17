@@ -202,7 +202,7 @@ int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled,
 				      EXPLODE_ARRAY6(dm->l2_source),
 				      dm->last_rssi,
 				      dm->max_rssi,
-				      MONITOR_SIGNAL_STRENGTH_THRESHOLD,
+				      SIGNAL_STRENGTH_THRESHOLD,
 				      EXPLODE_ARRAY6(dm_source->l25_source));
 			aodv_send_rwarn(dm_source->l25_source, dm->l2_source, dm->iface);
 		}
