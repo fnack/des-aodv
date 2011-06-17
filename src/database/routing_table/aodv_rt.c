@@ -330,9 +330,10 @@ int aodv_db_rt_getrouteseqnum(uint8_t dhost_ether[ETH_ALEN], uint32_t* dhost_seq
 int aodv_db_rt_getpathweight(u_int8_t dhost_ether[ETH_ALEN], u_int8_t* dhost_path_weight_out) {
 	aodv_rt_entry_t* rt_entry;
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
-	if (rt_entry == NULL)
+	if (rt_entry == NULL) {
+		*dhost_path_weight_out = 255;
 		return FALSE;
-	
+	}
 	*dhost_path_weight_out = rt_entry->path_weight;
 	return TRUE;
 }
