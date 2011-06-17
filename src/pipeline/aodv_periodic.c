@@ -29,7 +29,6 @@ For further information and questions please use the web site
 #include "../database/data_seq/data_seq.h"
 #include <pthread.h>
 #include <utlist.h>
-#include <unistd.h>
 
 int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timeval *interval) {
 

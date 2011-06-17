@@ -123,7 +123,7 @@ int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif
 			//walking away
 			if((max - SIGNAL_STRENGTH_THRESHOLD) <= new) {
 				//we need to send a new warn
-				aodv_db_sc_addschedule(&timestamp, curr_entry->ether_neighbor, AODV_SC_SEND_OUT_RERR, AODV_FLAGS_RERR_W);
+				aodv_db_sc_addschedule(timestamp, curr_entry->ether_neighbor, AODV_SC_SEND_OUT_RERR, AODV_FLAGS_RERR_W);
 			}
 		}
 	}
