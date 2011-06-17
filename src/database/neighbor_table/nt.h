@@ -38,7 +38,7 @@ int db_nt_init();
  * Take a record that the given neighbor seems to be
  * 1 hop bidirectional neighbor
  */
-int db_nt_cap2Dneigh(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp, u_int8_t mobility);
+int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp, uint8_t mobility);
 
 /**
  * Check whether given neighbor is 1 hop bidirectional neighbor

@@ -33,7 +33,7 @@ typedef struct data_packet_id {
 	UT_hash_handle hh;
 } data_packet_id_t;
 
-data_packet_id_t* data_entrys = NULL;
+data_packet_id_t* entrys = NULL;
 
 //returns TRUE if input entry is newer
 //        FALSE if input entry is older
@@ -41,7 +41,7 @@ data_packet_id_t* data_entrys = NULL;
 int aodv_db_data_capt_data_seq(uint8_t shost_ether[ETH_ALEN], uint16_t shost_seq_num) {
 
 	data_packet_id_t* entry = NULL;
-	HASH_FIND(hh, data_entrys, shost_ether, ETH_ALEN, entry);
+	HASH_FIND(hh, entrys, shost_ether, ETH_ALEN, entry);
 	if (entry == NULL) {
 		//never got data from this host
 		entry = malloc(sizeof(data_packet_id_t));
@@ -49,7 +49,7 @@ int aodv_db_data_capt_data_seq(uint8_t shost_ether[ETH_ALEN], uint16_t shost_seq
 			return -1;
 		}
 		memcpy(entry->src_addr, shost_ether, ETH_ALEN);
-		HASH_ADD_KEYPTR(hh, data_entrys, entry->src_addr, ETH_ALEN, entry);
+		HASH_ADD_KEYPTR(hh, entrys, entry->src_addr, ETH_ALEN, entry);
 		entry->seq_num = shost_seq_num;
 		return TRUE;
 	}

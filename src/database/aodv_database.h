@@ -77,9 +77,9 @@ int aodv_db_getrouteseqnum(uint8_t dhost_ether[ETH_ALEN], uint32_t* dhost_seq_nu
 int aodv_db_getlastrreqseq(uint8_t dhost_ether[ETH_ALEN],
 		uint8_t shost_ether[ETH_ALEN], uint32_t* shost_seq_num_out);
 
-int aodv_db_markrouteinv (uint8_t dhost_ether[ETH_ALEN]);
+int aodv_db_markrouteinv (uint8_t dhost_ether[ETH_ALEN], uint8_t flags);
 
-int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]);
+int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN], uint8_t flags);
 
 /**
  * Take a record that the given neighbor seems to be

@@ -85,7 +85,6 @@ int main(int argc, char** argv) {
     dessert_meshrxcb_add(aodv_drop_errors, 30);
     dessert_meshrxcb_add(aodv_handle_hello, 40);
     dessert_meshrxcb_add(aodv_handle_rreq, 50);
-    dessert_meshrxcb_add(aodv_handle_rwarn, 55);
     dessert_meshrxcb_add(aodv_handle_rerr, 60);
     dessert_meshrxcb_add(aodv_handle_rrep, 70);
     dessert_meshrxcb_add(dessert_mesh_ipttl, 75);
@@ -111,11 +110,6 @@ int main(int argc, char** argv) {
     schedule_chec_interval.tv_sec = SCHEDULE_CHECK_INTERVAL / 1000;
     schedule_chec_interval.tv_usec = (SCHEDULE_CHECK_INTERVAL % 1000) * 1000;
     dessert_periodic_add(aodv_periodic_scexecute, NULL, NULL, &schedule_chec_interval);
-
-    struct timeval schedule_monitor_signal_strength_interval;
-    schedule_monitor_signal_strength_interval.tv_sec = SIGNAL_STRENGTH_ROUTE_CHECK_INTERVAL / 1000;
-    schedule_monitor_signal_strength_interval.tv_usec = (SIGNAL_STRENGTH_ROUTE_CHECK_INTERVAL % 1000) * 1000;
-    dessert_periodic_add(aodv_schedule_monitor_signal_strength, NULL, NULL, &schedule_monitor_signal_strength_interval);
 
     /* running cli & daemon */
     cli_file(dessert_cli, cfg, PRIVILEGE_PRIVILEGED, MODE_CONFIG);

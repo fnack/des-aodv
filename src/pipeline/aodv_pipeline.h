@@ -53,6 +53,11 @@ extern uint32_t broadcast_id;
  */
 #define AODV_FLAGS_RERR_N			1 << 7
 
+/**
+ * route warn flag of RERR
+ */
+#define AODV_FLAGS_RERR_W			1 << 6
+
 /** RREQ - Route Request Message */
 struct aodv_msg_rreq {
 	/**
@@ -112,19 +117,13 @@ struct aodv_msg_rerr {
 	/**
 	 * flags format: N 0 0 0 0 0 0 0
 	 * N - No delete flag; set when a node has performed a local repair of a link
+	 * W - route warn flag, set when a note requests a new route because of a bad rssi
 	 */
 	uint8_t		flags;
 	/** The number of interfaces of the RERR last hop */
 	uint8_t 		iface_addr_count;
 	/** all of mesh interfaces of current host listed i this message */
 	uint8_t		ifaces[ETH_ALEN * MAX_MESH_IFACES_COUNT];
-} __attribute__ ((__packed__));
-
-
-/** RWARN - Route Warn Message */
-struct aodv_msg_rwarn {
-	u_int8_t		source_mobility;
-	u_int16_t		seq_num;
 } __attribute__ ((__packed__));
 
 /** HELLO - Hello Message */
@@ -153,9 +152,6 @@ int aodv_handle_hello(dessert_msg_t* msg, size_t len,
 int aodv_handle_rreq(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
-int aodv_handle_rwarn(dessert_msg_t* msg, size_t len,
-		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
-
 int aodv_handle_rerr(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
@@ -169,9 +165,6 @@ int aodv_forward_multicast(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
 int aodv_forward(dessert_msg_t* msg, size_t len,
-		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
-
-int aodv_monitor_last_hops(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id);
 
 /**
@@ -196,15 +189,12 @@ int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timev
 /** clean up database from old entrys */
 int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct timeval *interval);
 
-dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count);
+dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count, uint8_t flags);
 
 int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval);
 
-int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled, struct timeval *interval);
 // ------------------------------ helper ------------------------------------------------------
 
 void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, uint8_t ttl);
-
-void aodv_send_rwarn(u_int8_t rwarn_dest[ETH_ALEN], u_int8_t rwarn_next_hop[ETH_ALEN], dessert_meshif_t *iface);
 
 #endif

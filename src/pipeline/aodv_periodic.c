@@ -30,13 +30,8 @@ For further information and questions please use the web site
 #include <pthread.h>
 #include <utlist.h>
 #include <unistd.h>
-#include "../database/data_monitor/data_monitor.h"
 
 int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timeval *interval) {
-
-	//insert some jitter
-	useconds_t jitter = rand() & 0x1FFFF; // jitter of 131 072 µs -> http://www.kernel.org/doc/man-pages/online/pages/man3/rand.3.html
-	usleep(jitter);
 
 	// create new HELLO message with hello_ext.
 	dessert_msg_t* hello_msg;
@@ -46,15 +41,15 @@ int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timev
 	dessert_ext_t* ext;
 	dessert_msg_addext(hello_msg, &ext, HELLO_EXT_TYPE, sizeof(struct aodv_msg_hello));
 
-        void* payload;
-        uint16_t size = max(hello_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
+	void* payload;
+	uint16_t size = max(hello_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
 
-        dessert_msg_addpayload(hello_msg, &payload, size);
-        memset(payload, 0xA, size);
+	dessert_msg_addpayload(hello_msg, &payload, size);
+	memset(payload, 0xA, size);
 
-        dessert_meshsend_fast(hello_msg, NULL);
-        dessert_msg_destroy(hello_msg);
-        return 0;
+	dessert_meshsend_fast(hello_msg, NULL);
+	dessert_msg_destroy(hello_msg);
+	return 0;
 }
 
 int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct timeval *interval) {
@@ -64,7 +59,7 @@ int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct
         else return 1;
 }
 
-dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count) {
+dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count, uint8_t flags) {
         if (*head == NULL) return NULL;
         dessert_msg_t* msg;
         dessert_ext_t* ext;
@@ -96,6 +91,10 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count) {
         }
 
         rerr_msg->iface_addr_count = ifaces_count;
+
+        //set flags
+        rerr_msg->flags = flags;
+        dessert_debug("sending rerr to broadcast with flags=%u", flags);
 
         // write addresses of affected destinations in RERRDL_EXT
         uint8_t rerrdl_count = 0;
@@ -161,7 +160,7 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
                         _onlb_element_t* curr_el = NULL;
                         _onlb_element_t* head = NULL;
 
-                        while(aodv_db_invroute(ether_addr, dhost_ether) == TRUE) {
+                        while(aodv_db_invroute(ether_addr, dhost_ether, schedule_param) == TRUE) {
                                 dessert_debug("invalidate route to " MAC, EXPLODE_ARRAY6(dhost_ether));
                                 dest_count++;
                                 curr_el = malloc(sizeof(_onlb_element_t));
@@ -172,7 +171,7 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 
                         if (dest_count > 0) {
                                 while(head != NULL) {
-                                        dessert_msg_t* rerr_msg = aodv_create_rerr(&head, dest_count);
+                                        dessert_msg_t* rerr_msg = aodv_create_rerr(&head, dest_count, schedule_param);
                                         if (rerr_msg != NULL) {
                                                 dessert_debug("link to " MAC " break -> send RERR", EXPLODE_ARRAY6(dhost_ether));
                                                 dessert_meshsend_fast(rerr_msg, NULL);
@@ -185,28 +184,3 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
         }
         return 0;
 }
-
-int aodv_schedule_monitor_signal_strength(void *data, struct timeval *scheduled, struct timeval *interval) {
-
-	struct timeval ts;
-	gettimeofday(&ts, NULL);
-	aodv_db_data_monitor_signal_strength_update(&ts);
-
-	aodv_dm_t* dm;
-	while((dm = aodv_db_data_monitor_pop()) != NULL) {
-
-		aodv_dm_source_t *dm_source;
-		DL_FOREACH(dm->l25_list, dm_source) {
-			//current_rssi is MONITOR_SIGNAL_STRENGTH_THRESHOLD below the max_rssi -> sending rwarn
-			dessert_debug("RSSI VAL from " MAC " is too bad (%d < %d-%d ) -> sending RWARN to " MAC,
-				      EXPLODE_ARRAY6(dm->l2_source),
-				      dm->last_rssi,
-				      dm->max_rssi,
-				      SIGNAL_STRENGTH_THRESHOLD,
-				      EXPLODE_ARRAY6(dm_source->l25_source));
-			aodv_send_rwarn(dm_source->l25_source, dm->l2_source, dm->iface);
-		}
-	}
-	return 0;
-}
-

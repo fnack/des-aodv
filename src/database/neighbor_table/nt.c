@@ -31,7 +31,8 @@ typedef struct neighbor_entry {
 	struct __attribute__ ((__packed__)) { // key
 		uint8_t 				ether_neighbor[ETH_ALEN];
 		const dessert_meshif_t*	iface;
-		u_int8_t 				mobility;
+		uint8_t 				mobility;
+		int8_t				max_rssi;
 	};
 	UT_hash_handle				hh;
 } neighbor_entry_t;
@@ -46,13 +47,29 @@ neighbor_table_t nt;
 int db_nt_increment_hello_interval(u_int8_t mobility);
 int db_nt_decrement_hello_interval(neighbor_entry_t* entry);
 
-neighbor_entry_t* db_neighbor_entry_create(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, u_int8_t mobility) {
+int8_t db_neighbor_entry_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface) {
+	
+	int8_t out = -120;
+	
+	avg_node_result_t neigh_result = dessert_rssi_avg(ether_neighbor_addr, iface->if_name);
+	if(neigh_result.avg_rssi != 0) {
+		out = neigh_result.avg_rssi;
+	}
+	return out;
+}
+
+
+neighbor_entry_t* db_neighbor_entry_create(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, uint8_t mobility) {
 	neighbor_entry_t* new_entry;
 	new_entry = malloc(sizeof(neighbor_entry_t));
 	if (new_entry == NULL) return NULL;
 	memcpy(new_entry->ether_neighbor, ether_neighbor_addr, ETH_ALEN);
 	new_entry->iface = iface;
 	new_entry->mobility = mobility;
+
+	uint8_t rssi = db_neighbor_entry_rssi(ether_neighbor_addr, iface);
+	new_entry->max_rssi = rssi;
+
 	return new_entry;
 }
 
@@ -94,6 +111,21 @@ int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif
 		HASH_ADD_KEYPTR(hh, nt.entrys, curr_entry->ether_neighbor, ETH_ALEN + sizeof(void*), curr_entry);
 		dessert_debug("%s <=====> " MAC, iface->if_name, EXPLODE_ARRAY6(ether_neighbor_addr));
 		db_nt_increment_hello_interval(mobility);
+	} else {
+		int8_t new = db_neighbor_entry_rssi(curr_entry->ether_neighbor, iface);
+		int8_t max = curr_entry->max_rssi;
+
+		if(max < new) {
+			//walking to the ap
+			dessert_debug("%s <=====> " MAC " rssi from %u to %u", iface->if_name, EXPLODE_ARRAY6(ether_neighbor_addr), max, new);
+			curr_entry->max_rssi = new;
+		} else {
+			//walking away
+			if((max - SIGNAL_STRENGTH_THRESHOLD) <= new) {
+				//we need to send a new warn
+				aodv_db_sc_addschedule(&timestamp, curr_entry->ether_neighbor, AODV_SC_SEND_OUT_RERR, AODV_FLAGS_RERR_W);
+			}
+		}
 	}
 	timeslot_addobject(nt.ts, timestamp, curr_entry);
 	return TRUE;

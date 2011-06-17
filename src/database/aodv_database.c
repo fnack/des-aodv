@@ -26,6 +26,7 @@ For further information and questions please use the web site
 
 #include "aodv_database.h"
 #include "../config.h"
+#include "../pipeline/aodv_pipeline.h"
 #include "routing_table/aodv_rt.h"
 #include "broadcast_table/aodv_broadcast_t.h"
 #include "neighbor_table/nt.h"
@@ -161,10 +162,18 @@ int aodv_db_getlastrreqseq(uint8_t dhost_ether[ETH_ALEN],
 	return result;
 }
 
-int aodv_db_markrouteinv (uint8_t dhost_ether[ETH_ALEN]) {
+int aodv_db_markrouteinv (uint8_t dhost_ether[ETH_ALEN], uint8_t flags) {
+	if(flags & (AODV_FLAGS_RERR_W)) {
+		dessert_debug("got rwarn from " MAC " sending rreq to broadcast", EXPLODE_ARRAY6(dhost_ether));
+		struct timeval ts;
+		gettimeofday(&ts, NULL);
+		aodv_send_rreq(dhost_ether, &ts, TTL_START); // create and send RREQ
+		return TRUE;
+	}
 	aodv_db_wlock();
 	int result =  aodv_db_rt_markrouteinv(dhost_ether);
 	aodv_db_unlock();
+	dessert_debug("route to " MAC " marked as invalid", EXPLODE_ARRAY6(dhost_ether));
 	return result;
 }
 
@@ -174,7 +183,10 @@ int aodv_db_markrouteinv (uint8_t dhost_ether[ETH_ALEN]) {
  * the destination address of this route. Returns FALSE if no route to invalidate
  * (i.e. no route that uses dhost_next_hop)
  */
-int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
+int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN], uint8_t flags) {
+	if(flags & (AODV_FLAGS_RERR_W))
+		return TRUE;
+	
 	pthread_rwlock_wrlock(&db_rwlock);
 	int result =  aodv_db_rt_inv_route(dhost_next_hop, dhost_ether_out);
 	pthread_rwlock_unlock(&db_rwlock);

@@ -54,7 +54,6 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define PING_EXT_TYPE				DESSERT_EXT_USER + 6
 #define PONG_EXT_TYPE				DESSERT_EXT_USER + 7
 #define RL_EXT_TYPE					DESSERT_EXT_USER + 8
-#define RWARN_EXT_TYPE				DESSERT_EXT_USER + 9
 
 #define FIFO_BUFFER_MAX_ENTRY_SIZE	128 	// maximal packet count that can be stored in FIFO for one destination
 #define DB_CLEANUP_INTERVAL			NET_TRAVERSAL_TIME
@@ -80,10 +79,6 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define HELLO_INTERVAL				2000 	// milliseconds
 #define RREQ_SIZE					128
 #define MOBILITY			200 /* 0==no; 255==max */
-
-#define SIGNAL_STRENGTH_MONITOR_TIMEOUT      1000 //ms
-#define SIGNAL_STRENGTH_ROUTE_CHECK_INTERVAL  100 //ms
-#define SIGNAL_STRENGTH_WARN_INTERVAL        1000 //ms
 
 #define SIGNAL_STRENGTH_BLACK_ZONE            -90 //dbm
 #define SIGNAL_STRENGTH_GREY_ZONE             -80 //dbm
