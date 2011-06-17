@@ -137,7 +137,6 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, uint8_t t
 		}
 	}
 	aodv_db_putrreq(ts);
-	dessert_debug("send RREQ to " MAC " ttl=%i rreq_count=%d", EXPLODE_ARRAY6(dhost_ether), (ttl > TTL_THRESHOLD) ? 255 : ttl, rreq_count);
 
 	void* payload;
 	uint16_t size = max(rreq_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
@@ -147,7 +146,7 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, uint8_t t
 	// send out and destroy
 	dessert_meshsend_fast(rreq_msg, NULL);
 	dessert_msg_destroy(rreq_msg);
-	dessert_debug("rreq send for " MAC " id=%d", EXPLODE_ARRAY6(dhost_ether), seq_num);
+	dessert_debug("rreq send for " MAC " ttl=%d id=%d", EXPLODE_ARRAY6(dhost_ether), (ttl > TTL_THRESHOLD) ? 255 : ttl, seq_num);
 }
 
 void aodv_send_packets_from_buffer(uint8_t ether_dhost[ETH_ALEN], uint8_t next_hop[ETH_ALEN], dessert_meshif_t* iface) {
