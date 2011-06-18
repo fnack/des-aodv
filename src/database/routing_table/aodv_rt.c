@@ -192,22 +192,23 @@ int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH
 		}
 		HASH_ADD_KEYPTR(hh, rt_entry->src_list, srclist_entry->shost_ether, ETH_ALEN, srclist_entry);
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
-		dessert_trace("create route to " MAC ": shost_seq_num=%d path_weight=%d",
+		dessert_debug("create route to " MAC ": shost_seq_num=%d path_weight=%d",
 		              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num, srclist_entry->path_weight);
 		return TRUE;
 	}
 	
 	int a = hf_seq_comp_i_j(srclist_entry->shost_seq_num, shost_seq_num);
 	int b = (srclist_entry->path_weight > path_weight);
-	if(a < 0 || a == 0 && b) {
+	if(a < 0 || (a == 0 && b)) {
+		dessert_debug("get " MAC ": shost_seq_num=%d:%d path_weight=%d:%d",
+		              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num, shost_seq_num, srclist_entry->path_weight, path_weight);
+
 		// overwrite several fields of source entry if source seq_num is newer
 		memcpy(srclist_entry->shost_prev_hop, shost_prev_hop, ETH_ALEN);
 		srclist_entry->output_iface = output_iface;
 		srclist_entry->shost_seq_num = shost_seq_num;
 		srclist_entry->path_weight = path_weight;
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
-		dessert_trace("get " MAC ": shost_seq_num=%d path_weight=%d",
-		              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num, srclist_entry->path_weight);
 		return TRUE;
 	}
 //	dessert_debug("rreq_msg->seq_num_src=%u last_rreq_seq=%u -> hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq)=%d", rreq_msg->seq_num_src, last_rreq_seq, hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq));
