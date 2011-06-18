@@ -33,7 +33,7 @@ typedef struct aodv_rt_srclist_entry {
 	uint8_t					shost_prev_hop[ETH_ALEN];
 	dessert_meshif_t*		output_iface;
 	uint32_t					shost_seq_num;
-	uint8_t					path_weight;
+	uint8_t					path_weight; //used in rreq
 	UT_hash_handle				hh;
 } aodv_rt_srclist_entry_t;
 
@@ -43,7 +43,7 @@ typedef struct aodv_rt_entry {
 	dessert_meshif_t*		output_iface;
 	uint32_t					dhost_seq_num;
 	uint8_t					hop_count;
-	uint8_t					path_weight;
+	uint8_t					path_weight; //used in rrep
 	/**
 	 * flags format: 0 0 0 0 0 0 U I
 	 * I - Invalid flag; route is invalid due of link breakage
@@ -124,6 +124,7 @@ int rt_srclist_entry_create(aodv_rt_srclist_entry_t** srclist_entry_out, u_int8_
 		uint8_t shost_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, u_int32_t source_seq_num, u_int8_t path_weight) {
 	aodv_rt_srclist_entry_t* srclist_entry = malloc(sizeof(aodv_rt_srclist_entry_t));
 	if (srclist_entry == NULL) return FALSE;
+	memset(srclist_entry, 0x0, sizeof(aodv_rt_srclist_entry_t));
 	memcpy(srclist_entry->shost_ether, shost_ether, ETH_ALEN);
 	memcpy(srclist_entry->shost_prev_hop, shost_prev_hop, ETH_ALEN);
 	srclist_entry->output_iface = output_iface;
@@ -136,7 +137,7 @@ int rt_srclist_entry_create(aodv_rt_srclist_entry_t** srclist_entry_out, u_int8_
 int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out, uint8_t dhost_ether[ETH_ALEN]) {
 	aodv_rt_entry_t* rt_entry = malloc(sizeof(aodv_rt_entry_t));
 	if (rt_entry == NULL) return FALSE;
-
+	memset(rt_entry, 0x0, sizeof(aodv_rt_entry_t));
 	memcpy(rt_entry->dhost_ether, dhost_ether, ETH_ALEN);
 	rt_entry->flags = AODV_FLAGS_NEXT_HOP_UNKNOWN | AODV_FLAGS_ROUTE_INVALID;
 	rt_entry->src_list = NULL;
@@ -148,8 +149,10 @@ int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out, uint8_t dhost_ether[ETH_A
 int nht_destlist_entry_create (nht_destlist_entry_t** entry_out, uint8_t dhost_ether[ETH_ALEN], aodv_rt_entry_t* rt_entry) {
 	nht_destlist_entry_t* entry = malloc(sizeof(nht_destlist_entry_t));
 	if (entry == NULL) return FALSE;
+	memset(entry, 0x0, sizeof(nht_destlist_entry_t));
 	memcpy(entry->dhost_ether, dhost_ether, ETH_ALEN);
 	entry->rt_entry = rt_entry;
+
 	*entry_out = entry;
 	return TRUE;
 }
@@ -157,8 +160,10 @@ int nht_destlist_entry_create (nht_destlist_entry_t** entry_out, uint8_t dhost_e
 int nht_entry_create (nht_entry_t** entry_out, uint8_t dhost_next_hop[ETH_ALEN]) {
 	nht_entry_t* entry = malloc(sizeof(nht_entry_t));
 	if (entry == NULL) return FALSE;
+	memset(entry, 0x0, sizeof(nht_entry_t));
 	memcpy(entry->dhost_next_hop, dhost_next_hop, ETH_ALEN);
 	entry->dest_list = NULL;
+
 	*entry_out = entry;
 	return TRUE;
 }
@@ -261,6 +266,7 @@ int aodv_db_rt_capt_rrep (uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[
 		rt_entry->output_iface = output_iface;
 		rt_entry->dhost_seq_num = dhost_seq_num;
 		rt_entry->hop_count = hop_count;
+		rt_entry->path_weight = path_weight;
 		rt_entry->flags &= ~AODV_FLAGS_NEXT_HOP_UNKNOWN;
 		rt_entry->flags &= ~AODV_FLAGS_ROUTE_INVALID;
 

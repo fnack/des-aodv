@@ -456,7 +456,7 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 int aodv_forward_broadcast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, dessert_meshif_t *iface, dessert_frameid_t id) {
 	if (proc->lflags & DESSERT_RX_FLAG_L25_BROADCAST) {
 		struct ether_header* l25h = dessert_msg_getl25ether(msg);
-		dessert_debug("got BROADCAST from " MAC " over " MAC, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
+		dessert_trace("got BROADCAST from " MAC " over " MAC, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
 		dessert_meshsend_fast(msg, NULL); //forward to mesh
 		dessert_syssend_msg(msg); //forward to sys
 		return DESSERT_MSG_DROP;
