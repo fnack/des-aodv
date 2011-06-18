@@ -192,7 +192,7 @@ int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH
 		}
 		HASH_ADD_KEYPTR(hh, rt_entry->src_list, srclist_entry->shost_ether, ETH_ALEN, srclist_entry);
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
-		dessert_trace("create " MAC ": shost_seq_num=%d path_weight=%d",
+		dessert_trace("create route to " MAC ": shost_seq_num=%d path_weight=%d",
 		              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num, srclist_entry->path_weight);
 		return TRUE;
 	}
@@ -210,6 +210,10 @@ int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH
 		              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num, srclist_entry->path_weight);
 		return TRUE;
 	}
+//	dessert_debug("rreq_msg->seq_num_src=%u last_rreq_seq=%u -> hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq)=%d", rreq_msg->seq_num_src, last_rreq_seq, hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq));
+//	dessert_debug("known path_weight was %u, incomming path_weight is %u", last_path_weight, rreq_msg->path_weight);
+//	dessert_debug("known rreq_seq was %u, incomming rreq_seq is %u", last_rreq_seq, rreq_msg->seq_num_src);
+
 	return FALSE;
 }
 
