@@ -278,11 +278,19 @@ int aodv_db_rt_getroute2dest(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_h
 }
 
 int aodv_db_rt_getnexthop(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN]) {
+	dessert_debug("getnexthop to " MAC, EXPLODE_ARRAY6(dhost_ether));
 	aodv_rt_entry_t* rt_entry;
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
-	if (rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN)
+	if(rt_entry == NULL) {
+		dessert_debug("e FALSE");
 		return FALSE;
+	}
+	if(rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN) {
+		dessert_debug("f FALSE");
+		return FALSE;
+	}
 	memcpy(dhost_next_hop_out, rt_entry->dhost_next_hop, ETH_ALEN);
+	dessert_debug("getnexthop to " MAC " is " MAC , EXPLODE_ARRAY6(dhost_ether), EXPLODE_ARRAY6(dhost_next_hop_out));
 	return TRUE;
 }
 
