@@ -122,6 +122,7 @@ int rt_srclist_entry_create(aodv_rt_srclist_entry_t** srclist_entry_out, uint8_t
 		uint8_t shost_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint32_t source_seq_num) {
 	aodv_rt_srclist_entry_t* srclist_entry = malloc(sizeof(aodv_rt_srclist_entry_t));
 	if (srclist_entry == NULL) return FALSE;
+	memset(srclist_entry, 0x0, sizeof(aodv_rt_srclist_entry_t));
 	memcpy(srclist_entry->shost_ether, shost_ether, ETH_ALEN);
 	memcpy(srclist_entry->shost_prev_hop, shost_prev_hop, ETH_ALEN);
 	srclist_entry->output_iface = output_iface;
@@ -133,7 +134,7 @@ int rt_srclist_entry_create(aodv_rt_srclist_entry_t** srclist_entry_out, uint8_t
 int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out, uint8_t dhost_ether[ETH_ALEN]) {
 	aodv_rt_entry_t* rt_entry = malloc(sizeof(aodv_rt_entry_t));
 	if (rt_entry == NULL) return FALSE;
-
+	memset(rt_entry, 0x0, sizeof(aodv_rt_entry_t));
 	memcpy(rt_entry->dhost_ether, dhost_ether, ETH_ALEN);
 	rt_entry->flags = AODV_FLAGS_NEXT_HOP_UNKNOWN | AODV_FLAGS_ROUTE_INVALID;
 	rt_entry->src_list = NULL;
@@ -145,8 +146,10 @@ int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out, uint8_t dhost_ether[ETH_A
 int nht_destlist_entry_create (nht_destlist_entry_t** entry_out, uint8_t dhost_ether[ETH_ALEN], aodv_rt_entry_t* rt_entry) {
 	nht_destlist_entry_t* entry = malloc(sizeof(nht_destlist_entry_t));
 	if (entry == NULL) return FALSE;
+	memset(entry, 0x0, sizeof(nht_destlist_entry_t));
 	memcpy(entry->dhost_ether, dhost_ether, ETH_ALEN);
 	entry->rt_entry = rt_entry;
+
 	*entry_out = entry;
 	return TRUE;
 }
@@ -154,8 +157,10 @@ int nht_destlist_entry_create (nht_destlist_entry_t** entry_out, uint8_t dhost_e
 int nht_entry_create (nht_entry_t** entry_out, uint8_t dhost_next_hop[ETH_ALEN]) {
 	nht_entry_t* entry = malloc(sizeof(nht_entry_t));
 	if (entry == NULL) return FALSE;
+	memset(entry, 0x0, sizeof(nht_entry_t));
 	memcpy(entry->dhost_next_hop, dhost_next_hop, ETH_ALEN);
 	entry->dest_list = NULL;
+
 	*entry_out = entry;
 	return TRUE;
 }
@@ -188,8 +193,16 @@ int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH
 		}
 		HASH_ADD_KEYPTR(hh, rt_entry->src_list, srclist_entry->shost_ether, ETH_ALEN, srclist_entry);
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
+		dessert_debug("create route to " MAC ": shost_seq_num=%d path_weight=%d",
+		              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num, srclist_entry->path_weight);
 		return TRUE;
-	} else if (hf_seq_comp_i_j(srclist_entry->shost_seq_num, shost_seq_num) < 0) {
+	}
+
+	int a = hf_seq_comp_i_j(srclist_entry->shost_seq_num, shost_seq_num);
+	if(a < 0) {
+		dessert_debug("get " MAC ": shost_seq_num=%d:%d path_weight=%d:%d",
+		              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num, shost_seq_num, srclist_entry->path_weight, path_weight);
+
 		// overwrite several fields of source entry if source seq_num is newer
 		memcpy(srclist_entry->shost_prev_hop, shost_prev_hop, ETH_ALEN);
 		srclist_entry->output_iface = output_iface;
@@ -214,9 +227,11 @@ int aodv_db_rt_capt_rrep (uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[
 		}
 		HASH_ADD_KEYPTR(hh, rt.entrys, rt_entry->dhost_ether, ETH_ALEN, rt_entry);
 	}
-	if ((rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN) ||
-			(hf_seq_comp_i_j(dhost_seq_num, rt_entry->dhost_seq_num) > 0) ||
-			((dhost_seq_num == rt_entry->dhost_seq_num) && (hop_count < rt_entry->hop_count))) {
+	int a = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
+	int b = (hf_seq_comp_i_j(rt_entry->dhost_seq_num, dhost_seq_num));
+	int c = (rt_entry->hop_count > hop_count);
+
+	if(a || (b < 0) || (b == 0 && c)) {
 
 		nht_entry_t* nht_entry;
 		nht_destlist_entry_t* destlist_entry;
