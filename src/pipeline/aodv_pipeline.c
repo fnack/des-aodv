@@ -347,7 +347,7 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 	while (dessert_msg_getext(msg, &rerrdl_ext, RERRDL_EXT_TYPE, rerrdl_num++) > 0) {
 		int i;
 		dessert_debug("1");
-		void* dhost_pointer = rerrdl_ext->data+6;
+		void* dhost_pointer = rerrdl_ext->data;
 		for (i = 0; i < rerrdl_ext->len / ETH_ALEN; i++) {
 			dessert_debug("2");
 
