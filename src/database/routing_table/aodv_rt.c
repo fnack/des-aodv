@@ -120,8 +120,8 @@ int aodv_db_rt_init() {
 	return timeslot_create(&rt.ts, &mrt, &rt, purge_rt_entry);
 }
 
-int rt_srclist_entry_create(aodv_rt_srclist_entry_t** srclist_entry_out, u_int8_t shost_ether[ETH_ALEN],
-		uint8_t shost_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, u_int32_t source_seq_num, u_int8_t path_weight) {
+int rt_srclist_entry_create(aodv_rt_srclist_entry_t** srclist_entry_out, uint8_t shost_ether[ETH_ALEN],
+		uint8_t shost_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint32_t source_seq_num, uint8_t path_weight) {
 	aodv_rt_srclist_entry_t* srclist_entry = malloc(sizeof(aodv_rt_srclist_entry_t));
 	if (srclist_entry == NULL) return FALSE;
 	memset(srclist_entry, 0x0, sizeof(aodv_rt_srclist_entry_t));
@@ -201,7 +201,7 @@ int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH
 		              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num, srclist_entry->path_weight);
 		return TRUE;
 	}
-	
+
 	int a = hf_seq_comp_i_j(srclist_entry->shost_seq_num, shost_seq_num);
 	int b = (srclist_entry->path_weight > path_weight);
 	if(a < 0 || (a == 0 && b)) {
@@ -216,10 +216,6 @@ int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
 		return TRUE;
 	}
-//	dessert_debug("rreq_msg->seq_num_src=%u last_rreq_seq=%u -> hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq)=%d", rreq_msg->seq_num_src, last_rreq_seq, hf_seq_comp_i_j(rreq_msg->seq_num_src, last_rreq_seq));
-//	dessert_debug("known path_weight was %u, incomming path_weight is %u", last_path_weight, rreq_msg->path_weight);
-//	dessert_debug("known rreq_seq was %u, incomming rreq_seq is %u", last_rreq_seq, rreq_msg->seq_num_src);
-
 	return FALSE;
 }
 
