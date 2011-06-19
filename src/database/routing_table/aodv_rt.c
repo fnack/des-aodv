@@ -193,15 +193,15 @@ int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH
 		}
 		HASH_ADD_KEYPTR(hh, rt_entry->src_list, srclist_entry->shost_ether, ETH_ALEN, srclist_entry);
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
-		dessert_debug("create route to " MAC ": shost_seq_num=%d path_weight=%d",
-		              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num, srclist_entry->path_weight);
+		dessert_debug("create route to " MAC ": shost_seq_num=%d",
+		              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num);
 		return TRUE;
 	}
 
 	int a = hf_seq_comp_i_j(srclist_entry->shost_seq_num, shost_seq_num);
 	if(a < 0) {
-		dessert_debug("get " MAC ": shost_seq_num=%d:%d path_weight=%d:%d",
-		              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num, shost_seq_num, srclist_entry->path_weight, path_weight);
+		dessert_debug("get " MAC ": shost_seq_num=%d:%d",
+		              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num, shost_seq_num);
 
 		// overwrite several fields of source entry if source seq_num is newer
 		memcpy(srclist_entry->shost_prev_hop, shost_prev_hop, ETH_ALEN);

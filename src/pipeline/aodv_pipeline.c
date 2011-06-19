@@ -136,7 +136,7 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, uint8_t t
 	}
 	aodv_db_putrreq(ts);
 
-	dessert_msg_t* rreq_msg = _create_rreq(dhost_ether, (ttl <= TTL_THRESHOLD)? ttl : 255, initial_path_weight); // create RREQ
+	dessert_msg_t* rreq_msg = _create_rreq(dhost_ether, (ttl <= TTL_THRESHOLD)? ttl : 255); // create RREQ
 	void* payload;
 	uint16_t size = max(rreq_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
 	dessert_msg_addpayload(rreq_msg, &payload, size);
