@@ -116,7 +116,7 @@ int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif
 
 		if(max < new) {
 			//walking to the ap
-			dessert_debug("%s <=====> " MAC " rssi from %u to %u", iface->if_name, EXPLODE_ARRAY6(ether_neighbor_addr), max, new);
+			dessert_debug("%s <=====> " MAC " rssi from %d to %d", iface->if_name, EXPLODE_ARRAY6(curr_entry->ether_neighbor), max, new);
 			curr_entry->max_rssi = new;
 		} else {
 			//walking away
