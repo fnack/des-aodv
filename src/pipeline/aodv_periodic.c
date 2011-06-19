@@ -93,7 +93,7 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count, uint64_t
 
         //set flags
         rerr_msg->flags = (uint8_t) flags;
-        dessert_debug("sending rerr to broadcast with flags=%u", flags);
+        dessert_debug("sending rerr to broadcast with flags=%d", flags);
 
         // write addresses of affected destinations in RERRDL_EXT
         uint8_t rerrdl_count = 0;
@@ -149,7 +149,7 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
         if (schedule_type == AODV_SC_SEND_OUT_PACKET) {
                 //do nothing
         } else if (schedule_type == AODV_SC_REPEAT_RREQ) {
-                aodv_send_rreq(ether_addr, &timestamp, schedule_param);	// send out rreq
+                aodv_send_rreq(ether_addr, &timestamp, schedule_param);
         } else if (schedule_type == AODV_SC_SEND_OUT_RERR) {
                 uint32_t rerr_count;
                 aodv_db_getrerrcount(&timestamp, &rerr_count);
@@ -159,13 +159,24 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
                         _onlb_element_t* curr_el = NULL;
                         _onlb_element_t* head = NULL;
 
-                        while(aodv_db_invroute(ether_addr, dhost_ether, schedule_param) == TRUE) {
-                                dessert_debug("invalidate route to " MAC, EXPLODE_ARRAY6(dhost_ether));
-                                dest_count++;
-                                curr_el = malloc(sizeof(_onlb_element_t));
-                                memcpy(curr_el->dhost_ether, dhost_ether, ETH_ALEN);
-                                curr_el->next = curr_el->prev = NULL;
-                                DL_APPEND(head, curr_el);
+                        if(schedule_param == AODV_FLAGS_RERR_W) {
+                                while(aodv_db_warnroute(ether_addr, dhost_ether) == TRUE) {
+                                     dessert_debug("warn route to " MAC, EXPLODE_ARRAY6(dhost_ether));
+                                     dest_count++;
+                                     curr_el = malloc(sizeof(_onlb_element_t));
+                                     memcpy(curr_el->dhost_ether, dhost_ether, ETH_ALEN);
+                                     curr_el->next = curr_el->prev = NULL;
+                                     DL_APPEND(head, curr_el);
+                                }
+                        } else {
+                                while(aodv_db_invroute(ether_addr, dhost_ether) == TRUE) {
+                                     dessert_debug("invalidate route to " MAC, EXPLODE_ARRAY6(dhost_ether));
+                                     dest_count++;
+                                     curr_el = malloc(sizeof(_onlb_element_t));
+                                     memcpy(curr_el->dhost_ether, dhost_ether, ETH_ALEN);
+                                     curr_el->next = curr_el->prev = NULL;
+                                     DL_APPEND(head, curr_el);
+                                }
                         }
 
                         if (dest_count > 0) {

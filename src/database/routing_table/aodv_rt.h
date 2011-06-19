@@ -57,6 +57,8 @@ int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN]);
 
 int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]);
 
+int aodv_db_rt_warn_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]);
+
 int aodv_db_rt_cleanup (struct timeval* timestamp);
 
 int aodv_db_rt_report(char** str_out);

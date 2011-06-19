@@ -123,7 +123,9 @@ int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif
 			if((max - SIGNAL_STRENGTH_THRESHOLD) > new) {
 			  //-30 - 15                         > -30
 				//we need to send a new warn
-				aodv_db_sc_addschedule(timestamp, curr_entry->ether_neighbor, AODV_SC_SEND_OUT_RERR, AODV_FLAGS_RERR_W);
+				struct timeval curr_time;
+				gettimeofday(&curr_time, NULL);
+				aodv_db_sc_addschedule(&curr_time, curr_entry->ether_neighbor, AODV_SC_SEND_OUT_RERR, AODV_FLAGS_RERR_W);
 			}
 		}
 	}

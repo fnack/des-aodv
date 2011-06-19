@@ -335,6 +335,15 @@ int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
 	return TRUE;
 }
 
+int aodv_db_rt_markroutewarn(uint8_t dhost_ether[ETH_ALEN]) {
+	aodv_rt_entry_t* rt_entry;
+	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
+	if (rt_entry == NULL) return FALSE;
+	rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
+
+	return TRUE;
+}
+
 int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
 	// find appropriate routing entry
 	nht_entry_t* nht_entry;
@@ -354,6 +363,21 @@ int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_o
 		HASH_DEL(nht, nht_entry);
 		free(nht_entry);
 	}
+	return TRUE;
+}
+
+int aodv_db_rt_warn_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
+	// find appropriate routing entry
+	nht_entry_t* nht_entry;
+	nht_destlist_entry_t* nht_dest_entry;
+	HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
+	if ((nht_entry == NULL) || (nht_entry->dest_list == NULL)) return FALSE;
+	nht_dest_entry = nht_entry->dest_list;
+
+	// mark route as invalid and give this destination address back
+	nht_dest_entry->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
+	memcpy(dhost_ether_out, nht_dest_entry->rt_entry->dhost_ether, ETH_ALEN);
+
 	return TRUE;
 }
 

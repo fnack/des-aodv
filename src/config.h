@@ -87,6 +87,7 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 // --- Database Flags
 #define AODV_FLAGS_ROUTE_INVALID 	1
 #define AODV_FLAGS_NEXT_HOP_UNKNOWN	1 << 1
+#define AODV_FLAGS_ROUTE_WARN    	1 << 2
 #define MAX_MESH_IFACES_COUNT		8
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
