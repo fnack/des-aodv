@@ -332,36 +332,48 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 }
 
 int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, dessert_meshif_t *iface, dessert_frameid_t id) {
-	dessert_ext_t* rerr_ext;
 
+	dessert_ext_t* rerr_ext;
 	if (dessert_msg_getext(msg, &rerr_ext, RERR_EXT_TYPE, 0) == 0) {
 		return DESSERT_MSG_KEEP;
 	}
 	struct aodv_msg_rerr* rerr_msg = (struct aodv_msg_rerr*) rerr_ext->data;
+
+	dessert_debug("got RERR for me flags=%d",  rerr_msg->flags);
+
 	int rerrdl_num = 0;
-	uint8_t dhost_ether[ETH_ALEN];
-	uint8_t dhost_next_hop[ETH_ALEN];
 	uint8_t rebroadcast_rerr = FALSE;
 	dessert_ext_t* rerrdl_ext;
-
 	while (dessert_msg_getext(msg, &rerrdl_ext, RERRDL_EXT_TYPE, rerrdl_num++) > 0) {
 		int i;
-		void* dhost_pointer = rerrdl_ext->data;
+		dessert_debug("1");
+		void* dhost_pointer = rerrdl_ext->data+6;
 		for (i = 0; i < rerrdl_ext->len / ETH_ALEN; i++) {
+			dessert_debug("2");
+
+			uint8_t dhost_ether[ETH_ALEN];
 			// get the MAC address of destination that is no more reachable
 			memcpy(dhost_ether, dhost_pointer + i*ETH_ALEN, ETH_ALEN);
+
+			uint8_t dhost_next_hop[ETH_ALEN];
 			// get next hop towards this destination
 			if (aodv_db_getnexthop(dhost_ether, dhost_next_hop) == TRUE) {
+				dessert_debug("3");
 				// if found, compare with entrys in interface-list this RRER.
 				// If equals then this this route is affected and must be invalidated!
 				int iface_num;
 				for (iface_num = 0; iface_num < rerr_msg->iface_addr_count; iface_num++) {
+					dessert_debug("4");
 					if (memcmp(rerr_msg->ifaces + iface_num * ETH_ALEN, dhost_next_hop, ETH_ALEN) == 0) {
+						dessert_debug("5");
 						rebroadcast_rerr = TRUE;
-						if(rerr_msg->flags & AODV_FLAGS_RERR_W)
+						if(rerr_msg->flags & AODV_FLAGS_RERR_W) {
+							dessert_debug("got WARN for me flags=%d", rerr_msg->flags);
 							aodv_db_markroutewarn(dhost_ether);
-						else
+						} else {
+							dessert_debug("got RERR for me flags=%d",  rerr_msg->flags);
 							aodv_db_markrouteinv(dhost_ether);
+						}
 					}
 				}
 			}
