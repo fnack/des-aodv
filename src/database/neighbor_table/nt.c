@@ -65,10 +65,9 @@ neighbor_entry_t* db_neighbor_entry_create(u_int8_t ether_neighbor_addr[ETH_ALEN
 	if (new_entry == NULL) return NULL;
 	memcpy(new_entry->ether_neighbor, ether_neighbor_addr, ETH_ALEN);
 	new_entry->iface = iface;
-	new_entry->mobility = mobility;
 
-	uint8_t rssi = db_neighbor_entry_rssi(ether_neighbor_addr, iface);
-	new_entry->max_rssi = rssi;
+	new_entry->mobility = mobility;
+	new_entry->max_rssi = db_neighbor_entry_rssi(ether_neighbor_addr, iface);
 
 	return new_entry;
 }
@@ -121,7 +120,8 @@ int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif
 			curr_entry->max_rssi = new;
 		} else {
 			//walking away
-			if((max - SIGNAL_STRENGTH_THRESHOLD) <= new) {
+			if((max - SIGNAL_STRENGTH_THRESHOLD) > new) {
+			  //-30 - 15                         > -30
 				//we need to send a new warn
 				aodv_db_sc_addschedule(timestamp, curr_entry->ether_neighbor, AODV_SC_SEND_OUT_RERR, AODV_FLAGS_RERR_W);
 			}

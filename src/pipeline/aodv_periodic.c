@@ -58,7 +58,7 @@ int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct
         else return 1;
 }
 
-dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count, uint8_t flags) {
+dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count, uint64_t flags) {
         if (*head == NULL) return NULL;
         dessert_msg_t* msg;
         dessert_ext_t* ext;
@@ -92,7 +92,7 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count, uint8_t 
         rerr_msg->iface_addr_count = ifaces_count;
 
         //set flags
-        rerr_msg->flags = flags;
+        rerr_msg->flags = (uint8_t) flags;
         dessert_debug("sending rerr to broadcast with flags=%u", flags);
 
         // write addresses of affected destinations in RERRDL_EXT
@@ -148,9 +148,9 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 
         if (schedule_type == AODV_SC_SEND_OUT_PACKET) {
                 //do nothing
-        }
-        else if (schedule_type == AODV_SC_REPEAT_RREQ) aodv_send_rreq(ether_addr, &timestamp, schedule_param);	// send out rreq
-        else if (schedule_type == AODV_SC_SEND_OUT_RERR) {
+        } else if (schedule_type == AODV_SC_REPEAT_RREQ) {
+                aodv_send_rreq(ether_addr, &timestamp, schedule_param);	// send out rreq
+        } else if (schedule_type == AODV_SC_SEND_OUT_RERR) {
                 uint32_t rerr_count;
                 aodv_db_getrerrcount(&timestamp, &rerr_count);
                 if (rerr_count < RERR_RATELIMIT) {

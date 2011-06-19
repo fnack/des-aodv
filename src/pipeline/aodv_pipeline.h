@@ -189,7 +189,7 @@ int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timev
 /** clean up database from old entrys */
 int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct timeval *interval);
 
-dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count, uint8_t flags);
+dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count, uint64_t flags);
 
 int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval);
 
