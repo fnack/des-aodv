@@ -340,7 +340,6 @@ int aodv_db_rt_markroutewarn(uint8_t dhost_ether[ETH_ALEN]) {
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
 	if (rt_entry == NULL) return FALSE;
 	rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
-
 	return TRUE;
 }
 
@@ -374,6 +373,9 @@ int aodv_db_rt_warn_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_
 	if ((nht_entry == NULL) || (nht_entry->dest_list == NULL)) return FALSE;
 	nht_dest_entry = nht_entry->dest_list;
 
+	if(nht_dest_entry->rt_entry->flags & AODV_FLAGS_ROUTE_WARN) {
+		return FALSE;
+	}
 	// mark route as invalid and give this destination address back
 	nht_dest_entry->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
 	memcpy(dhost_ether_out, nht_dest_entry->rt_entry->dhost_ether, ETH_ALEN);

@@ -92,7 +92,7 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count, uint64_t
         rerr_msg->iface_addr_count = ifaces_count;
 
         //set flags
-        rerr_msg->flags = (uint8_t) flags;
+        rerr_msg->flags |= (uint8_t) flags;
         dessert_debug("sending rerr to broadcast with flags=%d", flags);
 
         // write addresses of affected destinations in RERRDL_EXT
@@ -183,7 +183,10 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
                                 while(head != NULL) {
                                         dessert_msg_t* rerr_msg = aodv_create_rerr(&head, dest_count, schedule_param);
                                         if (rerr_msg != NULL) {
-                                                dessert_debug("link to " MAC " break -> send RERR", EXPLODE_ARRAY6(dhost_ether));
+                                                if(schedule_param & AODV_FLAGS_RERR_W)
+                                                        dessert_debug("link to " MAC " goes worse -> send RWARN", EXPLODE_ARRAY6(dhost_ether));
+                                                else
+                                                        dessert_debug("link to " MAC " break -> send RERR", EXPLODE_ARRAY6(dhost_ether));
                                                 dessert_meshsend_fast(rerr_msg, NULL);
                                                 dessert_msg_destroy(rerr_msg);
                                                 aodv_db_putrerr(&timestamp);

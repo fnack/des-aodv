@@ -358,7 +358,7 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 				for (iface_num = 0; iface_num < rerr_msg->iface_addr_count; iface_num++) {
 					if (memcmp(rerr_msg->ifaces + iface_num * ETH_ALEN, dhost_next_hop, ETH_ALEN) == 0) {
 						rebroadcast_rerr = TRUE;
-						if(rerr_msg->flags == AODV_FLAGS_RERR_W)
+						if(rerr_msg->flags & AODV_FLAGS_RERR_W)
 							aodv_db_markroutewarn(dhost_ether);
 						else
 							aodv_db_markrouteinv(dhost_ether);
