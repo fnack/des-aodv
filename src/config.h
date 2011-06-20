@@ -37,8 +37,8 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 
 #define ACTIVE_ROUTE_TIMEOUT		6000 	// milliseconds
 #define ALLOWED_HELLO_LOST			7
-#define NODE_TRAVERSAL_TIME			4 		// milliseconds
-#define NET_DIAMETER				8
+#define NODE_TRAVERSAL_TIME			2 		// milliseconds
+#define NET_DIAMETER				6
 #define NET_TRAVERSAL_TIME			2 * NODE_TRAVERSAL_TIME * NET_DIAMETER
 #define BLACKLIST_TIMEOUT			RREQ_RETRIES * NET_TRAVERSAL_TIME
 #define MY_ROUTE_TIMEOUT			2 * ACTIVE_ROUTE_TIMEOUT

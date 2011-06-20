@@ -167,7 +167,6 @@ int nht_entry_create (nht_entry_t** entry_out, uint8_t dhost_next_hop[ETH_ALEN])
 
 //returns TRUE if input entry is used (newer)
 //        FALSE if input entry is unused
-//        -1 if error
 int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN],
 		uint8_t shost_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface,
 		uint32_t shost_seq_num, struct timeval* timestamp) {
@@ -178,8 +177,8 @@ int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
 	if (rt_entry == NULL) {
 		// if not found -> create routing entry
-		if (rt_entry_create(&rt_entry, dhost_ether) == FALSE) {
-			return -1;
+		if (rt_entry_create(&rt_entry, dhost_ether) != TRUE) {
+			return FALSE;
 		}
 		HASH_ADD_KEYPTR(hh, rt.entrys, rt_entry->dhost_ether, ETH_ALEN, rt_entry);
 	}
@@ -188,8 +187,8 @@ int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH
 	if (srclist_entry == NULL) {
 		// if not found -> create new source entry of source list
 		if (rt_srclist_entry_create(&srclist_entry, shost_ether, shost_prev_hop,
-				output_iface, shost_seq_num) == FALSE) {
-			return -1;
+				output_iface, shost_seq_num) != TRUE) {
+			return FALSE;
 		}
 		HASH_ADD_KEYPTR(hh, rt_entry->src_list, srclist_entry->shost_ether, ETH_ALEN, srclist_entry);
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
@@ -215,7 +214,6 @@ int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH
 
 // returns TRUE if rep is newer
 //         FALSE if rep is discarded
-//         -1 error
 int aodv_db_rt_capt_rrep (uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[ETH_ALEN],
 		dessert_meshif_t* output_iface, uint32_t dhost_seq_num, uint8_t hop_count, struct timeval* timestamp) {
 	aodv_rt_entry_t* rt_entry;
@@ -223,7 +221,7 @@ int aodv_db_rt_capt_rrep (uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[
 	if (rt_entry == NULL) {
 		// if not found -> create routing entry
 		if (rt_entry_create(&rt_entry, dhost_ether) == FALSE) {
-			return -1;
+			return FALSE;
 		}
 		HASH_ADD_KEYPTR(hh, rt.entrys, rt_entry->dhost_ether, ETH_ALEN, rt_entry);
 	}
