@@ -321,6 +321,9 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 			} else {
 				// we know a better route already
 			}
+		} else {
+			dessert_debug("got RREQ for me -> don't answer with RREP route unknown or DUP (rreq_msg->seq_num_src=%d last_rreq_seq=%d) to " MAC " over " MAC,
+			              rreq_msg->seq_num_src, last_rreq_seq, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
 		}
 	}
 	return DESSERT_MSG_DROP;
@@ -328,8 +331,8 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 }
 
 int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, dessert_meshif_t *iface, dessert_frameid_t id) {
-	dessert_ext_t* rerr_ext;
 
+	dessert_ext_t* rerr_ext;
 	if (dessert_msg_getext(msg, &rerr_ext, RERR_EXT_TYPE, 0) == 0) {
 		return DESSERT_MSG_KEEP;
 	}
