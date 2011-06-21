@@ -267,9 +267,6 @@ void aodv_db_getrerrcount(struct timeval* timestamp, uint32_t* count_out) {
 	aodv_db_unlock();
 }
 
-
-
-
 // --------------------------------------- reporting ---------------------------------------------------------------
 
 int aodv_db_view_routing_table(char** str_out) {
