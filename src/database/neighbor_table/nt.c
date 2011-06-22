@@ -44,7 +44,7 @@ typedef struct neighbor_table {
 
 neighbor_table_t nt;
 
-int db_nt_increment_hello_interval(u_int8_t mobility);
+int db_nt_increment_hello_interval(uint8_t mobility);
 int db_nt_decrement_hello_interval(neighbor_entry_t* entry);
 
 int8_t db_neighbor_entry_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface) {
@@ -59,7 +59,7 @@ int8_t db_neighbor_entry_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], const desse
 }
 
 
-neighbor_entry_t* db_neighbor_entry_create(u_int8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, uint8_t mobility) {
+neighbor_entry_t* db_neighbor_entry_create(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, uint8_t mobility) {
 	neighbor_entry_t* new_entry;
 	new_entry = malloc(sizeof(neighbor_entry_t));
 	if (new_entry == NULL) return NULL;
@@ -97,7 +97,7 @@ int db_nt_init() {
 	return TRUE;
 }
 
-int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp, u_int8_t mobility) {
+int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp, uint8_t mobility) {
 	neighbor_entry_t* curr_entry = NULL;
 	uint8_t addr_sum[ETH_ALEN + sizeof(void*)];
 	memcpy(addr_sum, ether_neighbor_addr, ETH_ALEN);
@@ -151,7 +151,7 @@ int db_nt_cleanup(struct timeval* timestamp) {
 }
 
 /** returns the hello_interval in ms */
-int calc_hello_interval(u_int8_t mobility) {
+int calc_hello_interval(uint8_t mobility) {
 	if(mobility == 0)
 		return 5000;
 	if(mobility < 10)
@@ -164,7 +164,7 @@ int calc_hello_interval(u_int8_t mobility) {
 }
 
 /** increments the hello_interval, if the new mobility requers it */
-int db_nt_increment_hello_interval(u_int8_t mobility) {
+int db_nt_increment_hello_interval(uint8_t mobility) {
 	int new_interval = calc_hello_interval(mobility);
 	if(new_interval < hello_interval) {
 

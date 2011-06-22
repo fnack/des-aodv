@@ -26,6 +26,6 @@ For further information and questions please use the web site
 
 #include <linux/if_ether.h>
 
-int aodv_db_rwarn_capt_rwarn_seq(u_int8_t shost_ether[ETH_ALEN], u_int16_t shost_seq_num);
+int aodv_db_rwarn_capt_rwarn_seq(uint8_t shost_ether[ETH_ALEN], uint16_t shost_seq_num);
 
 #endif
