@@ -62,6 +62,6 @@ int8_t hf_rssi2interval(int8_t rssi);
  * return 1 if i > j (cirlce diff < (MAX_INT / 2))
  * return -1 if i < j (circle diff > (MAX_INT / 2))
  */
-int hf_path_weight_comp(u_int8_t i, u_int8_t j);
+int hf_path_weight_comp(uint8_t i, uint8_t j);
 
 #endif

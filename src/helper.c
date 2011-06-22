@@ -70,9 +70,9 @@ int8_t hf_rssi2interval(int8_t rssi) {
 	return 5; // in [-128, -90]
 }
 
-int hf_path_weight_comp(u_int8_t i, u_int8_t j) {
+int hf_path_weight_comp(uint8_t i, uint8_t j) {
 	if (i == j) return 0;
-	u_int32_t diff = i - j;
+	uint32_t diff = i - j;
 	if (diff < (SEQNO_MAX >> 1))
 		return 1;
 	return -1;

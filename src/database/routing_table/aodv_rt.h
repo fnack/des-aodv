@@ -34,11 +34,11 @@ int aodv_db_rt_init();
 
 int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN],
 		uint8_t shost_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface,
-		uint32_t shost_seq_num, u_int8_t path_weight, struct timeval* timestamp);
+		uint32_t shost_seq_num, uint8_t path_weight, struct timeval* timestamp);
 
 int aodv_db_rt_capt_rrep (uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[ETH_ALEN],
 		dessert_meshif_t* output_iface, uint32_t dhost_seq_num,
-		uint8_t hop_count, u_int8_t path_weight, struct timeval* timestamp);
+		uint8_t hop_count, uint8_t path_weight, struct timeval* timestamp);
 
 int aodv_db_rt_getroute2dest(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN],
 		dessert_meshif_t** output_iface_out, struct timeval* timestamp);
@@ -51,7 +51,7 @@ int aodv_db_rt_getprevhop(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH
 int aodv_db_rt_getrouteseqnum(uint8_t dhost_ether[ETH_ALEN], uint32_t* dhost_seq_num_out);
 
 
-int aodv_db_rt_getpathweight(u_int8_t dhost_ether[ETH_ALEN], u_int8_t* dhost_seq_num_out);
+int aodv_db_rt_getpathweight(uint8_t dhost_ether[ETH_ALEN], uint8_t* dhost_seq_num_out);
 
 int aodv_db_rt_getlastrreqseq(uint8_t dhost_ether[ETH_ALEN],
 		uint8_t shost_ether[ETH_ALEN], uint32_t* shost_seq_num_out);
