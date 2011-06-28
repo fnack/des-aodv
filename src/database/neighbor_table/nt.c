@@ -66,7 +66,7 @@ void set_hello_interval(int new_interval) {
 	hello_interval_t.tv_usec = (hello_interval % 1000) * 1000;
 	periodic_send_hello = dessert_periodic_add(aodv_periodic_send_hello, NULL, NULL, &hello_interval_t);
 
-	dessert_notice("setting HELLO interval to [%d]ms - new max mobility is [%d]", hello_interval, mobility);
+	dessert_notice("setting HELLO interval to [%d]ms", hello_interval);
 }
 
 /** increments the hello_interval, if the new mobility requers it */
@@ -137,8 +137,9 @@ int db_nt_init() {
 
 void create_purge_timeout(struct timeval* purge_timeout, uint8_t mobility) {
 	int remote_hello_interval = calc_hello_interval(mobility);
-	purge_timeout->tv_sec = remote_hello_interval / 1000;
-	purge_timeout->tv_usec = (remote_hello_interval % 1000) * 1000;
+	uint32_t hello_int_msek = remote_hello_interval * (ALLOWED_HELLO_LOST + 1);
+	purge_timeout->tv_sec = hello_int_msek / 1000;
+	purge_timeout->tv_usec = (hello_int_msek % 1000) * 1000;
 }
 
 int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp, uint8_t mobility) {
