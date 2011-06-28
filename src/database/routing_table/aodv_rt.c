@@ -396,7 +396,7 @@ int aodv_db_rt_warn_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_
 	nht_dest_entry = nht_entry->dest_list;
 
 	if(nht_dest_entry->rt_entry->flags & AODV_FLAGS_ROUTE_WARN) {
-		return FALSE;
+		return FALSE; //TODO
 	}
 	// mark route as invalid and give this destination address back
 	nht_dest_entry->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;

@@ -114,6 +114,7 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count, uint64_t
 		for(iter = ext->data; iter < end; iter += ETH_ALEN) {
 			_onlb_element_t* el = *head;
 			memcpy(iter, el->dhost_ether, ETH_ALEN);
+			dessert_trace(MAC, EXPLODE_ARRAY6(iter));
 			DL_DELETE(*head, el);
 			free(el);
 			--count;

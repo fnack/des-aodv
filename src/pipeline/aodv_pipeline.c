@@ -358,7 +358,8 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 
 			uint8_t dhost_next_hop[ETH_ALEN];
 			// get next hop towards this destination
-			if (aodv_db_getnexthop(dhost_ether, dhost_next_hop) == TRUE) {
+			int a = aodv_db_getnexthop(dhost_ether, dhost_next_hop);
+			if(a) {
 				dessert_debug("3");
 				// if found, compare with entrys in interface-list this RRER.
 				// If equals then this this route is affected and must be invalidated!
@@ -376,6 +377,18 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 							aodv_db_markrouteinv(dhost_ether);
 						}
 					}
+				}
+			}
+
+			int b = memcmp(dessert_l25_defsrc, dhost_ether, ETH_ALEN);
+			if(b == 0) {
+				dessert_debug("6");
+				if(rerr_msg->flags & AODV_FLAGS_RERR_W) {
+					dessert_debug("got WARN for me flags=%d", rerr_msg->flags);
+					aodv_db_markroutewarn(dhost_ether);
+				} else {
+					dessert_debug("got RERR for me flags=%d",  rerr_msg->flags);
+					aodv_db_markrouteinv(dhost_ether);
 				}
 			}
 		}
