@@ -273,7 +273,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 
 	int x = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->seq_num_src, &ts);
 	if(x != TRUE) {
-		dessert_debug("got RREQ for " MAC "  -> don't answer with RREP is DUP", EXPLODE_ARRAY6(l25h->ether_dhost));
+		dessert_debug("got RREQ for " MAC " -> don't answer with RREP is DUP and has no better information", EXPLODE_ARRAY6(l25h->ether_dhost));
 		return DESSERT_MSG_DROP;
 	}
 
@@ -287,7 +287,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 		int s = aodv_db_getrouteseqnum(l25h->ether_dhost, &dhost_seq_num);
 		int h = hf_seq_comp_i_j(rreq_msg->seq_num_dest, dhost_seq_num);
 
-		if (!d && !u &&	(s == TRUE) && h < 0) {
+		if (!d && !u && (s == TRUE) && h < 0) {
 			// i know route to destination that have seq_num greater then that of source (route is newer)
 			dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, dhost_seq_num, AODV_FLAGS_RREP_A);
 			dessert_debug("repair link to " MAC " id=%d", EXPLODE_ARRAY6(l25h->ether_dhost), rreq_msg->seq_num_src);
