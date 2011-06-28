@@ -94,10 +94,10 @@ int timeslot_purgeobjects(timeslot_t* ts, struct timeval* curr_time) {
 	return TRUE;
 }
 
-int timeslot_addobject(timeslot_t* ts, struct timeval* timestamp, void* object){
+int timeslot_addobject_with_timeout(timeslot_t* ts, struct timeval* timestamp, void* object, struct timeval* purge_timeout){
 	timeslot_element_t* new_el;
 	struct timeval purge_time;
-	hf_add_tv(&ts->purge_timeout, timestamp, &purge_time);
+	hf_add_tv(purge_timeout, timestamp, &purge_time);
 
 	if (create_new_ts_element(&new_el, &purge_time, object) == FALSE)
 		return FALSE;
@@ -141,6 +141,10 @@ int timeslot_addobject(timeslot_t* ts, struct timeval* timestamp, void* object){
 	gettimeofday(&curr_time, NULL);
 	timeslot_purgeobjects(ts, &curr_time);
 	return TRUE;
+}
+
+int timeslot_addobject(timeslot_t* ts, struct timeval* timestamp, void* object) {
+	return timeslot_addobject_with_timeout(ts, timestamp, object, &ts->purge_timeout);
 }
 
 int timeslot_deleteobject(timeslot_t* ts, void* object) {
