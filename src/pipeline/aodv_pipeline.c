@@ -334,6 +334,8 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 
 int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, dessert_meshif_t *iface, dessert_frameid_t id) {
 
+	struct ether_header* l25h = dessert_msg_getl25ether(msg);
+
 	dessert_ext_t* rerr_ext;
 	if (dessert_msg_getext(msg, &rerr_ext, RERR_EXT_TYPE, 0) == 0) {
 		return DESSERT_MSG_KEEP;
@@ -380,15 +382,16 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 				}
 			}
 
+			//i am not reachable
 			int b = memcmp(dessert_l25_defsrc, dhost_ether, ETH_ALEN);
 			if(b == 0) {
 				dessert_debug("6");
 				if(rerr_msg->flags & AODV_FLAGS_RERR_W) {
 					dessert_debug("got WARN for me flags=%d", rerr_msg->flags);
-					aodv_db_markroutewarn(dhost_ether);
+					aodv_db_markroutewarn(l25h->ether_shost);
 				} else {
 					dessert_debug("got RERR for me flags=%d",  rerr_msg->flags);
-					aodv_db_markrouteinv(dhost_ether);
+					aodv_db_markrouteinv(l25h->ether_shost);
 				}
 			}
 		}
