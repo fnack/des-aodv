@@ -94,7 +94,7 @@ int timeslot_purgeobjects(timeslot_t* ts, struct timeval* curr_time) {
 	return TRUE;
 }
 
-int timeslot_addobject_with_timeout(timeslot_t* ts, struct timeval* timestamp, void* object, struct timeval* purge_timeout){
+int timeslot_addobject_with_timeout(timeslot_t* ts, struct timeval* timestamp, void* object, struct timeval* purge_timeout) {
 	timeslot_element_t* new_el;
 	struct timeval purge_time;
 	hf_add_tv(purge_timeout, timestamp, &purge_time);
