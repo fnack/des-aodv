@@ -101,7 +101,6 @@ dessert_msg_t* _create_rrep(uint8_t route_dest[ETH_ALEN], uint8_t route_source[E
 	struct aodv_msg_rrep* rrep_msg = (struct aodv_msg_rrep*) ext->data;
 	rrep_msg->flags = flags;
 	rrep_msg->hop_count = 0;
-	rrep_msg->path_weight = 0;
 	rrep_msg->lifetime = 0;
 	rrep_msg->seq_num_dest = route_seq_num;
 	return msg;
@@ -271,6 +270,15 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 
 	rreq_msg->hop_count++;
 
+	struct avg_node_result sample = dessert_rssi_avg(msg->l2h.ether_shost, iface->if_name);
+	uint8_t interval = hf_rssi2interval(sample.avg_rssi);
+	if(interval < 0) {
+		dessert_crit("rssi is not in [-128, 0], this must be a bug in dessert_monitor");
+	} else {
+		dessert_debug("incomming path_weight = %d, add %d for the last hop " MAC, rreq_msg->path_weight, interval, EXPLODE_ARRAY6(msg->l2h.ether_shost));
+		rreq_msg->path_weight += interval;
+	}
+
 	int x = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->seq_num_src, rreq_msg->path_weight, &ts);
 	if(x != TRUE) {
 		dessert_debug("got RREQ for " MAC "  -> don't answer with RREP is DUP", EXPLODE_ARRAY6(l25h->ether_dhost));
@@ -316,7 +324,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 			dessert_msg_destroy(rrep_msg);
 
 			/* RREQ gives route to his source. Process RREQ also as RREP */
-			int y = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->seq_num_src, rreq_msg->hop_count, rreq_msg->path_weight, &ts);
+			int y = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->seq_num_src, rreq_msg->hop_count, &ts);
 			if (y == TRUE) {
 				// no need to search for next hop. Next hop is RREQ.msg->l2h.ether_shost
 				aodv_send_packets_from_buffer(l25h->ether_shost, msg->l2h.ether_shost, iface);
@@ -329,12 +337,11 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 		}
 	}
 	return DESSERT_MSG_DROP;
-
 }
 
 int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, dessert_meshif_t *iface, dessert_frameid_t id) {
-	dessert_ext_t* rerr_ext;
 
+	dessert_ext_t* rerr_ext;
 	if (dessert_msg_getext(msg, &rerr_ext, RERR_EXT_TYPE, 0) == 0) {
 		return DESSERT_MSG_KEEP;
 	}
@@ -411,7 +418,7 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 	gettimeofday(&ts, NULL);
 	rrep_msg->hop_count++;
 
-	int x = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->seq_num_dest, rrep_msg->hop_count, rrep_msg->path_weight, &ts);
+	int x = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->seq_num_dest, rrep_msg->hop_count, &ts);
 	if(x != TRUE) {
 		// capture and re-send only if route is unknown OR
 		// sequence number is greater then that in database OR
@@ -560,7 +567,7 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, desse
 			dessert_trace("send data packet to mesh - to " MAC " over " MAC " id=%d route is known", EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(dhost_next_hop), seq_num);
 		} else {
 			aodv_db_push_packet(l25h->ether_dhost, msg, &ts);
-			aodv_send_rreq(l25h->ether_dhost, &ts, TTL_START, 0); // create and send RREQ
+			aodv_send_rreq(l25h->ether_dhost, &ts, TTL_START, 0); // create and send RREQ - without initial path_weight
 			dessert_trace("send data packet to mesh - to " MAC " id=%d but route is unknown -> push packet to FIFO and send RREQ", EXPLODE_ARRAY6(l25h->ether_dhost), seq_num);
 		}
 	}

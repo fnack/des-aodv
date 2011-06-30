@@ -43,7 +43,6 @@ typedef struct aodv_rt_entry {
 	dessert_meshif_t*		output_iface;
 	uint32_t					dhost_seq_num;
 	uint8_t					hop_count;
-	uint8_t					path_weight; //used in rrep
 	/**
 	 * flags format: 0 0 0 0 0 0 U I
 	 * I - Invalid flag; route is invalid due of link breakage
@@ -221,7 +220,7 @@ int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH
 // returns TRUE if rep is newer
 //         FALSE if rep is discarded
 int aodv_db_rt_capt_rrep (uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[ETH_ALEN],
-		dessert_meshif_t* output_iface, uint32_t dhost_seq_num, uint8_t hop_count, uint8_t path_weight, struct timeval* timestamp) {
+		dessert_meshif_t* output_iface, uint32_t dhost_seq_num, uint8_t hop_count, struct timeval* timestamp) {
 	aodv_rt_entry_t* rt_entry;
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
 	if (rt_entry == NULL) {
@@ -234,9 +233,8 @@ int aodv_db_rt_capt_rrep (uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[
 	int a = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
 	int b = (hf_seq_comp_i_j(rt_entry->dhost_seq_num, dhost_seq_num));
 	int c = (rt_entry->hop_count > hop_count);
-	int d = (rt_entry->path_weight > path_weight);
 
-	if(a || (b < 0) || (b == 0 && c) || (b == 0 && d)) {
+	if(a || (b < 0) || (b == 0 && c)) {
 
 		nht_entry_t* nht_entry;
 		nht_destlist_entry_t* destlist_entry;
@@ -261,7 +259,6 @@ int aodv_db_rt_capt_rrep (uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[
 		rt_entry->output_iface = output_iface;
 		rt_entry->dhost_seq_num = dhost_seq_num;
 		rt_entry->hop_count = hop_count;
-		rt_entry->path_weight = path_weight;
 		rt_entry->flags &= ~AODV_FLAGS_NEXT_HOP_UNKNOWN;
 		rt_entry->flags &= ~AODV_FLAGS_ROUTE_INVALID;
 
@@ -330,17 +327,6 @@ int aodv_db_rt_getrouteseqnum(uint8_t dhost_ether[ETH_ALEN], uint32_t* dhost_seq
 		return FALSE;
 	}
 	*dhost_seq_num_out = rt_entry->dhost_seq_num;
-	return TRUE;
-}
-
-int aodv_db_rt_getpathweight(uint8_t dhost_ether[ETH_ALEN], uint8_t* dhost_path_weight_out) {
-	aodv_rt_entry_t* rt_entry;
-	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
-	if (rt_entry == NULL) {
-		*dhost_path_weight_out = 255;
-		return FALSE;
-	}
-	*dhost_path_weight_out = rt_entry->path_weight;
 	return TRUE;
 }
 

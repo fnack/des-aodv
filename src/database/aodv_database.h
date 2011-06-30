@@ -58,7 +58,7 @@ int aodv_db_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_AL
 
 int aodv_db_capt_rrep (uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[ETH_ALEN],
 		dessert_meshif_t* output_iface, uint32_t dhost_seq_num,
-		uint8_t hop_count, uint8_t path_weight,struct timeval* timestamp);
+		uint8_t hop_count, struct timeval* timestamp);
 
 /**
  * gets prev_hop adress and output_iface towards source with shost_ether address
@@ -73,8 +73,6 @@ int aodv_db_getprevhop(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_AL
 		uint8_t shost_next_hop_out[ETH_ALEN], dessert_meshif_t** output_iface_out);
 
 int aodv_db_getrouteseqnum(uint8_t dhost_ether[ETH_ALEN], uint32_t* dhost_seq_num_out);
-
-int aodv_db_getpathweight(uint8_t dhost_ether[ETH_ALEN], uint8_t* dhost_path_weight);
 
 int aodv_db_getlastrreqseq(uint8_t dhost_ether[ETH_ALEN],
 		uint8_t shost_ether[ETH_ALEN], uint32_t* shost_seq_num_out);

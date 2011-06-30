@@ -95,8 +95,6 @@ struct aodv_msg_rrep {
 	uint8_t		prefix_size;
 	/**  Hop Count: The number of hops from the originator to destination */
 	uint8_t		hop_count;
-	/** path_weight is the weight of the path from source to dest */
-	uint8_t		path_weight;
 	/**
 	 * Destination Sequence Number;
 	 * The latest sequence number received in the past by the originator for any
