@@ -353,7 +353,8 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 
 			uint8_t dhost_next_hop[ETH_ALEN];
 			// get next hop towards this destination
-			if (aodv_db_getnexthop(dhost_ether, dhost_next_hop) == TRUE) {
+			int a = aodv_db_getnexthop(dhost_ether, dhost_next_hop);
+			if(a == TRUE) {
 				// if found, compare with entrys in interface-list this RRER.
 				// If equals then this this route is affected and must be invalidated!
 				int iface_num;
