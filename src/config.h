@@ -75,7 +75,6 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define HELLO_SIZE					128
 #define HELLO_INTERVAL				2000 	// milliseconds
 #define RREQ_SIZE					128
-#define MOBILITY			200 /* 0==no; 255==max */
 
 #define SIGNAL_STRENGTH_BLACK_ZONE            -90 //dbm
 #define SIGNAL_STRENGTH_GREY_ZONE             -80 //dbm
@@ -95,6 +94,5 @@ extern char*						routing_log_file;
 extern int 							hello_size;
 extern int 							hello_interval;
 extern int 							rreq_size;
-extern int 							mobility;
 
 #endif

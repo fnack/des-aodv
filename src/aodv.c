@@ -35,7 +35,6 @@ For further information and questions please use the web site
 int     hello_size	        = HELLO_SIZE;
 int     hello_interval      = HELLO_INTERVAL;
 int     rreq_size	        = RREQ_SIZE;
-int     mobility            = MOBILITY;//flag in hello_msg
 
 dessert_periodic_t* periodic_send_hello;
 
