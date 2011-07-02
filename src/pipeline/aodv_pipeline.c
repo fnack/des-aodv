@@ -428,7 +428,7 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 			memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
 			dessert_meshsend(msg, output_iface);
 		} else {
-			dessert_debug("drop RREP to " MAC " wo don't know the route back?!?!", EXPLODE_ARRAY6(l25h->ether_dhost));
+			dessert_debug("drop RREP to " MAC " we don't know the route back?!?!", EXPLODE_ARRAY6(l25h->ether_dhost));
 		}
 	} else {
 		// this RREP is for me! -> pop all packets from FIFO buffer and send to destination
