@@ -25,11 +25,13 @@ For further information and questions please use the web site
 #include "../timeslot.h"
 #include "../../config.h"
 #include "../schedule_table/aodv_st.h"
+#include "../../pipeline/aodv_pipeline.h"
 
 typedef struct neighbor_entry {
 	struct __attribute__ ((__packed__)) { // key
 		uint8_t 				ether_neighbor[ETH_ALEN];
 		const dessert_meshif_t*	iface;
+		uint8_t 				mobility;
 	};
 	UT_hash_handle				hh;
 } neighbor_entry_t;
@@ -41,18 +43,64 @@ typedef struct neighbor_table {
 
 neighbor_table_t nt;
 
-neighbor_entry_t* db_neighbor_entry_create(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface) {
+/** returns the hello_interval in ms */
+int calc_hello_interval(uint8_t mobility) {
+	if(mobility == 0)
+		return HELLO_INTERVAL;
+	if(mobility < 10)
+		return (HELLO_INTERVAL/2);
+	if(mobility < 100)
+		return (HELLO_INTERVAL/4);
+	if(mobility < 200)
+		return (HELLO_INTERVAL/6);
+	return (HELLO_INTERVAL/8);
+}
+
+void set_hello_interval(int new_interval) {
+	hello_interval = new_interval;
+
+	dessert_periodic_del(periodic_send_hello);
+	struct timeval hello_interval_t;
+	hello_interval_t.tv_sec = hello_interval / 1000;
+	hello_interval_t.tv_usec = (hello_interval % 1000) * 1000;
+	periodic_send_hello = dessert_periodic_add(aodv_periodic_send_hello, NULL, NULL, &hello_interval_t);
+
+	dessert_notice("setting HELLO interval to [%d]ms", hello_interval);
+}
+
+/** increments the hello_interval, if the new mobility requers it */
+int db_nt_increment_hello_interval(uint8_t mobility) {
+	int new_interval = calc_hello_interval(mobility);
+	if(new_interval < hello_interval) {
+		set_hello_interval(new_interval);
+	}
+	return hello_interval;
+}
+
+int db_nt_decrement_hello_interval(neighbor_entry_t* entry) {
+	int entry_interval = calc_hello_interval(entry->mobility);
+	if(entry_interval <= hello_interval) {
+		set_hello_interval(calc_hello_interval(0));
+	}
+	return hello_interval;
+}
+
+neighbor_entry_t* db_neighbor_entry_create(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, uint8_t mobility) {
 	neighbor_entry_t* new_entry;
 	new_entry = malloc(sizeof(neighbor_entry_t));
 	if (new_entry == NULL) return NULL;
 	memcpy(new_entry->ether_neighbor, ether_neighbor_addr, ETH_ALEN);
 	new_entry->iface = iface;
+
+	new_entry->mobility = mobility;
+
 	return new_entry;
 }
 
 void db_nt_on_neigbor_timeout(struct timeval* timestamp, void* src_object, void* object) {
 	neighbor_entry_t* curr_entry = object;
 	dessert_debug("%s <= x => " MAC, curr_entry->iface->if_name, EXPLODE_ARRAY6(curr_entry->ether_neighbor));
+	db_nt_decrement_hello_interval(curr_entry);
 	HASH_DEL(nt.entrys, curr_entry);
 
 	// add schedule
@@ -74,7 +122,14 @@ int db_nt_init() {
 	return TRUE;
 }
 
-int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp) {
+void create_purge_timeout(struct timeval* purge_timeout, uint8_t mobility) {
+	int remote_hello_interval = calc_hello_interval(mobility);
+	uint32_t hello_int_msek = remote_hello_interval * (ALLOWED_HELLO_LOST + 1);
+	purge_timeout->tv_sec = hello_int_msek / 1000;
+	purge_timeout->tv_usec = (hello_int_msek % 1000) * 1000;
+}
+
+int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp, uint8_t mobility) {
 	neighbor_entry_t* curr_entry = NULL;
 	uint8_t addr_sum[ETH_ALEN + sizeof(void*)];
 	memcpy(addr_sum, ether_neighbor_addr, ETH_ALEN);
@@ -82,12 +137,16 @@ int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif
 	HASH_FIND(hh, nt.entrys, addr_sum, ETH_ALEN + sizeof(void*), curr_entry);
 	if (curr_entry == NULL) {
 		//this neigbor is new, so create an entry
-		curr_entry = db_neighbor_entry_create(ether_neighbor_addr, iface);
+		curr_entry = db_neighbor_entry_create(ether_neighbor_addr, iface, mobility);
 		if (curr_entry == NULL) return FALSE;
 		HASH_ADD_KEYPTR(hh, nt.entrys, curr_entry->ether_neighbor, ETH_ALEN + sizeof(void*), curr_entry);
 		dessert_debug("%s <=====> " MAC, iface->if_name, EXPLODE_ARRAY6(ether_neighbor_addr));
+		db_nt_increment_hello_interval(mobility);
 	}
-	timeslot_addobject(nt.ts, timestamp, curr_entry);
+	struct timeval* purge_timeout = malloc(sizeof(struct timeval));
+	create_purge_timeout(purge_timeout, mobility);
+	timeslot_addobject_with_timeout(nt.ts, timestamp, curr_entry, purge_timeout);
+	free(purge_timeout);
 	return TRUE;
 }
 
