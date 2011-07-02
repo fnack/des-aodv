@@ -32,7 +32,7 @@ typedef struct aodv_rt_srclist_entry {
 	uint8_t					shost_ether[ETH_ALEN]; // ID
 	uint8_t					shost_prev_hop[ETH_ALEN];
 	dessert_meshif_t*		output_iface;
-	uint32_t					shost_seq_num;
+	uint32_t					rreq_seq;
 	UT_hash_handle				hh;
 } aodv_rt_srclist_entry_t;
 
@@ -40,7 +40,7 @@ typedef struct aodv_rt_entry {
 	uint8_t					dhost_ether[ETH_ALEN]; // ID
 	uint8_t					dhost_next_hop[ETH_ALEN];
 	dessert_meshif_t*		output_iface;
-	uint32_t					dhost_seq_num;
+	uint32_t					rrep_seq;
 	uint8_t					hop_count;
 	/**
 	 * flags format: 0 0 0 0 0 0 U I
@@ -118,20 +118,26 @@ int aodv_db_rt_init() {
 	return timeslot_create(&rt.ts, &mrt, &rt, purge_rt_entry);
 }
 
-int rt_srclist_entry_create(aodv_rt_srclist_entry_t** srclist_entry_out, uint8_t shost_ether[ETH_ALEN],
-		uint8_t shost_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint32_t source_seq_num) {
+int rt_srclist_entry_create(aodv_rt_srclist_entry_t** srclist_entry_out,
+                            uint8_t shost_ether[ETH_ALEN],
+                            uint8_t shost_prev_hop[ETH_ALEN],
+                            dessert_meshif_t* output_iface,
+                            uint32_t rreq_seq) {
+
 	aodv_rt_srclist_entry_t* srclist_entry = malloc(sizeof(aodv_rt_srclist_entry_t));
 	if (srclist_entry == NULL) return FALSE;
 	memset(srclist_entry, 0x0, sizeof(aodv_rt_srclist_entry_t));
 	memcpy(srclist_entry->shost_ether, shost_ether, ETH_ALEN);
 	memcpy(srclist_entry->shost_prev_hop, shost_prev_hop, ETH_ALEN);
 	srclist_entry->output_iface = output_iface;
-	srclist_entry->shost_seq_num = source_seq_num;
+	srclist_entry->rreq_seq = rreq_seq;
+
 	*srclist_entry_out = srclist_entry;
 	return TRUE;
 }
 
 int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out, uint8_t dhost_ether[ETH_ALEN]) {
+
 	aodv_rt_entry_t* rt_entry = malloc(sizeof(aodv_rt_entry_t));
 	if (rt_entry == NULL) return FALSE;
 	memset(rt_entry, 0x0, sizeof(aodv_rt_entry_t));
@@ -167,9 +173,14 @@ int nht_entry_create (nht_entry_t** entry_out, uint8_t dhost_next_hop[ETH_ALEN])
 
 //returns TRUE if input entry is used (newer)
 //        FALSE if input entry is unused
-int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN],
-		uint8_t shost_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface,
-		uint32_t shost_seq_num, struct timeval* timestamp) {
+int aodv_db_rt_capt_rreq(uint8_t dhost_ether[ETH_ALEN],
+                         uint8_t shost_ether[ETH_ALEN],
+                         uint8_t shost_prev_hop[ETH_ALEN],
+                         dessert_meshif_t* output_iface,
+                         uint32_t rreq_seq,
+                         uint8_t hop_count,
+                         struct timeval* timestamp) {
+
 	aodv_rt_entry_t* rt_entry;
 	aodv_rt_srclist_entry_t* srclist_entry;
 
@@ -186,36 +197,44 @@ int aodv_db_rt_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH
 	HASH_FIND(hh, rt_entry->src_list, shost_ether, ETH_ALEN, srclist_entry);
 	if (srclist_entry == NULL) {
 		// if not found -> create new source entry of source list
-		if (rt_srclist_entry_create(&srclist_entry, shost_ether, shost_prev_hop,
-				output_iface, shost_seq_num) != TRUE) {
+		if (rt_srclist_entry_create(&srclist_entry, shost_ether, shost_prev_hop, output_iface, rreq_seq) != TRUE) {
 			return FALSE;
 		}
 		HASH_ADD_KEYPTR(hh, rt_entry->src_list, srclist_entry->shost_ether, ETH_ALEN, srclist_entry);
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
-		dessert_debug("create route to " MAC ": shost_seq_num=%d",
-		              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num);
+		dessert_debug("create route to " MAC ": rreq_seq=%d",
+		              EXPLODE_ARRAY6(shost_ether), srclist_entry->rreq_seq);
 		return TRUE;
 	}
 
-	int a = hf_seq_comp_i_j(srclist_entry->shost_seq_num, shost_seq_num);
-	if(a < 0) {
-		dessert_debug("get " MAC ": shost_seq_num=%d:%d",
-		              EXPLODE_ARRAY6(shost_ether), srclist_entry->shost_seq_num, shost_seq_num);
+	int a = hf_comp_u32(srclist_entry->rreq_seq, rreq_seq);
+	int b = hf_comp_u8(rt_entry->hop_count, hop_count); // METRIC
+	if(a < 0 || (a == 0 && b > 0)) {
+		dessert_debug("get rreq from " MAC ": rreq_seq=%d:%d",
+		              EXPLODE_ARRAY6(shost_ether), srclist_entry->rreq_seq, rreq_seq);
 
 		// overwrite several fields of source entry if source seq_num is newer
 		memcpy(srclist_entry->shost_prev_hop, shost_prev_hop, ETH_ALEN);
 		srclist_entry->output_iface = output_iface;
-		srclist_entry->shost_seq_num = shost_seq_num;
+		srclist_entry->rreq_seq = rreq_seq;
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
 		return TRUE;
 	}
+
+	dessert_debug("get OLD rreq from " MAC ": rreq_seq=%d:%d",
+		              EXPLODE_ARRAY6(shost_ether), srclist_entry->rreq_seq, rreq_seq);
 	return FALSE;
 }
 
 // returns TRUE if rep is newer
 //         FALSE if rep is discarded
-int aodv_db_rt_capt_rrep (uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[ETH_ALEN],
-		dessert_meshif_t* output_iface, uint32_t dhost_seq_num, uint8_t hop_count, struct timeval* timestamp) {
+int aodv_db_rt_capt_rrep(uint8_t dhost_ether[ETH_ALEN],
+                         uint8_t dhost_next_hop[ETH_ALEN],
+                         dessert_meshif_t* output_iface,
+                         uint32_t rrep_seq,
+                         uint8_t hop_count,
+                         struct timeval* timestamp) {
+
 	aodv_rt_entry_t* rt_entry;
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
 	if (rt_entry == NULL) {
@@ -225,11 +244,10 @@ int aodv_db_rt_capt_rrep (uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[
 		}
 		HASH_ADD_KEYPTR(hh, rt.entrys, rt_entry->dhost_ether, ETH_ALEN, rt_entry);
 	}
-	int a = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
-	int b = (hf_seq_comp_i_j(rt_entry->dhost_seq_num, dhost_seq_num));
-	int c = (rt_entry->hop_count > hop_count);
-
-	if(a || (b < 0) || (b == 0 && c)) {
+	int u = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
+	int a = hf_comp_u32(rt_entry->rrep_seq, rrep_seq);
+	int b = hf_comp_u8(rt_entry->hop_count, hop_count); //hop count metric
+	if(u || a < 0 || (a == 0 && b > 0)) {
 
 		nht_entry_t* nht_entry;
 		nht_destlist_entry_t* destlist_entry;
@@ -252,7 +270,7 @@ int aodv_db_rt_capt_rrep (uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[
 		// set next hop and etc. towards this destination
 		memcpy(rt_entry->dhost_next_hop, dhost_next_hop, ETH_ALEN);
 		rt_entry->output_iface = output_iface;
-		rt_entry->dhost_seq_num = dhost_seq_num;
+		rt_entry->rrep_seq = rrep_seq;
 		rt_entry->hop_count = hop_count;
 		rt_entry->flags &= ~AODV_FLAGS_NEXT_HOP_UNKNOWN;
 		rt_entry->flags &= ~AODV_FLAGS_ROUTE_INVALID;
@@ -314,30 +332,44 @@ int aodv_db_rt_getprevhop(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH
 
 // returns TRUE if dest is known 
 //         FLASE if des is unknown
-int aodv_db_rt_getrouteseqnum(uint8_t dhost_ether[ETH_ALEN], uint32_t* dhost_seq_num_out) {
+int aodv_db_rt_get_rrep_seq(uint8_t dhost_ether[ETH_ALEN], uint32_t* rrep_seq_out) {
 	aodv_rt_entry_t* rt_entry;
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
 	if (rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN) {
-		*dhost_seq_num_out = 0;
+		*rrep_seq_out = 0;
 		return FALSE;
 	}
-	*dhost_seq_num_out = rt_entry->dhost_seq_num;
+	*rrep_seq_out = rt_entry->rrep_seq;
 	return TRUE;
 }
 
-int aodv_db_rt_getlastrreqseq(uint8_t dhost_ether[ETH_ALEN],
-		uint8_t shost_ether[ETH_ALEN], uint32_t* shost_seq_num_out) {
+int aodv_db_rt_get_rreq_seq(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN], uint32_t* rreq_seq_out) {
 	aodv_rt_entry_t* rt_entry;
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
-	if (rt_entry == NULL)
+	if (rt_entry == NULL) {
+		*rreq_seq_out = 0;
 		return FALSE;
-
+	}
 	aodv_rt_srclist_entry_t* src_entry;
 	HASH_FIND(hh, rt_entry->src_list, shost_ether, ETH_ALEN, src_entry);
-	if (src_entry == NULL)
+	if (src_entry == NULL) {
+		*rreq_seq_out = 0;
 		return FALSE;
-	*shost_seq_num_out = src_entry->shost_seq_num;
+	}
+	*rreq_seq_out = src_entry->rreq_seq;
 	return TRUE;
+}
+
+int aodv_db_rt_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out) {
+	aodv_rt_entry_t* rt_entry;
+	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
+	if (rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN) {
+		*hop_count_out = 0;
+		return FALSE;
+	}
+	*hop_count_out = rt_entry->hop_count;
+	return TRUE;
+
 }
 
 int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
