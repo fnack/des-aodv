@@ -45,7 +45,7 @@ int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timev
 	dessert_msg_addpayload(hello_msg, &payload, size);
 	memset(payload, 0xA, size);
 
-	dessert_meshsend_fast(hello_msg, NULL);
+	dessert_meshsend(hello_msg, NULL);
 	dessert_msg_destroy(hello_msg);
 	return 0;
 }
@@ -160,7 +160,7 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 					dessert_msg_t* rerr_msg = aodv_create_rerr(&head, dest_count);
 					if (rerr_msg != NULL) {
 						dessert_debug("link to " MAC " break -> send RERR", EXPLODE_ARRAY6(dhost_ether));
-						dessert_meshsend_fast(rerr_msg, NULL);
+						dessert_meshsend(rerr_msg, NULL);
 						dessert_msg_destroy(rerr_msg);
 						aodv_db_putrerr(&timestamp);
 					}
