@@ -69,18 +69,10 @@ struct aodv_msg_rreq {
 	uint8_t		hop_count;
 	/** path_weight is the weight of the path from source to dest */
 	uint8_t		path_weight;
-	/**
-	 * Destination Sequence Number;
-	 * The latest sequence number received in the past by the originator for any
-	 * route towards the destination.
-	 */
-	uint32_t		seq_num_dest;
-	/**
-	 * Originator Sequence Number;
-	 * The current sequence number to be used in the route entry pointing towards
-	 * the originator of the route request.
-	 */
-	uint32_t		seq_num_src;
+
+	uint32_t		rreq_seq;
+
+	uint32_t		rrep_seq;
 } __attribute__ ((__packed__));
 
 /** RREP - Route Reply Message */
@@ -91,16 +83,13 @@ struct aodv_msg_rrep {
 	 * A - acknowledgement required;
 	 */
 	uint8_t		flags;
-	/** not used */
-	uint8_t		prefix_size;
+
 	/**  Hop Count: The number of hops from the originator to destination */
 	uint8_t		hop_count;
-	/**
-	 * Destination Sequence Number;
-	 * The latest sequence number received in the past by the originator for any
-	 * route towards the destination.
-	 */
-	uint32_t		seq_num_dest;
+	/** path_weight is the weight of the path from source to dest */
+	uint8_t		path_weight;
+
+	uint32_t		rrep_seq;
 	/**
 	 * LifeTime:
 	 * The time in millisecond for which nodes receiving the RREP consider the

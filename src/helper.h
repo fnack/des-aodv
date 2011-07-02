@@ -35,10 +35,10 @@ For further information and questions please use the web site
 /**
  * Compares two integers
  * returns 0 if i = j
- * return 1 if i > j (cirlce diff < (MAX_INT / 2))
- * return -1 if i < j (circle diff > (MAX_INT / 2))
+ * return 1 if i > j (cirlce diff < (MAXUINT32 / 2))
+ * return -1 if i < j (circle diff > (MAXUINT32 / 2))
  */
-int hf_seq_comp_i_j(uint32_t i, uint32_t j);
+int hf_comp_u32(uint32_t i, uint32_t j);
 
 /**
  * Compares two timevals.
@@ -59,9 +59,9 @@ int8_t hf_rssi2interval(int8_t rssi);
 /**
  * Compares two integers
  * returns 0 if i = j
- * return 1 if i > j (cirlce diff < (MAX_INT / 2))
- * return -1 if i < j (circle diff > (MAX_INT / 2))
+ * return 1 if i > j (cirlce diff < (MAXUINT8 / 2))
+ * return -1 if i < j (circle diff > (MAXUINT8 / 2))
  */
-int hf_path_weight_comp(uint8_t i, uint8_t j);
+int hf_comp_u8(uint8_t i, uint8_t j);
 
 #endif

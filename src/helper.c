@@ -24,10 +24,10 @@ For further information and questions please use the web site
 #include "helper.h"
 #include "config.h"
 
-int hf_seq_comp_i_j(uint32_t i, uint32_t j) {
+int hf_comp_u32(uint32_t i, uint32_t j) {
 	if (i == j) return 0;
 	uint32_t diff = i - j;
-	if (diff < (SEQNO_MAX >> 1))
+	if (diff < (UINT32_MAX >> 1))
 		return 1;
 	return -1;
 }
@@ -70,10 +70,10 @@ int8_t hf_rssi2interval(int8_t rssi) {
 	return 5; // in [-128, -90]
 }
 
-int hf_path_weight_comp(uint8_t i, uint8_t j) {
+int hf_comp_u8(uint8_t i, uint8_t j) {
 	if (i == j) return 0;
 	uint32_t diff = i - j;
-	if (diff < (SEQNO_MAX >> 1))
+	if (diff < (UINT8_MAX >> 1))
 		return 1;
 	return -1;
 
