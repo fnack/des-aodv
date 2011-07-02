@@ -302,6 +302,10 @@ int aodv_db_rt_getroute2dest(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_h
 	if (rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN || rt_entry->flags & AODV_FLAGS_ROUTE_INVALID) {
 		return FALSE;
 	}
+	if(rt_entry->flags & AODV_FLAGS_ROUTE_WARN) {
+		dessert_debug("create and send RREQ to " MAC " next hop goes worse", EXPLODE_ARRAY6(dhost_ether));
+		aodv_send_rreq(dhost_ether, &timestamp, TTL_START);
+	}
 	memcpy(dhost_next_hop_out, rt_entry->dhost_next_hop, ETH_ALEN);
 	*output_iface_out = rt_entry->output_iface;
 	timeslot_addobject(rt.ts, timestamp, rt_entry);
@@ -309,19 +313,11 @@ int aodv_db_rt_getroute2dest(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_h
 }
 
 int aodv_db_rt_getnexthop(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN]) {
-	dessert_debug("getnexthop to " MAC, EXPLODE_ARRAY6(dhost_ether));
 	aodv_rt_entry_t* rt_entry;
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
-	if(rt_entry == NULL) {
-		dessert_debug("e FALSE");
+	if (rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN)
 		return FALSE;
-	}
-	if(rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN) {
-		dessert_debug("f FALSE");
-		return FALSE;
-	}
 	memcpy(dhost_next_hop_out, rt_entry->dhost_next_hop, ETH_ALEN);
-	dessert_debug("getnexthop to " MAC " is " MAC , EXPLODE_ARRAY6(dhost_ether), EXPLODE_ARRAY6(dhost_next_hop_out));
 	return TRUE;
 }
 
@@ -396,6 +392,25 @@ int aodv_db_rt_markroutewarn(uint8_t dhost_ether[ETH_ALEN]) {
 	return TRUE;
 }
 
+//initial get all routs over one neighbor
+int aodv_db_rt_warn_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
+       // find appropriate routing entry
+       nht_entry_t* nht_entry;
+       nht_destlist_entry_t* nht_dest_entry;
+       HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
+       if ((nht_entry == NULL) || (nht_entry->dest_list == NULL)) return FALSE;
+       nht_dest_entry = nht_entry->dest_list;
+
+       if(nht_dest_entry->rt_entry->flags & AODV_FLAGS_ROUTE_WARN) {
+               return FALSE; //TODO
+       }
+       // mark route as warn and give this destination address back
+       nht_dest_entry->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
+       memcpy(dhost_ether_out, nht_dest_entry->rt_entry->dhost_ether, ETH_ALEN);
+
+       return TRUE;
+}
+
 int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
 	// find appropriate routing entry
 	nht_entry_t* nht_entry;
@@ -415,24 +430,6 @@ int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_o
 		HASH_DEL(nht, nht_entry);
 		free(nht_entry);
 	}
-	return TRUE;
-}
-
-int aodv_db_rt_warn_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
-	// find appropriate routing entry
-	nht_entry_t* nht_entry;
-	nht_destlist_entry_t* nht_dest_entry;
-	HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
-	if ((nht_entry == NULL) || (nht_entry->dest_list == NULL)) return FALSE;
-	nht_dest_entry = nht_entry->dest_list;
-
-	if(nht_dest_entry->rt_entry->flags & AODV_FLAGS_ROUTE_WARN) {
-		return FALSE; //TODO
-	}
-	// mark route as invalid and give this destination address back
-	nht_dest_entry->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
-	memcpy(dhost_ether_out, nht_dest_entry->rt_entry->dhost_ether, ETH_ALEN);
-
 	return TRUE;
 }
 

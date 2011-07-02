@@ -29,9 +29,11 @@ For further information and questions please use the web site
 #include "../config.h"
 #include "../helper.h"
 #include "../database/data_seq/data_seq.h"
+#include "../database/rwarn_seq/rwarn_seq.h"
 
 uint32_t rreq_seq_global = 0;
 uint32_t rrep_seq_global = 0;
+uint16_t rwarn_seq_global = 0;
 uint32_t broadcast_id = 0;
 pthread_rwlock_t pp_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
@@ -332,8 +334,6 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 
 int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, dessert_meshif_t *iface, dessert_frameid_t id) {
 
-	struct ether_header* l25h = dessert_msg_getl25ether(msg);
-
 	dessert_ext_t* rerr_ext;
 	if (dessert_msg_getext(msg, &rerr_ext, RERR_EXT_TYPE, 0) == 0) {
 		return DESSERT_MSG_KEEP;
@@ -347,11 +347,8 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 	dessert_ext_t* rerrdl_ext;
 	while (dessert_msg_getext(msg, &rerrdl_ext, RERRDL_EXT_TYPE, rerrdl_num++) > 0) {
 		int i;
-		dessert_debug("1");
 		void* dhost_pointer = rerrdl_ext->data;
 		for (i = 0; i < rerrdl_ext->len / ETH_ALEN; i++) {
-			dessert_debug("2");
-
 			uint8_t dhost_ether[ETH_ALEN];
 			// get the MAC address of destination that is no more reachable
 			memcpy(dhost_ether, dhost_pointer + i*ETH_ALEN, ETH_ALEN);
@@ -360,38 +357,17 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 			// get next hop towards this destination
 			int a = aodv_db_getnexthop(dhost_ether, dhost_next_hop);
 			if(a == TRUE) {
-				dessert_debug("3");
 				// if found, compare with entrys in interface-list this RRER.
 				// If equals then this this route is affected and must be invalidated!
 				int iface_num;
 				for (iface_num = 0; iface_num < rerr_msg->iface_addr_count; iface_num++) {
-					dessert_debug("4");
 					if (memcmp(rerr_msg->ifaces + iface_num * ETH_ALEN, dhost_next_hop, ETH_ALEN) == 0) {
-						dessert_debug("5");
 						rebroadcast_rerr = TRUE;
-						if(rerr_msg->flags & AODV_FLAGS_RERR_W) {
-							dessert_debug("got WARN for me flags=%d", rerr_msg->flags);
-							aodv_db_markroutewarn(dhost_ether);
-						} else {
-							dessert_debug("got RERR for me flags=%d",  rerr_msg->flags);
-							aodv_db_markrouteinv(dhost_ether);
+						aodv_db_markrouteinv(dhost_ether);
+						dessert_debug("route to " MAC " marked as invalid", EXPLODE_ARRAY6(dhost_ether));
 						}
 					}
 				}
-			}
-
-			//i am not reachable
-			int b = memcmp(dessert_l25_defsrc, dhost_ether, ETH_ALEN);
-			if(b == 0) {
-				dessert_debug("6");
-				if(rerr_msg->flags & AODV_FLAGS_RERR_W) {
-					dessert_debug("got WARN for me flags=%d", rerr_msg->flags);
-					aodv_db_markroutewarn(l25h->ether_shost);
-				} else {
-					dessert_debug("got RERR for me flags=%d",  rerr_msg->flags);
-					aodv_db_markrouteinv(l25h->ether_shost);
-				}
-			}
 		}
 	}
 
@@ -409,6 +385,45 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 		}
 
 		dessert_meshsend(msg, NULL);
+	}
+	return DESSERT_MSG_DROP;
+}
+
+int aodv_handle_rwarn(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, dessert_meshif_t *iface, dessert_frameid_t id) {
+
+	dessert_ext_t* rwarn_ext;
+	if (dessert_msg_getext(msg, &rwarn_ext, RWARN_EXT_TYPE, 0) == 0) {
+		return DESSERT_MSG_KEEP;
+	}
+	struct aodv_msg_rerr* rwarn_msg = (struct aodv_msg_rerr*) rwarn_ext->data;
+
+	dessert_meshif_t* output_iface;
+	struct timeval timestamp;
+	gettimeofday(&timestamp, NULL);
+	uint8_t next_hop[ETH_ALEN];
+	struct ether_header* l25h = dessert_msg_getl25ether(msg);
+
+	if(TRUE != aodv_db_rwarn_capt_rwarn_seq(l25h->ether_shost, msg->u16)) {
+		dessert_debug("rwarn packet is known -> DUP");
+		return DESSERT_MSG_DROP;
+	}
+	aodv_db_markroutewarn(l25h->ether_shost);
+
+	if (memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) != 0) { //not for me
+
+		if (aodv_db_getroute2dest(l25h->ether_dhost, next_hop, &output_iface, &timestamp)) {
+			memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
+			dessert_meshsend(msg, output_iface);
+			dessert_debug(MAC " over " MAC " ----rwarn----> " MAC " to " MAC,
+				          EXPLODE_ARRAY6(l25h->ether_shost),
+				          EXPLODE_ARRAY6(msg->l2h.ether_shost),
+				          EXPLODE_ARRAY6(msg->l2h.ether_dhost),
+				          EXPLODE_ARRAY6(l25h->ether_dhost));
+		} else {
+			dessert_debug("rwarn packet is for " MAC ", but have no route", EXPLODE_ARRAY6(l25h->ether_dhost));
+		}
+	} else { //for me
+		dessert_debug("rwarn packet is for me");
 	}
 	return DESSERT_MSG_DROP;
 }
@@ -524,7 +539,7 @@ int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, desse
 		memcpy(curr_el->dhost_ether, l25h->ether_dhost, ETH_ALEN);
 		head = NULL;
 		DL_APPEND(head, curr_el);
-		dessert_msg_t* rerr_msg = aodv_create_rerr(&head, 1, 0);
+		dessert_msg_t* rerr_msg = aodv_create_rerr(&head, 1);
 		if (rerr_msg != NULL) {
 			dessert_meshsend(rerr_msg, NULL);
 			dessert_msg_destroy(rerr_msg);

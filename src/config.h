@@ -33,7 +33,6 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define TTL_START					2
 #define TTL_INCREMENT				2
 #define TTL_THRESHOLD				7
-#define SEQNO_MAX					UINT32_MAX
 
 #define ACTIVE_ROUTE_TIMEOUT		3000 	// milliseconds
 #define ALLOWED_HELLO_LOST			7
@@ -51,6 +50,7 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define RERRDL_EXT_TYPE				(DESSERT_EXT_USER + 3)
 #define HELLO_EXT_TYPE				(DESSERT_EXT_USER + 4)
 #define BROADCAST_EXT_TYPE			(DESSERT_EXT_USER + 5)
+#define RWARN_EXT_TYPE				(DESSERT_EXT_USER + 6)
 
 #define FIFO_BUFFER_MAX_ENTRY_SIZE	128 	// maximal packet count that can be stored in FIFO for one destination
 #define DB_CLEANUP_INTERVAL			NET_TRAVERSAL_TIME
@@ -72,6 +72,7 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
  * Schedule type = send out route error for given next hop
  */
 #define AODV_SC_SEND_OUT_RERR		3
+#define AODV_SC_SEND_OUT_RWARN		4
 #define HELLO_SIZE					128
 #define HELLO_INTERVAL				2000 	// milliseconds
 #define RREQ_SIZE					128

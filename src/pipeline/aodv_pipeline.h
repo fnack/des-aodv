@@ -103,7 +103,6 @@ struct aodv_msg_rerr {
 	/**
 	 * flags format: N 0 0 0 0 0 0 0
 	 * N - No delete flag; set when a node has performed a local repair of a link
-	 * W - route warn flag, set when a note requests a new route because of a bad rssi
 	 */
 	uint8_t		flags;
 	/** The number of interfaces of the RERR last hop */
@@ -125,6 +124,8 @@ struct aodv_msg_broadcast {
 	uint32_t		id;
 } __attribute__ ((__packed__));
 
+struct aodv_msg_rwarn {
+} __attribute__ ((__packed__));
 
 typedef struct _onlb_dest_list_element {
 	uint8_t 							dhost_ether[ETH_ALEN];
@@ -177,7 +178,7 @@ int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timev
 /** clean up database from old entrys */
 int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct timeval *interval);
 
-dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count, uint64_t flags);
+dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count);
 
 int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval);
 

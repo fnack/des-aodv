@@ -25,7 +25,6 @@ For further information and questions please use the web site
 #include "aodv_pipeline.h"
 #include "../config.h"
 #include <string.h>
-#include "../database/neighbor_table/nt.h"
 #include "../database/data_seq/data_seq.h"
 #include <pthread.h>
 #include <utlist.h>
@@ -61,7 +60,28 @@ int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct
 	}
 }
 
-dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count, uint64_t flags) {
+dessert_msg_t* aodv_create_rwarn(uint8_t neighbor_addr[ETH_ALEN], uint8_t dhost_ether[ETH_ALEN]) {
+	dessert_msg_t* msg;
+	dessert_msg_new(&msg);
+	msg->ttl = 255;
+
+	// add l25h header
+	dessert_ext_t* ext;
+	dessert_msg_addext(msg, &ext, DESSERT_EXT_ETH, ETHER_HDR_LEN);
+	struct ether_header* rreq_l25h = (struct ether_header*) ext->data;
+	memcpy(rreq_l25h->ether_dhost, dhost_ether, ETH_ALEN);
+
+	// set next hop
+	memcpy(msg->l2h.ether_dhost, neighbor_addr, ETH_ALEN);
+
+	// and add RWARN ext
+	dessert_msg_addext(msg, &ext, RWARN_EXT_TYPE, sizeof(struct aodv_msg_rwarn));
+	struct aodv_msg_rwarn* rwarn_msg = (struct aodv_msg_rwarn*) ext->data;
+
+	return msg;
+}
+
+dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count) {
 	if (*head == NULL || count == 0) return NULL;
 	dessert_msg_t* msg;
 	dessert_ext_t* ext;
@@ -86,12 +106,7 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count, uint64_t
 	// add RERR ext
 	dessert_msg_addext(msg, &ext, RERR_EXT_TYPE, sizeof(struct aodv_msg_rerr));
 	struct aodv_msg_rerr* rerr_msg = (struct aodv_msg_rerr*) ext->data;
-
-	//set flags
-	rerr_msg->flags = 0;
-//	rerr_msg->flags |= AODV_FLAGS_RERR_N;
-	rerr_msg->flags |= (uint8_t) flags;
-	dessert_debug("sending rerr to broadcast with flags=%d", flags);
+	rerr_msg->flags = AODV_FLAGS_RERR_N;
 
 	// write addresses of all my mesh interfaces
 	void* ifaceaddr_pointer = rerr_msg->ifaces;
@@ -117,7 +132,6 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count, uint64_t
 		for(iter = ext->data; iter < end; iter += ETH_ALEN) {
 			_onlb_element_t* el = *head;
 			memcpy(iter, el->dhost_ether, ETH_ALEN);
-			dessert_trace(MAC, EXPLODE_ARRAY6(iter));
 			DL_DELETE(*head, el);
 			free(el);
 			--count;
@@ -153,37 +167,36 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 			_onlb_element_t* curr_el = NULL;
 			_onlb_element_t* head = NULL;
 
-			if(schedule_param & AODV_FLAGS_RERR_W) {
-				while(aodv_db_warnroute(ether_addr, dhost_ether) == TRUE) {
-					dessert_debug("warn route to " MAC, EXPLODE_ARRAY6(dhost_ether));
-					dest_count++;
-					curr_el = malloc(sizeof(_onlb_element_t));
-					memcpy(curr_el->dhost_ether, dhost_ether, ETH_ALEN);
-					DL_APPEND(head, curr_el);
-				}
-			} else {
-				while(aodv_db_invroute(ether_addr, dhost_ether) == TRUE) {
-					dessert_debug("invalidate route to " MAC, EXPLODE_ARRAY6(dhost_ether));
-					dest_count++;
-					curr_el = malloc(sizeof(_onlb_element_t));
-					memcpy(curr_el->dhost_ether, dhost_ether, ETH_ALEN);
-					DL_APPEND(head, curr_el);
-				}
+			while(aodv_db_invroute(ether_addr, dhost_ether) == TRUE) {
+				dessert_debug("invalidate route to " MAC, EXPLODE_ARRAY6(dhost_ether));
+				dest_count++;
+				curr_el = malloc(sizeof(_onlb_element_t));
+				memcpy(curr_el->dhost_ether, dhost_ether, ETH_ALEN);
+				curr_el->next = curr_el->prev = NULL;
+				DL_APPEND(head, curr_el);
 			}
 
 			if (dest_count > 0) {
 				while(head != NULL) {
-					dessert_msg_t* rerr_msg = aodv_create_rerr(&head, dest_count, schedule_param);
+					dessert_msg_t* rerr_msg = aodv_create_rerr(&head, dest_count);
 					if (rerr_msg != NULL) {
-						if(schedule_param & AODV_FLAGS_RERR_W)
-							dessert_debug("link to " MAC " goes worse -> send RWARN", EXPLODE_ARRAY6(dhost_ether));
-						else
-							dessert_debug("link to " MAC " break -> send RERR", EXPLODE_ARRAY6(dhost_ether));
+						dessert_debug("link to " MAC " break -> send RERR", EXPLODE_ARRAY6(dhost_ether));
 						dessert_meshsend(rerr_msg, NULL);
 						dessert_msg_destroy(rerr_msg);
 						aodv_db_putrerr(&timestamp);
 					}
 				}
+			}
+		}
+	} else if (schedule_type == AODV_SC_SEND_OUT_RWARN) {
+		uint8_t dhost_ether[ETH_ALEN];
+		while(aodv_db_warnroute(ether_addr, dhost_ether) == TRUE) {
+			dessert_debug("warn route to " MAC, EXPLODE_ARRAY6(dhost_ether));
+			dessert_msg_t* rwarn_msg = aodv_create_rwarn(ether_addr, dhost_ether);
+			if (rwarn_msg != NULL) {
+				dessert_debug("link to " MAC " goes down -> send RWARN", EXPLODE_ARRAY6(dhost_ether));
+				dessert_meshsend(rwarn_msg, NULL);
+				dessert_msg_destroy(rwarn_msg);
 			}
 		}
 	}

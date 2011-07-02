@@ -25,7 +25,6 @@ For further information and questions please use the web site
 #include "../timeslot.h"
 #include "../../config.h"
 #include "../schedule_table/aodv_st.h"
-#include "../../pipeline/aodv_pipeline.h"
 
 typedef struct neighbor_entry {
 	struct __attribute__ ((__packed__)) { // key
@@ -78,6 +77,16 @@ void db_nt_on_neigbor_timeout(struct timeval* timestamp, void* src_object, void*
 	free(curr_entry);
 }
 
+void db_nt_on_neigbor_rwarn(struct timeval* timestamp, void* src_object, void* object) {
+	neighbor_entry_t* curr_entry = object;
+	dessert_debug("%s <= W => " MAC, curr_entry->iface->if_name, EXPLODE_ARRAY6(curr_entry->ether_neighbor));
+
+	// add schedule
+	struct timeval curr_time;
+	gettimeofday(&curr_time, NULL);
+	aodv_db_sc_addschedule(&curr_time, curr_entry->ether_neighbor, AODV_SC_SEND_OUT_RWARN, 0);
+}
+
 int db_nt_init() {
 	timeslot_t* new_ts;
 	struct timeval timeout;
@@ -110,16 +119,11 @@ int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif
 			//walking to the ap
 			dessert_debug("%s <=====> " MAC " rssi from %d to %d", iface->if_name, EXPLODE_ARRAY6(curr_entry->ether_neighbor), max, new);
 			curr_entry->max_rssi = new;
-		} else {
-			//walking away
-			if((max - SIGNAL_STRENGTH_THRESHOLD) > new) {
-			  //-30 - 15                         > -30
-				//we need to send a new warn
-				struct timeval curr_time;
-				gettimeofday(&curr_time, NULL);
-				aodv_db_sc_addschedule(&curr_time, curr_entry->ether_neighbor, AODV_SC_SEND_OUT_RERR, AODV_FLAGS_RERR_W);
-			}
+		} else if((max - SIGNAL_STRENGTH_THRESHOLD) > new) {
+			//walking away -> we need to send a new warn
+			db_nt_on_neigbor_rwarn(timestamp, 0, curr_entry->ether_neighbor);
 		}
+
 	}
 	timeslot_addobject(nt.ts, timestamp, curr_entry);
 	return TRUE;

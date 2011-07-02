@@ -180,11 +180,7 @@ int aodv_db_markroutewarn(uint8_t dhost_ether[ETH_ALEN]) {
 	aodv_db_wlock();
 	int result =  aodv_db_rt_markrouteinv(dhost_ether);
 	aodv_db_unlock();
-
 	dessert_debug("got rwarn from " MAC " sending rreq to broadcast", EXPLODE_ARRAY6(dhost_ether));
-	struct timeval ts;
-	gettimeofday(&ts, NULL);
-	aodv_send_rreq(dhost_ether, &ts, TTL_START); // create and send RREQ
 	return result;
 }
 
