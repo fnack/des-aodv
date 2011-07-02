@@ -137,8 +137,7 @@ int rt_srclist_entry_create(aodv_rt_srclist_entry_t** srclist_entry_out,
 	return TRUE;
 }
 
-int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out,
-                    uint8_t dhost_ether[ETH_ALEN]) {
+int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out, uint8_t dhost_ether[ETH_ALEN]) {
 
 	aodv_rt_entry_t* rt_entry = malloc(sizeof(aodv_rt_entry_t));
 	if (rt_entry == NULL) return FALSE;
