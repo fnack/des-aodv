@@ -50,7 +50,6 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define RERRDL_EXT_TYPE				(DESSERT_EXT_USER + 3)
 #define HELLO_EXT_TYPE				(DESSERT_EXT_USER + 4)
 #define BROADCAST_EXT_TYPE			(DESSERT_EXT_USER + 5)
-#define RWARN_EXT_TYPE				(DESSERT_EXT_USER + 6)
 
 #define FIFO_BUFFER_MAX_ENTRY_SIZE	128 	// maximal packet count that can be stored in FIFO for one destination
 #define DB_CLEANUP_INTERVAL			NET_TRAVERSAL_TIME
@@ -84,7 +83,6 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 // --- Database Flags
 #define AODV_FLAGS_ROUTE_INVALID 	1
 #define AODV_FLAGS_NEXT_HOP_UNKNOWN	(1 << 1)
-#define AODV_FLAGS_ROUTE_WARN    	(1 << 2)
 #define MAX_MESH_IFACES_COUNT		8
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))

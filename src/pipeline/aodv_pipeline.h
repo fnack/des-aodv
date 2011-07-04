@@ -52,10 +52,6 @@ extern uint32_t broadcast_id;
  * Not delete flag of RERR
  */
 #define AODV_FLAGS_RERR_N			(1 << 7)
-/**
- * Not delete flag of RERR
- */
-#define AODV_FLAGS_RERR_W			(1 << 2)
 
 /** RREQ - Route Request Message */
 struct aodv_msg_rreq {
@@ -122,9 +118,6 @@ struct aodv_msg_broadcast {
 	 * in combination with ether_shost
 	 */
 	uint32_t		id;
-} __attribute__ ((__packed__));
-
-struct aodv_msg_rwarn {
 } __attribute__ ((__packed__));
 
 typedef struct _onlb_dest_list_element {

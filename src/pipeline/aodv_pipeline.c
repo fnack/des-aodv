@@ -29,11 +29,9 @@ For further information and questions please use the web site
 #include "../config.h"
 #include "../helper.h"
 #include "../database/data_seq/data_seq.h"
-#include "../database/rwarn_seq/rwarn_seq.h"
 
 uint32_t rreq_seq_global = 0;
 uint32_t rrep_seq_global = 0;
-uint16_t rwarn_seq_global = 0;
 uint32_t broadcast_id = 0;
 pthread_rwlock_t pp_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
@@ -309,9 +307,9 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 		}
 	} else { // RREQ for me
 
-			pthread_rwlock_wrlock(&pp_rwlock);
+		pthread_rwlock_wrlock(&pp_rwlock);
 		uint32_t rrep_seq_copy = ++rrep_seq_global;
-			pthread_rwlock_unlock(&pp_rwlock);
+		pthread_rwlock_unlock(&pp_rwlock);
 
 		dessert_msg_t* rrep_msg = _create_rrep(dessert_l25_defsrc, l25h->ether_shost, msg->l2h.ether_shost, rrep_seq_copy, AODV_FLAGS_RREP_A, rreq_msg->hop_count);
 		dessert_meshsend(rrep_msg, iface);
@@ -385,45 +383,6 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 		}
 
 		dessert_meshsend(msg, NULL);
-	}
-	return DESSERT_MSG_DROP;
-}
-
-int aodv_handle_rwarn(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, dessert_meshif_t *iface, dessert_frameid_t id) {
-
-	dessert_ext_t* rwarn_ext;
-	if (dessert_msg_getext(msg, &rwarn_ext, RWARN_EXT_TYPE, 0) == 0) {
-		return DESSERT_MSG_KEEP;
-	}
-	struct aodv_msg_rerr* rwarn_msg = (struct aodv_msg_rerr*) rwarn_ext->data;
-
-	dessert_meshif_t* output_iface;
-	struct timeval timestamp;
-	gettimeofday(&timestamp, NULL);
-	uint8_t next_hop[ETH_ALEN];
-	struct ether_header* l25h = dessert_msg_getl25ether(msg);
-
-	if(TRUE != aodv_db_rwarn_capt_rwarn_seq(l25h->ether_shost, msg->u16)) {
-		dessert_debug("rwarn packet is known -> DUP");
-		return DESSERT_MSG_DROP;
-	}
-	aodv_db_markroutewarn(l25h->ether_shost);
-
-	if (memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) != 0) { //not for me
-
-		if (aodv_db_getroute2dest(l25h->ether_dhost, next_hop, &output_iface, &timestamp)) {
-			memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
-			dessert_meshsend(msg, output_iface);
-			dessert_debug(MAC " over " MAC " ----rwarn----> " MAC " to " MAC,
-				          EXPLODE_ARRAY6(l25h->ether_shost),
-				          EXPLODE_ARRAY6(msg->l2h.ether_shost),
-				          EXPLODE_ARRAY6(msg->l2h.ether_dhost),
-				          EXPLODE_ARRAY6(l25h->ether_dhost));
-		} else {
-			dessert_debug("rwarn packet is for " MAC ", but have no route", EXPLODE_ARRAY6(l25h->ether_dhost));
-		}
-	} else { //for me
-		dessert_debug("rwarn packet is for me");
 	}
 	return DESSERT_MSG_DROP;
 }

@@ -34,6 +34,8 @@ For further information and questions please use the web site
 /** initialize neighbor table */
 int db_nt_init();
 
+
+int db_nt_update_rssi(uint8_t ether_neighbor[ETH_ALEN]);
 /**
  * Take a record that the given neighbor seems to be
  * 1 hop bidirectional neighbor

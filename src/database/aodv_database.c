@@ -26,7 +26,6 @@ For further information and questions please use the web site
 
 #include "aodv_database.h"
 #include "../config.h"
-#include "../pipeline/aodv_pipeline.h"
 #include "routing_table/aodv_rt.h"
 #include "broadcast_table/aodv_broadcast_t.h"
 #include "neighbor_table/nt.h"
@@ -172,15 +171,6 @@ int aodv_db_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
 	aodv_db_wlock();
 	int result =  aodv_db_rt_markrouteinv(dhost_ether);
 	aodv_db_unlock();
-	dessert_debug("route to " MAC " marked as invalid", EXPLODE_ARRAY6(dhost_ether));
-	return result;
-}
-
-int aodv_db_markroutewarn(uint8_t dhost_ether[ETH_ALEN]) {
-	aodv_db_wlock();
-	int result =  aodv_db_rt_markrouteinv(dhost_ether);
-	aodv_db_unlock();
-	dessert_debug("got rwarn from " MAC " sending rreq to broadcast", EXPLODE_ARRAY6(dhost_ether));
 	return result;
 }
 
@@ -197,10 +187,10 @@ int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[E
 	return result;
 }
 
-int aodv_db_warnroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
-	pthread_rwlock_wrlock(&db_rwlock);
-	int result =  aodv_db_rt_warn_route(dhost_next_hop, dhost_ether_out);
-	pthread_rwlock_unlock(&db_rwlock);
+int aodv_db_warn_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
+	aodv_db_wlock();
+	int result = aodv_db_rt_warn_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
+	aodv_db_unlock();
 	return result;
 }
 
@@ -221,6 +211,13 @@ int aodv_db_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* 
 int aodv_db_check2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
 	aodv_db_wlock();
 	int result =  db_nt_check2Dneigh(ether_neighbor_addr, iface, timestamp);
+	aodv_db_unlock();
+	return result;
+}
+
+int aodv_db_update_rssi(uint8_t ether_neighbor[ETH_ALEN]) {
+	aodv_db_wlock();
+	int result = db_nt_update_rssi(uint8_t ether_neighbor[ETH_ALEN]);
 	aodv_db_unlock();
 	return result;
 }

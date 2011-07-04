@@ -60,27 +60,6 @@ int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct
 	}
 }
 
-dessert_msg_t* aodv_create_rwarn(uint8_t neighbor_addr[ETH_ALEN], uint8_t dhost_ether[ETH_ALEN]) {
-	dessert_msg_t* msg;
-	dessert_msg_new(&msg);
-	msg->ttl = 255;
-
-	// add l25h header
-	dessert_ext_t* ext;
-	dessert_msg_addext(msg, &ext, DESSERT_EXT_ETH, ETHER_HDR_LEN);
-	struct ether_header* rreq_l25h = (struct ether_header*) ext->data;
-	memcpy(rreq_l25h->ether_dhost, dhost_ether, ETH_ALEN);
-
-	// set next hop
-	memcpy(msg->l2h.ether_dhost, neighbor_addr, ETH_ALEN);
-
-	// and add RWARN ext
-	dessert_msg_addext(msg, &ext, RWARN_EXT_TYPE, sizeof(struct aodv_msg_rwarn));
-	struct aodv_msg_rwarn* rwarn_msg = (struct aodv_msg_rwarn*) ext->data;
-
-	return msg;
-}
-
 dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count) {
 	if (*head == NULL || count == 0) return NULL;
 	dessert_msg_t* msg;
@@ -192,13 +171,12 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 		uint8_t dhost_ether[ETH_ALEN];
 		while(aodv_db_warnroute(ether_addr, dhost_ether) == TRUE) {
 			dessert_debug("warn route to " MAC, EXPLODE_ARRAY6(dhost_ether));
-			dessert_msg_t* rwarn_msg = aodv_create_rwarn(ether_addr, dhost_ether);
-			if (rwarn_msg != NULL) {
-				dessert_debug("link to " MAC " goes down -> send RWARN", EXPLODE_ARRAY6(dhost_ether));
-				dessert_meshsend(rwarn_msg, NULL);
-				dessert_msg_destroy(rwarn_msg);
-			}
+			aodv_send_rreq(dhost_ether, timestamp, TTL_START) {
 		}
+	} else if(schedule_type == AODV_SC_UPDATE_RSSI) {
+		aodv_db_update_rssi(ether_addr);
+	} else {
+		dessert_crit("unknown schedule type=%d", schedule_type);
 	}
 	return 0;
 }
