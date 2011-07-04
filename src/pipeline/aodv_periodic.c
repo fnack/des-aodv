@@ -124,7 +124,7 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count) {
 
 int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval) {
 	uint8_t schedule_type;
-	void* schedule_param;
+	void* schedule_param = NULL;
 	uint8_t ether_addr[ETH_ALEN];
 	struct timeval timestamp;
 	gettimeofday(&timestamp, NULL);
@@ -142,25 +142,14 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 		uint32_t rerr_count;
 		aodv_db_getrerrcount(&timestamp, &rerr_count);
 		if (rerr_count < RERR_RATELIMIT) {
-			uint16_t dest_count = 0;
-			uint8_t dhost_ether[ETH_ALEN];
-			_onlb_element_t* curr_el = NULL;
-			_onlb_element_t* head = NULL;
-
-			while(aodv_db_invroute(ether_addr, dhost_ether) == TRUE) {
-				dessert_debug("invalidate route to " MAC, EXPLODE_ARRAY6(dhost_ether));
-				dest_count++;
-				curr_el = malloc(sizeof(_onlb_element_t));
-				memcpy(curr_el->dhost_ether, dhost_ether, ETH_ALEN);
-				curr_el->next = curr_el->prev = NULL;
-				DL_APPEND(head, curr_el);
-			}
+			_onlb_element_t* dest_list_out = NULL;
+			uint16_t dest_count =  aodv_db_get_route_endpoints_from_neighbor(ether_addr, dest_list_out);
 
 			if (dest_count > 0) {
-				while(head != NULL) {
-					dessert_msg_t* rerr_msg = aodv_create_rerr(&head, dest_count);
+				while(dest_list_out != NULL) {
+					dessert_msg_t* rerr_msg = aodv_create_rerr(&dest_list_out, dest_count);
 					if (rerr_msg != NULL) {
-						dessert_debug("link to " MAC " break -> send RERR", EXPLODE_ARRAY6(dhost_ether));
+						dessert_debug("link to " MAC " break -> send RERR", EXPLODE_ARRAY6(ether_addr));
 						dessert_meshsend(rerr_msg, NULL);
 						dessert_msg_destroy(rerr_msg);
 						aodv_db_putrerr(&timestamp);

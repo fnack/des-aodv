@@ -174,16 +174,17 @@ int aodv_db_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
 	return result;
 }
 
-/**
- * Marks only one route from database with next_hop = dhost_next_hop as invalid.
- * @return TRUE if route was invalidated. In that case contains dhost_ether
- * the destination address of this route. Returns FALSE if no route to invalidate
- * (i.e. no route that uses dhost_next_hop)
- */
-int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
-	pthread_rwlock_wrlock(&db_rwlock);
-	int result =  aodv_db_rt_inv_route(dhost_next_hop, dhost_ether_out);
-	pthread_rwlock_unlock(&db_rwlock);
+uint16_t aodv_db_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN], _onlb_element_t* head) {
+	aodv_db_wlock();
+	int result =  aodv_db_rt_get_route_endpoints_from_neighbor(neighbor, head);
+	aodv_db_unlock();
+	return result;
+}
+
+int aodv_db_inv_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN]) {
+	aodv_db_wlock();
+	int result =  aodv_db_rt_inv_route_endpoints_from_neighbor(neighbor);
+	aodv_db_unlock();
 	return result;
 }
 

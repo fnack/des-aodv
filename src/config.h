@@ -25,6 +25,7 @@ For further information and questions please use the web site
 #define AODV_CONFIG
 
 #include <dessert.h>
+#include <utlist.h>
 
 enum aodv_bool {TRUE = 1, FALSE = 0};
 

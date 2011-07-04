@@ -25,6 +25,7 @@ For further information and questions please use the web site
 #define AODV_RREQ_T
 
 #include <dessert.h>
+#include "../../pipeline/aodv_pipeline.h"
 
 #ifdef ANDROID
 #include <linux/if_ether.h>
@@ -56,7 +57,9 @@ int aodv_db_rt_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_o
 
 int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN]);
 
-int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]);
+uint16_t aodv_db_rt_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN], _onlb_element_t* head);
+
+int aodv_db_rt_inv_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN]);
 
 int aodv_db_rt_cleanup (struct timeval* timestamp);
 
