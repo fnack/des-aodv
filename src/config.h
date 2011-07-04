@@ -72,6 +72,7 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
  */
 #define AODV_SC_SEND_OUT_RERR		3
 #define AODV_SC_SEND_OUT_RWARN		4
+#define AODV_SC_UPDATE_RSSI		5
 #define HELLO_SIZE					128
 #define HELLO_INTERVAL				2000 	// milliseconds
 #define RREQ_SIZE					128
@@ -83,6 +84,7 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 // --- Database Flags
 #define AODV_FLAGS_ROUTE_INVALID 	1
 #define AODV_FLAGS_NEXT_HOP_UNKNOWN	(1 << 1)
+#define AODV_FLAGS_ROUTE_WARN		(1 << 2)
 #define MAX_MESH_IFACES_COUNT		8
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))

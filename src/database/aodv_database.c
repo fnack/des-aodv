@@ -189,7 +189,7 @@ int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[E
 
 int aodv_db_warn_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
 	aodv_db_wlock();
-	int result = aodv_db_rt_warn_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
+	int result = aodv_db_rt_warn_route(dhost_next_hop, dhost_ether_out);
 	aodv_db_unlock();
 	return result;
 }
@@ -215,9 +215,9 @@ int aodv_db_check2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t
 	return result;
 }
 
-int aodv_db_update_rssi(uint8_t ether_neighbor[ETH_ALEN]) {
+int aodv_db_update_rssi(uint8_t ether_neighbor[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
 	aodv_db_wlock();
-	int result = db_nt_update_rssi(uint8_t ether_neighbor[ETH_ALEN]);
+	int result = db_nt_update_rssi(ether_neighbor, iface, timestamp);
 	aodv_db_unlock();
 	return result;
 }

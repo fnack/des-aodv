@@ -25,7 +25,6 @@ For further information and questions please use the web site
 #include "aodv_pipeline.h"
 #include "../config.h"
 #include <string.h>
-#include "../database/data_seq/data_seq.h"
 #include <pthread.h>
 #include <utlist.h>
 
@@ -169,12 +168,13 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 		}
 	} else if (schedule_type == AODV_SC_SEND_OUT_RWARN) {
 		uint8_t dhost_ether[ETH_ALEN];
-		while(aodv_db_warnroute(ether_addr, dhost_ether) == TRUE) {
+		while(aodv_db_warn_route(ether_addr, dhost_ether) == TRUE) {
 			dessert_debug("warn route to " MAC, EXPLODE_ARRAY6(dhost_ether));
-			aodv_send_rreq(dhost_ether, timestamp, TTL_START) {
+			aodv_send_rreq(dhost_ether, &timestamp, TTL_START);
 		}
 	} else if(schedule_type == AODV_SC_UPDATE_RSSI) {
-		aodv_db_update_rssi(ether_addr);
+		dessert_meshif_t* iface = (dessert_meshif_t*)schedule_param;
+		aodv_db_update_rssi(ether_addr, iface, &timestamp);
 	} else {
 		dessert_crit("unknown schedule type=%d", schedule_type);
 	}

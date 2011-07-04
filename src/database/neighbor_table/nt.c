@@ -63,7 +63,7 @@ void db_nt_on_neigbor_timeout(struct timeval* timestamp, void* src_object, void*
 	free(curr_entry);
 }
 
-int db_nt_update_rssi(uint8_t ether_neighbor[ETH_ALEN]) {
+int db_nt_update_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
 
 	neighbor_entry_t* curr_entry = NULL;
 	uint8_t addr_sum[ETH_ALEN + sizeof(void*)];
@@ -74,7 +74,7 @@ int db_nt_update_rssi(uint8_t ether_neighbor[ETH_ALEN]) {
 		return FALSE;
 	}
 	int8_t new = -120;	
-	avg_node_result_t neigh_result = dessert_rssi_avg(curr_entry->ether_neighbor, curr_entry->iface->if_name);
+	avg_node_result_t neigh_result = dessert_rssi_avg(ether_neighbor_addr, curr_entry->iface->if_name);
 	if(neigh_result.avg_rssi != 0) {
 		new = neigh_result.avg_rssi;
 	}
@@ -82,12 +82,12 @@ int db_nt_update_rssi(uint8_t ether_neighbor[ETH_ALEN]) {
 
 	if(max < new) {
 		//walking to the ap
-		dessert_debug("%s <= R %d > %d => " MAC, iface->if_name, max, new, EXPLODE_ARRAY6(curr_entry->ether_neighbor));
+		dessert_debug("%s <= R %d > %d => " MAC, iface->if_name, max, new, EXPLODE_ARRAY6(ether_neighbor_addr));
 		curr_entry->max_rssi = new;
 	} else if((max - SIGNAL_STRENGTH_THRESHOLD) > new) {
 		//walking away -> we need to send a new warn
-		dessert_debug("%s <= W => " MAC, curr_entry->iface->if_name, EXPLODE_ARRAY6(neighbor->ether_neighbor));
-		aodv_db_sc_addschedule(&curr_time, curr_entry->ether_neighbor, AODV_SC_SEND_OUT_RWARN, 0);
+		dessert_debug("%s <= W => " MAC, curr_entry->iface->if_name, EXPLODE_ARRAY6(ether_neighbor_addr));
+		aodv_db_sc_addschedule(timestamp, ether_neighbor_addr, AODV_SC_SEND_OUT_RWARN, 0);
 	}
 	return TRUE;
 }
@@ -118,7 +118,7 @@ int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif
 		dessert_debug("%s <=====> " MAC, iface->if_name, EXPLODE_ARRAY6(ether_neighbor_addr));
 	}
 
-	aodv_db_sc_addschedule(&curr_time, curr_entry->ether_neighbor, AODV_SC_UPDATE_RSSI, 0);
+	aodv_db_sc_addschedule(timestamp, curr_entry->ether_neighbor, AODV_SC_UPDATE_RSSI, (uint64_t)iface);
 
 	timeslot_addobject(nt.ts, timestamp, curr_entry);
 	return TRUE;
