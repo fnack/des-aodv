@@ -124,7 +124,7 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count) {
 
 int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval) {
 	uint8_t schedule_type;
-	uint64_t schedule_param;
+	void* schedule_param = NULL;
 	uint8_t ether_addr[ETH_ALEN];
 	struct timeval timestamp;
 	gettimeofday(&timestamp, NULL);
@@ -136,7 +136,8 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 	if (schedule_type == AODV_SC_SEND_OUT_PACKET) {
 		//do nothing
 	} else if (schedule_type == AODV_SC_REPEAT_RREQ) {
-		aodv_send_rreq(ether_addr, &timestamp, schedule_param);
+		uint8_t* ttl = (uint8_t*) (schedule_param);
+		aodv_send_rreq(ether_addr, &timestamp, *ttl);
 	} else if (schedule_type == AODV_SC_SEND_OUT_RERR) {
 		uint32_t rerr_count;
 		aodv_db_getrerrcount(&timestamp, &rerr_count);
@@ -167,6 +168,8 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 				}
 			}
 		}
+	} else {
+		dessert_crit("unknown schedule type=%d", schedule_type);
 	}
 	return 0;
 }

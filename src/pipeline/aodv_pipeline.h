@@ -120,7 +120,6 @@ struct aodv_msg_broadcast {
 	uint32_t		id;
 } __attribute__ ((__packed__));
 
-
 typedef struct _onlb_dest_list_element {
 	uint8_t 							dhost_ether[ETH_ALEN];
 	struct _onlb_dest_list_element		*prev, *next;

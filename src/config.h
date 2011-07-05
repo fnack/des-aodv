@@ -33,7 +33,6 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define TTL_START					2
 #define TTL_INCREMENT				2
 #define TTL_THRESHOLD				7
-#define SEQNO_MAX					UINT32_MAX
 
 #define ACTIVE_ROUTE_TIMEOUT		3000 	// milliseconds
 #define ALLOWED_HELLO_LOST			7
