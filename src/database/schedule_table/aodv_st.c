@@ -95,14 +95,14 @@ int aodv_db_sc_addschedule(struct timeval* execute_ts, uint8_t ether_addr[ETH_AL
 	return TRUE;
 }
 
-int aodv_db_sc_popschedule(struct timeval* timestamp, uint8_t ether_addr_out[ETH_ALEN], uint8_t* type, void* param) {
+int aodv_db_sc_popschedule(struct timeval* timestamp, uint8_t ether_addr_out[ETH_ALEN], uint8_t* type, void** param) {
 	if (first_schedule != NULL && hf_compare_tv(&first_schedule->execute_ts, timestamp) <= 0) {
 		schedule_t* sc = first_schedule;
 		first_schedule = first_schedule->next;
 		if (first_schedule != NULL) first_schedule->prev = NULL;
 		memcpy(ether_addr_out, sc->ether_addr, ETH_ALEN);
 		*type = sc->schedule_id;
-		param = sc->schedule_param;
+		*param = sc->schedule_param;
 		HASH_DEL(hash_table, sc);
 		free(sc);
 		return TRUE;

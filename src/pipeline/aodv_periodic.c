@@ -129,7 +129,7 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 	struct timeval timestamp;
 	gettimeofday(&timestamp, NULL);
 
-	if (aodv_db_popschedule(&timestamp, ether_addr, &schedule_type, schedule_param) == FALSE) {
+	if (aodv_db_popschedule(&timestamp, ether_addr, &schedule_type, &schedule_param) == FALSE) {
 		return 0;
 	}
 
