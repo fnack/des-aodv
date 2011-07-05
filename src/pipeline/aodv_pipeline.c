@@ -119,7 +119,9 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, uint8_t t
 		retry_time.tv_sec = 0;
 		retry_time.tv_usec = (100) * 1000;
 		hf_add_tv(ts, &retry_time, &retry_time);
-		aodv_db_addschedule(&retry_time, dhost_ether, AODV_SC_REPEAT_RREQ, ttl);
+		uint8_t *new_ttl = malloc(sizeof(uint8_t));
+		*new_ttl = ttl;
+		aodv_db_addschedule(&retry_time, dhost_ether, AODV_SC_REPEAT_RREQ, new_ttl);
 		return;
 	}
 
@@ -131,12 +133,15 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, uint8_t t
 	hf_add_tv(ts, &rreq_repeat_time, &rreq_repeat_time);
 
 	if (ttl <= TTL_THRESHOLD) { // TTL_THRESHOLD + 1 means: this is a first try from RREQ_RETRIES
-		aodv_db_addschedule(&rreq_repeat_time, dhost_ether, AODV_SC_REPEAT_RREQ,
-				(ttl + TTL_INCREMENT > TTL_THRESHOLD)? TTL_THRESHOLD + 1 : ttl + TTL_INCREMENT);
+		uint8_t *new_ttl = malloc(sizeof(uint8_t));
+		*new_ttl = (ttl + TTL_INCREMENT > TTL_THRESHOLD) ? TTL_THRESHOLD + 1 : ttl + TTL_INCREMENT;
+		aodv_db_addschedule(&rreq_repeat_time, dhost_ether, AODV_SC_REPEAT_RREQ, new_ttl);
 	} else {
 		uint8_t try_num = ttl - TTL_THRESHOLD;
 		if (try_num < RREQ_RETRIES) {
-			aodv_db_addschedule(&rreq_repeat_time, dhost_ether, AODV_SC_REPEAT_RREQ, ttl + 1);
+			uint8_t *new_ttl = malloc(sizeof(uint8_t));
+			*new_ttl = ttl + TTL_INCREMENT;
+			aodv_db_addschedule(&rreq_repeat_time, dhost_ether, AODV_SC_REPEAT_RREQ, new_ttl);
 		}
 	}
 	aodv_db_putrreq(ts);
@@ -322,7 +327,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 	int y = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->rrep_seq, rreq_msg->hop_count, &ts);
 	if (y == TRUE) {
 		dessert_debug("no need to search for next hop. Next hop is RREQ.msg->l2h.ether_shost");
-			aodv_send_packets_from_buffer(l25h->ether_shost, msg->l2h.ether_shost, iface);
+		aodv_send_packets_from_buffer(l25h->ether_shost, msg->l2h.ether_shost, iface);
 	} else {
 		dessert_debug("we know a better route already");
 	}

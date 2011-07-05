@@ -33,7 +33,7 @@ typedef struct schedule {
 		uint8_t 			ether_addr[ETH_ALEN];
 		uint8_t 			schedule_id;
 	};
-	uint64_t			schedule_param;
+	void*			schedule_param;
 
 	struct schedule* 	next;
 	struct schedule* 	prev;
@@ -45,7 +45,7 @@ schedule_t* first_schedule = NULL;
 
 schedule_t* hash_table = NULL;
 
-schedule_t* create_schedule(struct timeval* execute_ts, uint8_t ether_addr[ETH_ALEN], uint8_t type, uint64_t param) {
+schedule_t* create_schedule(struct timeval* execute_ts, uint8_t ether_addr[ETH_ALEN], uint8_t type, void* param) {
 	schedule_t* s = malloc(sizeof(schedule_t));
 	if (s == NULL) return NULL;
 
@@ -58,7 +58,7 @@ schedule_t* create_schedule(struct timeval* execute_ts, uint8_t ether_addr[ETH_A
 	return s;
 }
 
-int aodv_db_sc_addschedule(struct timeval* execute_ts, uint8_t ether_addr[ETH_ALEN], uint8_t type, uint64_t param) {
+int aodv_db_sc_addschedule(struct timeval* execute_ts, uint8_t ether_addr[ETH_ALEN], uint8_t type, void* param) {
 	aodv_db_sc_dropschedule(ether_addr, type);
 
 	schedule_t* next_el = first_schedule;
@@ -95,7 +95,7 @@ int aodv_db_sc_addschedule(struct timeval* execute_ts, uint8_t ether_addr[ETH_AL
 	return TRUE;
 }
 
-int aodv_db_sc_popschedule(struct timeval* timestamp, uint8_t ether_addr_out[ETH_ALEN], uint8_t* type, uint64_t* param) {
+int aodv_db_sc_popschedule(struct timeval* timestamp, uint8_t ether_addr_out[ETH_ALEN], uint8_t* type, void** param) {
 	if (first_schedule != NULL && hf_compare_tv(&first_schedule->execute_ts, timestamp) <= 0) {
 		schedule_t* sc = first_schedule;
 		first_schedule = first_schedule->next;
