@@ -174,7 +174,7 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 			aodv_send_rreq(dhost_ether, &timestamp, TTL_START);
 		}
 	} else if(schedule_type == AODV_SC_UPDATE_RSSI) {
-		dessert_meshif_t* iface = (dessert_meshif_t*)schedule_param;
+		dessert_meshif_t* iface = (dessert_meshif_t*) (schedule_param);
 		aodv_db_update_rssi(ether_addr, iface, &timestamp);
 	} else {
 		dessert_crit("unknown schedule type=%d", schedule_type);
