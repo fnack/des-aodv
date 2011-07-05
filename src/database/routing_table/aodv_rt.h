@@ -54,6 +54,8 @@ int aodv_db_rt_get_rreq_seq(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[E
 
 int aodv_db_rt_get_path_weight(uint8_t dhost_ether[ETH_ALEN], uint8_t* path_weight_out);
 
+int aodv_db_rt_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out);
+
 int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN]);
 
 int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]);

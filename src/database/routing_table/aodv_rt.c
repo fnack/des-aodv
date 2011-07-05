@@ -378,6 +378,18 @@ int aodv_db_rt_get_path_weight(uint8_t dhost_ether[ETH_ALEN], uint8_t* path_weig
 
 }
 
+int aodv_db_rt_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out) {
+	aodv_rt_entry_t* rt_entry;
+	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
+	if (rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN) {
+		*hop_count_out = 0;
+		return FALSE;
+	}
+	*hop_count_out = rt_entry->hop_count;
+	return TRUE;
+
+}
+
 int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
 	aodv_rt_entry_t* rt_entry;
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);

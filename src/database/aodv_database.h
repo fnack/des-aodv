@@ -76,6 +76,8 @@ int aodv_db_get_rreq_seq(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_
 
 int aodv_db_get_path_weight(uint8_t dhost_ether[ETH_ALEN], uint8_t* path_weight_out);
 
+int aodv_db_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out);
+
 int aodv_db_markrouteinv (uint8_t dhost_ether[ETH_ALEN]);
 
 int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]);
@@ -91,9 +93,9 @@ int aodv_db_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* 
  */
 int aodv_db_check2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp);
 
-int aodv_db_addschedule(struct timeval* execute_ts, uint8_t ether_addr[ETH_ALEN], uint8_t type, uint64_t param);
+int aodv_db_addschedule(struct timeval* execute_ts, uint8_t ether_addr[ETH_ALEN], uint8_t type, void* param);
 
-int aodv_db_popschedule(struct timeval* timestamp, uint8_t ether_addr_out[ETH_ALEN], uint8_t* type, uint64_t* param);
+int aodv_db_popschedule(struct timeval* timestamp, uint8_t ether_addr_out[ETH_ALEN], uint8_t* type, void* param);
 
 void aodv_db_dropschedule(uint8_t ether_addr[ETH_ALEN], uint8_t type);
 
