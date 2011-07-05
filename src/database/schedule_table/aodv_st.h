@@ -29,7 +29,7 @@ For further information and questions please use the web site
 
 int aodv_db_sc_addschedule(struct timeval* execute_ts, uint8_t ether_addr[ETH_ALEN], uint8_t type, void* param);
 
-int aodv_db_sc_popschedule(struct timeval* timestamp, uint8_t ether_addr_out[ETH_ALEN], uint8_t* type, void* param);
+int aodv_db_sc_popschedule(struct timeval* timestamp, uint8_t ether_addr_out[ETH_ALEN], uint8_t* type, void** param);
 
 void aodv_db_sc_dropschedule(uint8_t ether_addr[ETH_ALEN], uint8_t type);
 

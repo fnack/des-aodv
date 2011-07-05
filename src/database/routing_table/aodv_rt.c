@@ -393,7 +393,7 @@ int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
 	return TRUE;
 }
 
-uint16_t aodv_db_rt_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN], _onlb_element_t* head) {
+uint16_t aodv_db_rt_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN], _onlb_element_t** head) {
 	// find appropriate routing entry
 	nht_entry_t* nht_entry;
 	HASH_FIND(hh, nht, neighbor, ETH_ALEN, nht_entry);
@@ -402,13 +402,13 @@ uint16_t aodv_db_rt_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN]
 	}
 
 	uint16_t dest_count = 0;
-	head = NULL;
+	*head = NULL;
 	struct nht_destlist_entry *dest, *tmp;
 	DL_FOREACH_SAFE(nht_entry->dest_list, dest, tmp) {
 
 		_onlb_element_t* curr_el = malloc(sizeof(_onlb_element_t));
 		memcpy(curr_el->dhost_ether, dest->rt_entry->dhost_ether, ETH_ALEN);
-		DL_APPEND(head, curr_el);
+		DL_APPEND(*head, curr_el);
 		dest_count++;
 
 		dessert_debug("invalidate route to " MAC, EXPLODE_ARRAY6(dest->rt_entry->dhost_ether));
