@@ -155,7 +155,7 @@ int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out, uint8_t dhost_ether[ETH_A
 	return TRUE;
 }
 
-int nht_destlist_entry_create (nht_destlist_entry_t** entry_out, uint8_t dhost_ether[ETH_ALEN], aodv_rt_entry_t* rt_entry) {
+int nht_destlist_entry_create (nht_destlist_entry_t** entry_out, aodv_rt_entry_t* rt_entry) {
 	nht_destlist_entry_t* entry = malloc(sizeof(nht_destlist_entry_t));
 	if (entry == NULL) return FALSE;
 	memset(entry, 0x0, sizeof(nht_destlist_entry_t));
@@ -294,7 +294,7 @@ int aodv_db_rt_capt_rrep(uint8_t dhost_ether[ETH_ALEN],
 		destlist_needle.rt_entry = rt_entry;
 		DL_SEARCH(nht_entry->dest_list, destlist_result, &destlist_needle, nht_destlist_entry_cmp);
 		if (destlist_result == NULL) {
-			if (nht_destlist_entry_create(&destlist_result, dhost_ether, rt_entry) == FALSE) {
+			if (nht_destlist_entry_create(&destlist_result, rt_entry) == FALSE) {
 				return FALSE;
 			}
 			DL_APPEND(nht_entry->dest_list, destlist_result);

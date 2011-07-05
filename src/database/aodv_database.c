@@ -174,7 +174,7 @@ int aodv_db_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
 	return result;
 }
 
-uint16_t aodv_db_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN], _onlb_element_t* head) {
+uint16_t aodv_db_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN], _onlb_element_t** head) {
 	aodv_db_wlock();
 	int result =  aodv_db_rt_get_route_endpoints_from_neighbor(neighbor, head);
 	aodv_db_unlock();

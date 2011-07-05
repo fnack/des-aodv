@@ -143,7 +143,7 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 		aodv_db_getrerrcount(&timestamp, &rerr_count);
 		if (rerr_count < RERR_RATELIMIT) {
 			_onlb_element_t* dest_list_out = NULL;
-			uint16_t dest_count =  aodv_db_get_route_endpoints_from_neighbor(ether_addr, dest_list_out);
+			uint16_t dest_count =  aodv_db_get_route_endpoints_from_neighbor(ether_addr, &dest_list_out);
 
 			if (dest_count > 0) {
 				while(dest_list_out != NULL) {
