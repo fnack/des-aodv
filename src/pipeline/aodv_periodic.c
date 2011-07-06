@@ -168,6 +168,8 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 			}
 		}
 	} else if (schedule_type == AODV_SC_SEND_OUT_RWARN) {
+		dessert_debug("AODV_SC_SEND_OUT_RWARN: " MAC, EXPLODE_ARRAY6(ether_addr));
+
 		_onlb_element_t* head = NULL;
 		uint16_t count = aodv_db_get_route_endpoints_from_neighbor(ether_addr, &head);
 
@@ -182,7 +184,7 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 		if(diff > SIGNAL_STRENGTH_THRESHOLD) {
 			//walking away -> we need to send a new warn
 			dessert_debug("%s <= W => " MAC, iface->if_name, EXPLODE_ARRAY6(ether_addr));
-			aodv_db_sc_addschedule(timestamp, ether_addr, AODV_SC_SEND_OUT_RWARN, 0);
+			aodv_db_addschedule(&timestamp, ether_addr, AODV_SC_SEND_OUT_RWARN, 0);
 		}
 	} else {
 		dessert_crit("unknown schedule type=%d", schedule_type);

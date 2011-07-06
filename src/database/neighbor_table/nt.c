@@ -81,7 +81,7 @@ int db_nt_update_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* i
 	}
 
 	int diff = (curr_entry->max_rssi - new);
-	if(curr_entry->max_rssi < new) {
+	if(diff < 0) {
 		//walking to the ap
 		dessert_debug("%s <= R %d > %d => " MAC, iface->if_name, curr_entry->max_rssi, new, EXPLODE_ARRAY6(ether_neighbor_addr));
 		curr_entry->max_rssi = new;
