@@ -72,25 +72,22 @@ int db_nt_update_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* i
 	memcpy(addr_sum + ETH_ALEN, &iface, sizeof(void*));
 	HASH_FIND(hh, nt.entrys, addr_sum, ETH_ALEN + sizeof(void*), curr_entry);
 	if (curr_entry == NULL) {
-		return FALSE;
+		return 0;
 	}
-	int8_t new = -120;	
+	int8_t new = -120;
 	avg_node_result_t neigh_result = dessert_rssi_avg(ether_neighbor_addr, curr_entry->iface->if_name);
 	if(neigh_result.avg_rssi != 0) {
 		new = neigh_result.avg_rssi;
 	}
-	int8_t max = curr_entry->max_rssi; //known rssi
 
-	if(max < new) {
+	int diff = (curr_entry->max_rssi - new);
+	if(curr_entry->max_rssi < new) {
 		//walking to the ap
-		dessert_debug("%s <= R %d > %d => " MAC, iface->if_name, max, new, EXPLODE_ARRAY6(ether_neighbor_addr));
+		dessert_debug("%s <= R %d > %d => " MAC, iface->if_name, curr_entry->max_rssi, new, EXPLODE_ARRAY6(ether_neighbor_addr));
 		curr_entry->max_rssi = new;
-	} else if((max - SIGNAL_STRENGTH_THRESHOLD) > new) {
-		//walking away -> we need to send a new warn
-		dessert_debug("%s <= W => " MAC, curr_entry->iface->if_name, EXPLODE_ARRAY6(ether_neighbor_addr));
-		aodv_db_sc_addschedule(timestamp, ether_neighbor_addr, AODV_SC_SEND_OUT_RWARN, 0);
 	}
-	return TRUE;
+	//-25 - -45
+	return diff;
 }
 
 int db_nt_init() {

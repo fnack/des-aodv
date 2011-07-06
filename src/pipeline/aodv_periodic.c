@@ -175,7 +175,12 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 		}
 	} else if(schedule_type == AODV_SC_UPDATE_RSSI) {
 		dessert_meshif_t* iface = (dessert_meshif_t*) (schedule_param);
-		aodv_db_update_rssi(ether_addr, iface, &timestamp);
+		int diff = aodv_db_update_rssi(ether_addr, iface, &timestamp);
+		if(diff > SIGNAL_STRENGTH_THRESHOLD) {
+			//walking away -> we need to send a new warn
+			dessert_debug("%s <= W => " MAC, iface->if_name, EXPLODE_ARRAY6(ether_addr));
+			aodv_db_sc_addschedule(timestamp, ether_addr, AODV_SC_SEND_OUT_RWARN, 0);
+		}
 	} else {
 		dessert_crit("unknown schedule type=%d", schedule_type);
 	}
