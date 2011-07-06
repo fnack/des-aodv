@@ -28,15 +28,15 @@ For further information and questions please use the web site
 
 typedef struct neighbor_entry {
 	struct __attribute__ ((__packed__)) { // key
-		uint8_t 				ether_neighbor[ETH_ALEN];
-		const dessert_meshif_t*	iface;
+		uint8_t 			ether_neighbor[ETH_ALEN];
+		const dessert_meshif_t*		iface;
 		int8_t				max_rssi;
 	};
 	UT_hash_handle				hh;
 } neighbor_entry_t;
 
 typedef struct neighbor_table {
-	neighbor_entry_t* 		entrys;
+	neighbor_entry_t* 			entrys;
 	timeslot_t*				ts;
 } neighbor_table_t;
 
@@ -48,6 +48,7 @@ neighbor_entry_t* db_neighbor_entry_create(uint8_t ether_neighbor_addr[ETH_ALEN]
 	if (new_entry == NULL) return NULL;
 	memcpy(new_entry->ether_neighbor, ether_neighbor_addr, ETH_ALEN);
 	new_entry->iface = iface;
+	new_entry->max_rssi = -120;
 	return new_entry;
 }
 
