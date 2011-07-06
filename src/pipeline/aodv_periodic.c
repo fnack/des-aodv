@@ -168,10 +168,13 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 			}
 		}
 	} else if (schedule_type == AODV_SC_SEND_OUT_RWARN) {
-		uint8_t dhost_ether[ETH_ALEN];
-		while(aodv_db_warn_route(ether_addr, dhost_ether) == TRUE) {
-			dessert_debug("warn route to " MAC, EXPLODE_ARRAY6(dhost_ether));
-			aodv_send_rreq(dhost_ether, &timestamp, TTL_START);
+		_onlb_element_t* head = NULL;
+		uint16_t count = aodv_db_get_route_endpoints_from_neighbor(ether_addr, &head);
+
+		_onlb_element_t *dest, *tmp;
+		DL_FOREACH_SAFE(head, dest, tmp) {
+			dessert_debug("warn route to " MAC, EXPLODE_ARRAY6(dest->dhost_ether));
+			aodv_send_rreq(dest->dhost_ether, &timestamp, TTL_START);
 		}
 	} else if(schedule_type == AODV_SC_UPDATE_RSSI) {
 		dessert_meshif_t* iface = (dessert_meshif_t*) (schedule_param);

@@ -380,22 +380,26 @@ int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
 	return TRUE;
 }
 
-//initial get all routs over one neighbor
-int aodv_db_rt_warn_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
-       // find appropriate routing entry
-       nht_entry_t* nht_entry;
-       nht_destlist_entry_t* nht_dest_entry;
-       HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
-       if ((nht_entry == NULL) || (nht_entry->dest_list == NULL)) return FALSE;
-       nht_dest_entry = nht_entry->dest_list;
+//get all routes over one neighbor
+uint16_t aodv_db_rt_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN], _onlb_element_t** head) {
+	// find appropriate routing entry
+	nht_entry_t* nht_entry;
+	HASH_FIND(hh, nht, neighbor, ETH_ALEN, nht_entry);
+	if ((nht_entry == NULL) || (nht_entry->dest_list == NULL)) {
+		return 0;
+	}
 
-       if(nht_dest_entry->rt_entry->flags & AODV_FLAGS_ROUTE_WARN) {
-               return FALSE; //TODO
-       }
-       // mark route as warn and give this destination address back
-       nht_dest_entry->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
-       memcpy(dhost_ether_out, nht_dest_entry->rt_entry->dhost_ether, ETH_ALEN);
-       return TRUE;
+	uint16_t dest_count = 0;
+	*head = NULL;
+	struct nht_destlist_entry *dest, *tmp;
+
+	HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
+		_onlb_element_t* curr_el = malloc(sizeof(_onlb_element_t));
+		memcpy(curr_el->dhost_ether, dest->rt_entry->dhost_ether, ETH_ALEN);
+		DL_APPEND(*head, curr_el);
+		dest_count++;
+	}
+	return dest_count;
 }
 
 int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
