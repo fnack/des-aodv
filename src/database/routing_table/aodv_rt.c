@@ -247,6 +247,7 @@ int aodv_db_rt_capt_rrep(uint8_t dhost_ether[ETH_ALEN],
 	int u = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
 	int a = hf_comp_u32(rt_entry->rrep_seq, rrep_seq);
 	int b = hf_comp_u8(rt_entry->hop_count, hop_count); //hop count metric
+	dessert_trace("rrep_seq=%d:%d - hop_count=%d:%d", rt_entry->rrep_seq, rrep_seq, rt_entry->hop_count, hop_count);
 	if(u || a < 0 || (a == 0 && b > 0)) {
 
 		nht_entry_t* nht_entry;
