@@ -32,12 +32,12 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define RREQ_RATELIMIT				16
 #define TTL_START					2
 #define TTL_INCREMENT				2
-#define TTL_THRESHOLD				7
+#define TTL_THRESHOLD				8
 
-#define ACTIVE_ROUTE_TIMEOUT		3000 	// milliseconds
-#define ALLOWED_HELLO_LOST			7
+#define ACTIVE_ROUTE_TIMEOUT		2000 	// milliseconds
+#define ALLOWED_HELLO_LOST			4
 #define NODE_TRAVERSAL_TIME			2 		// milliseconds
-#define NET_DIAMETER				6
+#define NET_DIAMETER				8
 #define NET_TRAVERSAL_TIME			(2 * NODE_TRAVERSAL_TIME * NET_DIAMETER)
 #define BLACKLIST_TIMEOUT			(RREQ_RETRIES * NET_TRAVERSAL_TIME)
 #define MY_ROUTE_TIMEOUT			(2 * ACTIVE_ROUTE_TIMEOUT)
@@ -53,7 +53,6 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 
 #define FIFO_BUFFER_MAX_ENTRY_SIZE	128 	// maximal packet count that can be stored in FIFO for one destination
 #define DB_CLEANUP_INTERVAL			NET_TRAVERSAL_TIME
-#define BUFFER_SENDOUT_DELAY		10
 #define SCHEDULE_CHECK_INTERVAL		30 		// milliseconds
 
 /**
@@ -63,7 +62,7 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define AODV_SC_SEND_OUT_PACKET		1
 
 /**
- * Schedule type = repeat RREQ with ttl *=2
+ * Schedule type = repeat RREQ
  */
 #define AODV_SC_REPEAT_RREQ			2
 
@@ -84,7 +83,6 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 extern dessert_periodic_t *			periodic_send_hello;
-extern char*						routing_log_file;
 extern int 							hello_size;
 extern int 							hello_interval;
 extern int 							rreq_size;
