@@ -54,10 +54,10 @@ int aodv_db_add_brcid(uint8_t shost_ether[ETH_ALEN], uint32_t rreq_id, struct ti
  */
 int aodv_db_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN],
 		uint8_t shost_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface,
-		uint32_t rreq_seq, uint8_t hop_count, struct timeval* timestamp);
+		uint32_t originator_sequence_number, uint8_t hop_count, struct timeval* timestamp);
 
 int aodv_db_capt_rrep (uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[ETH_ALEN],
-		dessert_meshif_t* output_iface, uint32_t rrep_seq, uint8_t hop_count, struct timeval* timestamp);
+		dessert_meshif_t* output_iface, uint32_t destination_sequence_number, uint8_t hop_count, struct timeval* timestamp);
 /**
  * gets prev_hop adress and output_iface towards source with shost_ether address
  * that has produces an RREQ to destination with dhost_ether address
@@ -70,9 +70,7 @@ int aodv_db_getnexthop(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out
 int aodv_db_getprevhop(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN],
 		uint8_t shost_next_hop_out[ETH_ALEN], dessert_meshif_t** output_iface_out);
 
-int aodv_db_get_rrep_seq(uint8_t dhost_ether[ETH_ALEN], uint32_t* rrep_seq_out);
-
-int aodv_db_get_rreq_seq(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN], uint32_t* rreq_seq_out);
+int aodv_db_get_destination_sequence_number(uint8_t dhost_ether[ETH_ALEN], uint32_t* destination_sequence_number_out);
 
 int aodv_db_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out);
 
