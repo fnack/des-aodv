@@ -30,8 +30,7 @@ For further information and questions please use the web site
 #include "../helper.h"
 #include "../database/data_seq/data_seq.h"
 
-uint32_t rreq_seq_global = 0;
-uint32_t rrep_seq_global = 0;
+uint32_t route_seq_global = 0;
 uint32_t broadcast_id = 0;
 pthread_rwlock_t pp_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
@@ -59,7 +58,7 @@ dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl) {
 	rreq_msg->hop_count = 0;
 	rreq_msg->flags = 0;
 	pthread_rwlock_wrlock(&pp_rwlock);
-	rreq_msg->rreq_seq = ++rreq_seq_global;
+	rreq_msg->rreq_seq = ++route_seq_global;
 	pthread_rwlock_unlock(&pp_rwlock);
 
 	//this is for local repair, we know that the latest rrep we saw was last_rrep_seq
@@ -70,7 +69,7 @@ dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl) {
 		rreq_msg->flags |= AODV_FLAGS_RREQ_D | AODV_FLAGS_RREQ_U;
 	}
 
-	dessert_debug("rreq send for " MAC " ttl=%d id=%d", EXPLODE_ARRAY6(dhost_ether), ttl, rreq_seq_global);
+	dessert_debug("rreq send for " MAC " ttl=%d id=%d", EXPLODE_ARRAY6(dhost_ether), ttl, rreq_msg->rreq_seq);
 
 	// add broadcast id ext since RREQ is an broadcast message
 	dessert_msg_addext(msg, &ext, BROADCAST_EXT_TYPE, sizeof(struct aodv_msg_broadcast));
@@ -313,14 +312,14 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 	} else { // RREQ for me
 
 		pthread_rwlock_wrlock(&pp_rwlock);
-		uint32_t rrep_seq_copy = ++rrep_seq_global;
+		uint32_t rrep_seq_copy = ++route_seq_global;
 		pthread_rwlock_unlock(&pp_rwlock);
 
 		dessert_msg_t* rrep_msg = _create_rrep(dessert_l25_defsrc, l25h->ether_shost, msg->l2h.ether_shost, rrep_seq_copy, AODV_FLAGS_RREP_A, rreq_msg->hop_count);
 		dessert_meshsend(rrep_msg, iface);
 		dessert_msg_destroy(rrep_msg);
-		dessert_debug("incoming RREQ from " MAC " over " MAC " for me rreq_seq=%d -> answer with RREP rrep_seq_global=%d",
-		              EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost), rreq_msg->rreq_seq, rrep_seq_global);
+		dessert_debug("incoming RREQ from " MAC " over " MAC " for me rreq_seq=%d -> answer with RREP route_seq_global=%d",
+		              EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost), rreq_msg->rreq_seq, route_seq_global);
 	}
 
 			/* RREQ gives route to his source. Process RREQ also as RREP */
