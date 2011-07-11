@@ -247,6 +247,7 @@ int aodv_handle_hello(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, 
 		// hello req
 		memcpy(msg->l2h.ether_dhost, msg->l2h.ether_shost, ETH_ALEN);
 		msg->u8 = mobility;
+		msg->u16 = hello_interval;
 		dessert_meshsend(msg, iface);
 //		dessert_debug("got hello-req from " MAC, EXPLODE_ARRAY6(msg->l2h.ether_shost));
 	} else {
@@ -254,9 +255,10 @@ int aodv_handle_hello(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, 
 		if (memcmp(iface->hwaddr, msg->l2h.ether_dhost, ETH_ALEN) == 0) {
 			struct timeval ts;
 			gettimeofday(&ts, NULL);
-			uint8_t mobility = msg->u8;
+			uint8_t remote_mobility = msg->u8;
+			uint16_t remote_hello_interval = msg->u16;
 //		dessert_debug("got hello-rep from " MAC " mobility is %d", EXPLODE_ARRAY6(msg->l2h.ether_dhost), mobility);
-			aodv_db_cap2Dneigh(msg->l2h.ether_shost, iface, &ts, mobility);
+			aodv_db_cap2Dneigh(msg->l2h.ether_shost, iface, &ts, remote_mobility, remote_hello_interval);
 		}
 	}
 	return DESSERT_MSG_DROP;
