@@ -194,6 +194,13 @@ uint16_t aodv_db_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN], _
 	return result;
 }
 
+int aodv_db_get_warn_status(uint8_t dhost_ether[ETH_ALEN]) {
+	aodv_db_wlock();
+	int result = aodv_db_rt_get_warn_status(dhost_ether);
+	aodv_db_unlock();
+	return result;
+}
+
 /**
  * Take a record that the given neighbor seems to be
  * the 1 hop bidirectional neighbor

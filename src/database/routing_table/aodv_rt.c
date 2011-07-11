@@ -395,12 +395,27 @@ uint16_t aodv_db_rt_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN]
 	struct nht_destlist_entry *dest, *tmp;
 
 	HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
+		dest->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
 		_onlb_element_t* curr_el = malloc(sizeof(_onlb_element_t));
 		memcpy(curr_el->dhost_ether, dest->rt_entry->dhost_ether, ETH_ALEN);
 		DL_APPEND(*head, curr_el);
 		dest_count++;
 	}
 	return dest_count;
+}
+
+int aodv_db_rt_get_warn_status(uint8_t dhost_ether[ETH_ALEN]) {
+	aodv_rt_entry_t* rt_entry;
+	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
+	if(rt_entry == NULL) {
+		return FALSE;
+	}
+
+	if(rt_entry->flags & AODV_FLAGS_ROUTE_WARN) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
 }
 
 int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {

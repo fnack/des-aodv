@@ -175,7 +175,6 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 
 		_onlb_element_t *dest, *tmp;
 		DL_FOREACH_SAFE(head, dest, tmp) {
-			dessert_debug("warn route to " MAC, EXPLODE_ARRAY6(dest->dhost_ether));
 			aodv_send_rreq(dest->dhost_ether, &timestamp, TTL_START);
 		}
 	} else if(schedule_type == AODV_SC_UPDATE_RSSI) {

@@ -64,10 +64,15 @@ dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl) {
 
 	//this is for local repair, we know that the latest rrep we saw was last_rrep_seq
 	uint32_t last_rrep_seq;
-	int a = aodv_db_get_rrep_seq(dhost_ether, &last_rrep_seq);
+	int u = aodv_db_get_rrep_seq(dhost_ether, &last_rrep_seq);
 	rreq_msg->rrep_seq = last_rrep_seq;
-	if (a != TRUE) {
+	if (u != TRUE) {
 		rreq_msg->flags |= AODV_FLAGS_RREQ_D | AODV_FLAGS_RREQ_U;
+	}
+
+	int d = aodv_db_get_warn_status(dhost_ether);
+	if (d == TRUE) {
+		rreq_msg->flags |= AODV_FLAGS_RREQ_D;
 	}
 
 	dessert_debug("rreq send for " MAC " ttl=%d id=%d", EXPLODE_ARRAY6(dhost_ether), ttl, rreq_seq_global);
