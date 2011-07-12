@@ -72,7 +72,7 @@ dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl) {
 		rreq_msg->flags |= AODV_FLAGS_RREQ_D;
 	}
 
-	dessert_debug("rreq send for " MAC " ttl=%d id=%d", EXPLODE_ARRAY6(dhost_ether), ttl, rreq_seq_global);
+	dessert_debug("rreq send for " MAC " ttl=%d id=%d", EXPLODE_ARRAY6(dhost_ether), ttl, rreq_msg->originator_sequence_number);
 
 	// add broadcast id ext since RREQ is an broadcast message
 	dessert_msg_addext(msg, &ext, BROADCAST_EXT_TYPE, sizeof(struct aodv_msg_broadcast));
