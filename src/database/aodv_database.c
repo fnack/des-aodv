@@ -191,9 +191,9 @@ int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[E
  * Take a record that the given neighbor seems to be
  * the 1 hop bidirectional neighbor
  */
-int aodv_db_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp, uint8_t remote_mobility, uint16_t remote_hello_interval) {
+int aodv_db_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp, uint16_t remote_hello_interval) {
 	aodv_db_wlock();
-	int result =  db_nt_cap2Dneigh(ether_neighbor_addr, iface, timestamp, remote_mobility, remote_hello_interval);
+	int result =  db_nt_cap2Dneigh(ether_neighbor_addr, iface, timestamp, remote_hello_interval);
 	aodv_db_unlock();
 	return result;
 }

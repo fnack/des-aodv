@@ -71,9 +71,11 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
  */
 #define AODV_SC_SEND_OUT_RERR		3
 #define HELLO_SIZE					128
-#define HELLO_INTERVAL				2000 	// milliseconds
 #define RREQ_SIZE					128
-#define MOBILITY			200 /* 0==no; 255==max */
+
+#define STATIC_HELLO_INTERVAL		2000 	// milliseconds
+#define MOBILITY					8 /* 1==no; 255==max */
+#define HELLO_INTERVAL				(STATIC_HELLO_INTERVAL / MOBILITY)
 
 // --- Database Flags
 #define AODV_FLAGS_ROUTE_INVALID 	1
