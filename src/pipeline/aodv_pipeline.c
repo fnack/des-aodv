@@ -28,7 +28,6 @@ For further information and questions please use the web site
 #include "aodv_pipeline.h"
 #include "../config.h"
 #include "../helper.h"
-#include "../database/data_seq/data_seq.h"
 
 uint32_t seq_num_global = 0;
 uint32_t broadcast_id = 0;
@@ -63,11 +62,10 @@ dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl) {
 
 	//this is for local repair, we know that the latest rrep we saw was last_destination_sequence_number
 	uint32_t last_destination_sequence_number;
-	int a = aodv_db_get_destination_sequence_number(dhost_ether, &last_destination_sequence_number);
-	rreq_msg->destination_sequence_number = last_destination_sequence_number;
-	if (a != TRUE) {
+	if (aodv_db_get_destination_sequence_number(dhost_ether, &last_destination_sequence_number) != TRUE) {
 		rreq_msg->flags |= AODV_FLAGS_RREQ_U;
 	}
+	rreq_msg->destination_sequence_number = last_destination_sequence_number;
 
 	dessert_debug("rreq send for " MAC " ttl=%d id=%d", EXPLODE_ARRAY6(dhost_ether), ttl, rreq_msg->originator_sequence_number);
 
@@ -240,19 +238,18 @@ int aodv_handle_hello(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, 
 		return DESSERT_MSG_KEEP;
 	}
 
-//	dessert_debug("got HELLO from " MAC, EXPLODE_ARRAY6(msg->l2h.ether_shost));
 	msg->ttl--;
 	if (msg->ttl >= 1) {
 		// hello req
 		memcpy(msg->l2h.ether_dhost, msg->l2h.ether_shost, ETH_ALEN);
 		dessert_meshsend(msg, iface);
-//		dessert_debug("got hello-req from " MAC, EXPLODE_ARRAY6(msg->l2h.ether_shost));
+		dessert_trace("got hello-req from " MAC, EXPLODE_ARRAY6(msg->l2h.ether_shost));
 	} else {
 		//hello rep
 		if (memcmp(iface->hwaddr, msg->l2h.ether_dhost, ETH_ALEN) == 0) {
 			struct timeval ts;
 			gettimeofday(&ts, NULL);
-//		dessert_debug("got hello-rep from " MAC " mobility is %d", EXPLODE_ARRAY6(msg->l2h.ether_dhost), mobility);
+			dessert_trace("got hello-rep from " MAC, EXPLODE_ARRAY6(msg->l2h.ether_dhost));
 			aodv_db_cap2Dneigh(msg->l2h.ether_shost, iface, &ts);
 		}
 	}
@@ -320,17 +317,16 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 		dessert_msg_destroy(rrep_msg);
 		dessert_debug("incoming RREQ from " MAC " over " MAC " for me originator_sequence_number=%d -> answer with RREP destination_sequence_number_copy=%d",
 		              EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost), rreq_msg->originator_sequence_number, destination_sequence_number_copy);
-	}
 
-			/* RREQ gives route to his source. Process RREQ also as RREP */
-	int y = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->destination_sequence_number, rreq_msg->hop_count, &ts);
-	if (y == TRUE) {
-		dessert_debug("no need to search for next hop. Next hop is RREQ.msg->l2h.ether_shost");
-		aodv_send_packets_from_buffer(l25h->ether_shost, msg->l2h.ether_shost, iface);
-	} else {
-		dessert_debug("we know a better route already");
+		/* RREQ gives route to his source. Process RREQ also as RREP */
+		int y = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->destination_sequence_number, rreq_msg->hop_count, &ts);
+		if (y == TRUE) {
+			dessert_debug("no need to search for next hop. Next hop is RREQ.msg->l2h.ether_shost");
+			aodv_send_packets_from_buffer(l25h->ether_shost, msg->l2h.ether_shost, iface);
+		} else {
+			dessert_debug("we know a better route already");
+		}
 	}
-
 	return DESSERT_MSG_DROP;
 }
 

@@ -72,6 +72,8 @@ int aodv_db_getprevhop(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_AL
 
 int aodv_db_get_destination_sequence_number(uint8_t dhost_ether[ETH_ALEN], uint32_t* destination_sequence_number_out);
 
+int aodv_db_get_originator_sequence_number(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN], uint32_t* originator_sequence_number_out);
+
 int aodv_db_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out);
 
 int aodv_db_markrouteinv (uint8_t dhost_ether[ETH_ALEN]);
@@ -103,7 +105,7 @@ void aodv_db_putrerr(struct timeval* timestamp);
 
 void aodv_db_getrerrcount(struct timeval* timestamp, uint32_t* count_out);
 
-
+int aodv_db_data_capt_data_seq(uint8_t shost_ether[ETH_ALEN], uint16_t shost_seq_num);
 
 // ----------------------------------- reporiting -------------------------------------------------------------------------
 

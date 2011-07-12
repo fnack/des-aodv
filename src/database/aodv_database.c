@@ -28,6 +28,7 @@ For further information and questions please use the web site
 #include "../config.h"
 #include "routing_table/aodv_rt.h"
 #include "broadcast_table/aodv_broadcast_t.h"
+#include "data_seq/data_seq.h"
 #include "neighbor_table/nt.h"
 #include "packet_buffer/packet_buffer.h"
 #include "schedule_table/aodv_st.h"
@@ -153,6 +154,13 @@ int aodv_db_get_destination_sequence_number(uint8_t dhost_ether[ETH_ALEN], uint3
 	return result;
 }
 
+int aodv_db_get_originator_sequence_number(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN], uint32_t* originator_sequence_number_out) {
+	aodv_db_rlock();
+	int result = aodv_db_rt_get_originator_sequence_number(dhost_ether, shost_ether, originator_sequence_number_out);
+	aodv_db_unlock();
+	return result;
+}
+
 int aodv_db_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out) {
 	aodv_db_rlock();
 	int result = aodv_db_rt_get_hop_count(dhost_ether, hop_count_out);
@@ -245,6 +253,12 @@ void aodv_db_getrerrcount(struct timeval* timestamp, uint32_t* count_out) {
 	aodv_db_unlock();
 }
 
+int aodv_db_data_capt_data_seq(uint8_t shost_ether[ETH_ALEN], uint16_t shost_seq_num) {
+	aodv_db_wlock();
+	int result =  aodv_db_ds_data_capt_data_seq(shost_ether, shost_seq_num);
+	aodv_db_unlock();
+	return result;
+}
 // --------------------------------------- reporting ---------------------------------------------------------------
 
 int aodv_db_view_routing_table(char** str_out) {

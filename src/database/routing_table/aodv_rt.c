@@ -344,12 +344,25 @@ int aodv_db_rt_get_destination_sequence_number(uint8_t dhost_ether[ETH_ALEN], ui
 	return TRUE;
 }
 
+int aodv_db_rt_get_originator_sequence_number(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN], uint32_t* originator_sequence_number_out) {
+	aodv_rt_entry_t* rt_entry;
+	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
+	if (rt_entry == NULL)
+		return FALSE;
+
+	aodv_rt_srclist_entry_t* src_entry;
+	HASH_FIND(hh, rt_entry->src_list, shost_ether, ETH_ALEN, src_entry);
+	if (src_entry == NULL)
+		return FALSE;
+	*originator_sequence_number_out = src_entry->originator_sequence_number;
+	return TRUE;
+}
 
 int aodv_db_rt_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out) {
 	aodv_rt_entry_t* rt_entry;
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
 	if (rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN) {
-		*hop_count_out = 0;
+		*hop_count_out = UINT8_MAX;
 		return FALSE;
 	}
 	*hop_count_out = rt_entry->hop_count;

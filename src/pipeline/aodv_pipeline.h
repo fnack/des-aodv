@@ -68,9 +68,9 @@ struct aodv_msg_rreq {
 	/** The number of hops from the originator to the node habdling the request */
 	uint8_t		hop_count;
 
-	uint32_t		originator_sequence_number;
-
 	uint32_t		destination_sequence_number;
+
+	uint32_t		originator_sequence_number;
 } __attribute__ ((__packed__));
 
 /** RREP - Route Reply Message */
