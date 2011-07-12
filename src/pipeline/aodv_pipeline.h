@@ -70,9 +70,9 @@ struct aodv_msg_rreq {
 	/** path_weight is the weight of the path from source to dest */
 	uint8_t		path_weight;
 
-	uint32_t		rreq_seq;
+	uint32_t		destination_sequence_number;
 
-	uint32_t		rrep_seq;
+	uint32_t		originator_sequence_number;
 } __attribute__ ((__packed__));
 
 /** RREP - Route Reply Message */
@@ -89,7 +89,7 @@ struct aodv_msg_rrep {
 	/** path_weight is the weight of the path from source to dest */
 	uint8_t		path_weight;
 
-	uint32_t		rrep_seq;
+	uint32_t		destination_sequence_number;
 	/**
 	 * LifeTime:
 	 * The time in millisecond for which nodes receiving the RREP consider the
