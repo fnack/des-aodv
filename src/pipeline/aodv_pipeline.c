@@ -368,9 +368,9 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 						rebroadcast_rerr = TRUE;
 						aodv_db_markrouteinv(dhost_ether);
 						dessert_debug("route to " MAC " marked as invalid", EXPLODE_ARRAY6(dhost_ether));
-						}
 					}
 				}
+			}
 		}
 	}
 
