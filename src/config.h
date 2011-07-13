@@ -28,21 +28,21 @@ For further information and questions please use the web site
 
 enum aodv_bool {TRUE = 1, FALSE = 0};
 
-#define RREQ_RETRIES				4
-#define RREQ_RATELIMIT				16
-#define TTL_START					2
-#define TTL_INCREMENT				2
-#define TTL_THRESHOLD				8
+#define RREQ_RETRIES				4 /* rfc=2 */
+#define RREQ_RATELIMIT				16 /* rfc=10 */
+#define TTL_START					1 /* rfc=1 */
+#define TTL_INCREMENT				2 /* rfc=2 */
+#define TTL_THRESHOLD				7 /* rfc=7 */
 
-#define ACTIVE_ROUTE_TIMEOUT		2000 	// milliseconds
-#define ALLOWED_HELLO_LOST			4
-#define NODE_TRAVERSAL_TIME			2 		// milliseconds
-#define NET_DIAMETER				8
-#define NET_TRAVERSAL_TIME			(2 * NODE_TRAVERSAL_TIME * NET_DIAMETER)
-#define BLACKLIST_TIMEOUT			(RREQ_RETRIES * NET_TRAVERSAL_TIME)
-#define MY_ROUTE_TIMEOUT			(2 * ACTIVE_ROUTE_TIMEOUT)
-#define PATH_DESCOVERY_TIME			(2 * NET_TRAVERSAL_TIME)
-#define RERR_RATELIMIT				16
+#define ACTIVE_ROUTE_TIMEOUT		3000 /* ms rfc=3000 */
+#define ALLOWED_HELLO_LOST			2 /* rfc=2 */
+#define NODE_TRAVERSAL_TIME			2 /* ms rfc=40 */
+#define NET_DIAMETER				8 /* rfc=35 */
+#define NET_TRAVERSAL_TIME			(2 * NODE_TRAVERSAL_TIME * NET_DIAMETER) /* rfc */
+#define BLACKLIST_TIMEOUT			(RREQ_RETRIES * NET_TRAVERSAL_TIME) /* rfc */
+#define MY_ROUTE_TIMEOUT			(2 * ACTIVE_ROUTE_TIMEOUT) /* rfc */
+#define PATH_DESCOVERY_TIME			(2 * NET_TRAVERSAL_TIME) /* rfc */
+#define RERR_RATELIMIT				16 /*rfc=10 */
 
 #define RREQ_EXT_TYPE				DESSERT_EXT_USER
 #define RREP_EXT_TYPE				(DESSERT_EXT_USER + 1)
@@ -51,9 +51,16 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define HELLO_EXT_TYPE				(DESSERT_EXT_USER + 4)
 #define BROADCAST_EXT_TYPE			(DESSERT_EXT_USER + 5)
 
-#define FIFO_BUFFER_MAX_ENTRY_SIZE	128 	// maximal packet count that can be stored in FIFO for one destination
-#define DB_CLEANUP_INTERVAL			NET_TRAVERSAL_TIME
-#define SCHEDULE_CHECK_INTERVAL		30 		// milliseconds
+#define FIFO_BUFFER_MAX_ENTRY_SIZE	128 /* maximal packet count that can be stored in FIFO for one destination */
+#define DB_CLEANUP_INTERVAL			NET_TRAVERSAL_TIME /* not in rfc */
+#define SCHEDULE_CHECK_INTERVAL		30 /* ms not in rfc */
+
+#define STATIC_HELLO_INTERVAL       1000 /* ms rfc=1000 */
+#define MOBILITY                    8 /* 1==no; 255==max rfc=none*/
+#define HELLO_INTERVAL              (STATIC_HELLO_INTERVAL / MOBILITY)
+
+#define HELLO_SIZE					0 /* additional payload rfc=0 */
+#define RREQ_SIZE					0 /* additional payload rfc=0 */
 
 /**
  * Schedule type = send out packets from FIFO puffer for
@@ -70,12 +77,6 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
  * Schedule type = send out route error for given next hop
  */
 #define AODV_SC_SEND_OUT_RERR		3
-#define HELLO_SIZE					128
-#define RREQ_SIZE					128
-
-#define STATIC_HELLO_INTERVAL		2000 	// milliseconds
-#define MOBILITY					8 /* 1==no; 255==max */
-#define HELLO_INTERVAL				(STATIC_HELLO_INTERVAL / MOBILITY)
 
 // --- Database Flags
 #define AODV_FLAGS_ROUTE_INVALID 	1
