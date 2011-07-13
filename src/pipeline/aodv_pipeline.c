@@ -281,7 +281,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 	if(interval < 0) {
 		dessert_crit("rssi is not in [-128, 0], this must be a bug in dessert_monitor");
 	} else {
-		dessert_debug("incomming path_weight=%d, add %d for the last hop " MAC, rreq_msg->path_weight, interval, EXPLODE_ARRAY6(msg->l2h.ether_shost));
+		dessert_debug("incomming path_weight=%d, add %d (rssi=%d) for the last hop " MAC, rreq_msg->path_weight, interval, sample.avg_rssi, EXPLODE_ARRAY6(msg->l2h.ether_shost));
 		rreq_msg->path_weight += interval;
 	}
 
@@ -426,7 +426,7 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 	if(interval < 0) {
 		dessert_crit("rssi is not in [-128, 0], this must be a bug in dessert_monitor");
 	} else {
-		dessert_debug("incomming path_weight=%d, add %d for the last hop " MAC, rrep_msg->path_weight, interval, EXPLODE_ARRAY6(msg->l2h.ether_shost));
+		dessert_debug("incomming path_weight=%d, add %d (rssi=%d) for the last hop " MAC, rrep_msg->path_weight, interval, sample.avg_rssi, EXPLODE_ARRAY6(msg->l2h.ether_shost));
 		rrep_msg->path_weight += interval;
 	}
 
