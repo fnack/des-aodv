@@ -55,9 +55,9 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define DB_CLEANUP_INTERVAL			NET_TRAVERSAL_TIME /* not in rfc */
 #define SCHEDULE_CHECK_INTERVAL			20 /* ms not in rfc */
 
-#define HELLO_SIZE				0 /* additional payload rfc=0 */
+#define HELLO_SIZE				128 /* bytes */
 #define HELLO_INTERVAL				1000 /* ms rfc=1000 */
-#define RREQ_SIZE				0 /* additional payload rfc=0 */
+#define RREQ_SIZE				128 /* bytes */
 
 /**
  * Schedule type = send out packets from FIFO puffer for
