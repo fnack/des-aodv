@@ -115,6 +115,7 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
 	}
 	if(rreq_msg->ttl > NET_TRAVERSAL_TIME) {
 		dessert_debug("TTL_THRESHOLD is reached: ttl=%d", rreq_msg->ttl);
+		dessert_msg_destroy(rreq_msg);
 		return;
 	}
 
@@ -148,7 +149,6 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
 	// send out and destroy
 	dessert_meshsend(rreq_msg, NULL);
 	aodv_db_putrreq(ts);
-	dessert_msg_destroy(rreq_msg);
 }
 
 void aodv_send_packets_from_buffer(uint8_t ether_dhost[ETH_ALEN], uint8_t next_hop[ETH_ALEN], dessert_meshif_t* iface) {
