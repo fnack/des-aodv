@@ -135,8 +135,7 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 	if (schedule_type == AODV_SC_SEND_OUT_PACKET) {
 		//do nothing
 	} else if (schedule_type == AODV_SC_REPEAT_RREQ) {
-		uint8_t* ttl = (uint8_t*) (schedule_param);
-		aodv_send_rreq(ether_addr, &timestamp, *ttl);
+		aodv_send_rreq(ether_addr, &timestamp, (dessert_msg_t*) (schedule_param));
 	} else if (schedule_type == AODV_SC_SEND_OUT_RERR) {
 		uint32_t rerr_count;
 		aodv_db_getrerrcount(&timestamp, &rerr_count);

@@ -33,6 +33,7 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define TTL_START				1 /* rfc=1 */
 #define TTL_INCREMENT				2 /* rfc=2 */
 #define TTL_THRESHOLD				7 /* rfc=7 */
+#define TTL_MAX					UINT8_MAX
 
 #define ACTIVE_ROUTE_TIMEOUT			3000 /* ms rfc=3000 */
 #define ALLOWED_HELLO_LOST			4 /* christian=4 rfc=2 */
@@ -85,6 +86,7 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define AODV_FLAGS_ROUTE_INVALID 		1
 #define AODV_FLAGS_NEXT_HOP_UNKNOWN		(1 << 1)
 #define AODV_FLAGS_ROUTE_WARN			(1 << 2)
+
 #define MAX_MESH_IFACES_COUNT			8
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
