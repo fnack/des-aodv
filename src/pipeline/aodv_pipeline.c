@@ -67,8 +67,6 @@ dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl) {
 	}
 	rreq_msg->destination_sequence_number = last_destination_sequence_number;
 
-	dessert_debug("rreq send for " MAC " ttl=%d id=%d", EXPLODE_ARRAY6(dhost_ether), ttl, rreq_msg->originator_sequence_number);
-
 	// add broadcast id ext since RREQ is an broadcast message
 	dessert_msg_addext(msg, &ext, BROADCAST_EXT_TYPE, sizeof(struct aodv_msg_broadcast));
 	struct aodv_msg_broadcast* brc_str = (struct aodv_msg_broadcast*) ext->data;
@@ -107,15 +105,16 @@ dessert_msg_t* _create_rrep(uint8_t route_dest[ETH_ALEN], uint8_t route_source[E
 	return msg;
 }
 
-void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_msg_t* rreq_msg) {
+void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_msg_t* msg) {
 
-	if(rreq_msg == NULL) {
+	if(msg == NULL) {
 		// rreq_msg == NULL means: this is a first try from RREQ_RETRIES
-		rreq_msg = _create_rreq(dhost_ether, TTL_START); // create RREQ
+		msg = _create_rreq(dhost_ether, TTL_START); // create RREQ
 	}
-	if(rreq_msg->ttl > NET_TRAVERSAL_TIME) {
-		dessert_debug("TTL_THRESHOLD is reached: ttl=%d", rreq_msg->ttl);
-		dessert_msg_destroy(rreq_msg);
+	if(msg->ttl == TTL_MAX) {
+		struct ether_header* l25h = dessert_msg_getl25ether(msg);
+		dessert_debug("RREQ to " MAC ": TTL_THRESHOLD is reached", EXPLODE_ARRAY6(l25h->ether_dhost));
+		dessert_msg_destroy(msg);
 		return;
 	}
 
@@ -128,27 +127,32 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
 		retry_time.tv_sec = 0;
 		retry_time.tv_usec = (100) * 1000;
 		hf_add_tv(ts, &retry_time, &retry_time);
-		aodv_db_addschedule(&retry_time, dhost_ether, AODV_SC_REPEAT_RREQ, rreq_msg);
+		aodv_db_addschedule(&retry_time, dhost_ether, AODV_SC_REPEAT_RREQ, msg);
 		return;
 	}
 
+	void* payload;
+	uint16_t size = max(rreq_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
+	dessert_msg_addpayload(msg, &payload, size);
+	memset(payload, 0xA, size);
+
+	dessert_ext_t* ext;
+	dessert_msg_getext(msg, &ext, RREQ_EXT_TYPE, 0);
+	struct aodv_msg_rreq* rreq_msg = (struct aodv_msg_rreq*) ext->data;
+	dessert_debug("rreq send for " MAC " ttl=%d id=%d", EXPLODE_ARRAY6(dhost_ether), msg->ttl, rreq_msg->originator_sequence_number);
+
+	dessert_meshsend(msg, NULL);
+	aodv_db_putrreq(ts);
+
 	// add task to repeat RREQ after
-	uint32_t rep_time = (rreq_msg->ttl > TTL_THRESHOLD)? NET_TRAVERSAL_TIME : (2 * NODE_TRAVERSAL_TIME * (rreq_msg->ttl));
+	msg->ttl = (msg->ttl > TTL_THRESHOLD) ? TTL_MAX : msg->ttl + TTL_INCREMENT;
+	uint32_t rep_time = (msg->ttl > TTL_THRESHOLD) ? NET_TRAVERSAL_TIME : (2 * NODE_TRAVERSAL_TIME * (msg->ttl));
 	struct timeval rreq_repeat_time;
 	rreq_repeat_time.tv_sec = rep_time / 1000;
 	rreq_repeat_time.tv_usec = (rep_time % 1000) * 1000;
 	hf_add_tv(ts, &rreq_repeat_time, &rreq_repeat_time);
-	rreq_msg->ttl += TTL_INCREMENT;
-	aodv_db_addschedule(&rreq_repeat_time, dhost_ether, AODV_SC_REPEAT_RREQ, rreq_msg);
+	aodv_db_addschedule(&rreq_repeat_time, dhost_ether, AODV_SC_REPEAT_RREQ, msg);
 
-	void* payload;
-	uint16_t size = max(rreq_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
-	dessert_msg_addpayload(rreq_msg, &payload, size);
-	memset(payload, 0xA, size);
-
-	// send out and destroy
-	dessert_meshsend(rreq_msg, NULL);
-	aodv_db_putrreq(ts);
 }
 
 void aodv_send_packets_from_buffer(uint8_t ether_dhost[ETH_ALEN], uint8_t next_hop[ETH_ALEN], dessert_meshif_t* iface) {
