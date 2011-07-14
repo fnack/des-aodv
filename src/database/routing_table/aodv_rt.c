@@ -71,6 +71,7 @@ typedef struct nht_destlist_entry {
 typedef struct nht_entry {
 	uint8_t					dhost_next_hop[ETH_ALEN];
 	nht_destlist_entry_t*		dest_list;
+	uint8_t					flags;
 	UT_hash_handle				hh;
 } nht_entry_t;
 
@@ -387,12 +388,14 @@ uint16_t aodv_db_rt_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN]
 		return 0;
 	}
 
+	//mark as warned
+	nht_entry->flags |= AODV_FLAGS_ROUTE_WARN;
+
 	uint16_t dest_count = 0;
 	*head = NULL;
 	struct nht_destlist_entry *dest, *tmp;
 
 	HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
-		dest->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
 		_onlb_element_t* curr_el = malloc(sizeof(_onlb_element_t));
 		memcpy(curr_el->dhost_ether, dest->rt_entry->dhost_ether, ETH_ALEN);
 		DL_APPEND(*head, curr_el);
@@ -401,14 +404,14 @@ uint16_t aodv_db_rt_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN]
 	return dest_count;
 }
 
-int aodv_db_rt_get_warn_status(uint8_t dhost_ether[ETH_ALEN]) {
-	aodv_rt_entry_t* rt_entry;
-	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
-	if(rt_entry == NULL) {
-		return FALSE;
-	}
+int aodv_db_rt_get_warn_status(uint8_t dhost_next_hop[ETH_ALEN]) {
+	// find appropriate routing entry
+	nht_entry_t* nht_entry;
+	nht_destlist_entry_t* nht_dest_entry;
+	HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
+	if ((nht_entry == NULL) || (nht_entry->dest_list == NULL)) return FALSE;
 
-	if(rt_entry->flags & AODV_FLAGS_ROUTE_WARN) {
+	if(nht_entry->flags & AODV_FLAGS_ROUTE_WARN) {
 		return TRUE;
 	} else {
 		return FALSE;
@@ -421,6 +424,12 @@ int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_o
 	nht_destlist_entry_t* nht_dest_entry;
 	HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
 	if ((nht_entry == NULL) || (nht_entry->dest_list == NULL)) return FALSE;
+
+	if(nht_entry->flags & AODV_FLAGS_ROUTE_WARN) {
+		//this neighbor is marked as warned, we don't need an error
+		return FALSE;
+	}
+
 	nht_dest_entry = nht_entry->dest_list;
 
 	// mark route as invalid and give this destination address back
