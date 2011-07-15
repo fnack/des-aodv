@@ -113,9 +113,7 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
 	}
 	if(msg->ttl == TTL_MAX) {
 		struct ether_header* l25h = dessert_msg_getl25ether(msg);
-		dessert_debug("RREQ to " MAC ": TTL_THRESHOLD is reached", EXPLODE_ARRAY6(l25h->ether_dhost));
-		dessert_msg_destroy(msg);
-		return;
+		dessert_debug("RREQ to " MAC ": TTL_THRESHOLD is reached - send a last RREQ with TTL_MAX=%d", EXPLODE_ARRAY6(l25h->ether_dhost), TTL_MAX);
 	}
 
 	// fist check if we have sent more then RREQ_LIMITH RREQ messages at last 1 sek.
@@ -143,6 +141,12 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
 
 	dessert_meshsend(msg, NULL);
 	aodv_db_putrreq(ts);
+
+	if(msg->ttl == TTL_MAX) {
+		//last RREQ is send
+		dessert_msg_destroy(msg);
+		return;
+	}
 
 	// add task to repeat RREQ after
 	msg->ttl = (msg->ttl > TTL_THRESHOLD) ? TTL_MAX : msg->ttl + TTL_INCREMENT;
