@@ -215,7 +215,7 @@ int aodv_db_rt_capt_rreq(uint8_t dhost_ether[ETH_ALEN],
 	if(a < 0 || (a == 0 && b >= 0)) {
 
 		if(a == 0 && b > 0) {
-			dessert_info("METRIC HIT: destination_sequence_number=%d:%d - path_weight=%d:%d", srclist_entry->originator_sequence_number, originator_sequence_number, rt_entry->path_weight, path_weight);
+			dessert_info("METRIC HIT: originator_sequence_number=%d:%d - path_weight=%d:%d", srclist_entry->originator_sequence_number, originator_sequence_number, rt_entry->path_weight, path_weight);
 		}
 
 		dessert_debug("get rreq from " MAC ": originator_sequence_number=%d:%d",
