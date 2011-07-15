@@ -104,7 +104,7 @@ int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
 
 	struct timeval ts;
 	gettimeofday(&ts, NULL);
-	aodv_send_rreq(dhost_hwaddr, &ts, TTL_START, initial_path_weight);
+	aodv_send_rreq(dhost_hwaddr, &ts, NULL, initial_path_weight);
 	return CLI_OK;
 }
 
