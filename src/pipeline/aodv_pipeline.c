@@ -302,7 +302,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 			// i know route to destination that have seq_num greater then that of source (route is newer)
 			uint8_t last_hop_count_dest_me;
 			aodv_db_get_hop_count(l25h->ether_dhost, &last_hop_count_dest_me);
-			dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_destination_sequence_number /*this is what we know*/ , AODV_FLAGS_RREP_A, rreq_msg->hop_count + last_hop_count_dest_me);
+			dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_destination_sequence_number /*this is what we know*/ , AODV_FLAGS_RREP_A, last_hop_count_dest_me);
 			dessert_debug("repair link to " MAC, EXPLODE_ARRAY6(l25h->ether_dhost));
 
 			dessert_meshsend(rrep_msg, iface);
@@ -317,7 +317,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 		uint32_t destination_sequence_number_copy = ++seq_num_global;
 		pthread_rwlock_unlock(&pp_rwlock);
 
-		dessert_msg_t* rrep_msg = _create_rrep(dessert_l25_defsrc, l25h->ether_shost, msg->l2h.ether_shost, destination_sequence_number_copy, AODV_FLAGS_RREP_A, rreq_msg->hop_count);
+		dessert_msg_t* rrep_msg = _create_rrep(dessert_l25_defsrc, l25h->ether_shost, msg->l2h.ether_shost, destination_sequence_number_copy, AODV_FLAGS_RREP_A, 0);
 		dessert_meshsend(rrep_msg, iface);
 		dessert_msg_destroy(rrep_msg);
 		dessert_debug("incoming RREQ from " MAC " over " MAC " for me originator_sequence_number=%d -> answer with RREP destination_sequence_number_copy=%d",
