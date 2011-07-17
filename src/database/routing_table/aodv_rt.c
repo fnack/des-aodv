@@ -256,7 +256,7 @@ int aodv_db_rt_capt_rrep(uint8_t dhost_ether[ETH_ALEN],
 	int u = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
 	int a = hf_comp_u32(rt_entry->destination_sequence_number, destination_sequence_number);
 	dessert_trace("destination_sequence_number=%u:%u - hop_count=%u:%u", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->hop_count, hop_count);
-	if(u || a < 0) {
+	if(u || a <= 0) {
 
 		nht_entry_t* nht_entry;
 		nht_destlist_entry_t* destlist_entry;
