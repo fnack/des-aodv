@@ -26,7 +26,7 @@ For further information and questions please use the web site
 #include "../../config.h"
 #include "../../helper.h"
 
-#define  REPORT_RT_STR_LEN 150
+#define REPORT_RT_STR_LEN 150
 
 typedef struct aodv_rt_srclist_entry {
 	uint8_t					shost_ether[ETH_ALEN]; // ID

@@ -93,10 +93,7 @@ int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
 	int len1 = sscanf(argv[0], MAC, &dhost_hwaddr[0], &dhost_hwaddr[1], &dhost_hwaddr[2],
 	                                &dhost_hwaddr[3], &dhost_hwaddr[4], &dhost_hwaddr[5]);
 
-	int initial_path_weight = 0; //sscanf can't handle uint8_t
-	if(argc > 1) {
-		sscanf(argv[1], "%u", &initial_path_weight);
-	}
+	uint8_t initial_path_weight = (uint8_t) strtoul(argv[1], NULL, 10);
 	if(len1 != 6) {
 		cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_path_weight]\n", command);
 		return CLI_ERROR_ARG;
