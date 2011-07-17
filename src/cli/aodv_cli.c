@@ -83,19 +83,26 @@ int cli_set_rreq_size(struct cli_def *cli, char *command, char *argv[], int argc
 }
 
 int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
-	uint8_t dhost_hwaddr[ETHER_ADDR_LEN];
 
-	if (argc < 1 || argc > 2 || sscanf(argv[0], MAC,
-			&dhost_hwaddr[0], &dhost_hwaddr[1], &dhost_hwaddr[2], &dhost_hwaddr[3],
-			&dhost_hwaddr[4], &dhost_hwaddr[5]) != 6) { // args are not correct
-		cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX]\n", command);
+	if(argc < 1 || 2 < argc) {
+		cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_hop_count]\n", command);
 		return CLI_ERROR_ARG;
-	} else {
-		struct timeval ts;
-		gettimeofday(&ts, NULL);
-		aodv_send_rreq(dhost_hwaddr, &ts, NULL); // NULL: request a new rreq
-		return CLI_OK;
 	}
+
+	uint8_t dhost_hwaddr[ETHER_ADDR_LEN];
+	int len1 = sscanf(argv[0], MAC, &dhost_hwaddr[0], &dhost_hwaddr[1], &dhost_hwaddr[2],
+	                                &dhost_hwaddr[3], &dhost_hwaddr[4], &dhost_hwaddr[5]);
+
+	uint8_t initial_hop_count = (uint8_t) strtoul(argv[1], NULL, 10);
+	if(len1 != 6) {
+		cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_hop_count]\n", command);
+		return CLI_ERROR_ARG;
+	}
+
+	struct timeval ts;
+	gettimeofday(&ts, NULL);
+	aodv_send_rreq(dhost_hwaddr, &ts, NULL, initial_hop_count);
+	return CLI_OK;
 }
 
 int cli_show_hello_size(struct cli_def *cli, char *command, char *argv[], int argc) {

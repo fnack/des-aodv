@@ -194,7 +194,7 @@ int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[E
  */
 int aodv_db_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
 	aodv_db_wlock();
-	int result =  db_nt_cap2Dneigh(ether_neighbor_addr, iface, timestamp);
+	int result = db_nt_cap2Dneigh(ether_neighbor_addr, iface, timestamp);
 	aodv_db_unlock();
 	return result;
 }

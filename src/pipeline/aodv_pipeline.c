@@ -38,7 +38,7 @@ pthread_rwlock_t data_seq_lock = PTHREAD_RWLOCK_INITIALIZER;
 
 // ---------------------------- help functions ---------------------------------------
 
-dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl) {
+dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl, uint8_t initial_hop_count) {
 	dessert_msg_t* msg;
 	dessert_ext_t* ext;
 	dessert_msg_new(&msg);
@@ -54,7 +54,7 @@ dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl) {
 	// add RREQ ext
 	dessert_msg_addext(msg, &ext, RREQ_EXT_TYPE, sizeof(struct aodv_msg_rreq));
 	struct aodv_msg_rreq* rreq_msg = (struct aodv_msg_rreq*) ext->data;
-	rreq_msg->hop_count = 0;
+	rreq_msg->hop_count = initial_hop_count;
 	rreq_msg->flags = 0;
 	pthread_rwlock_wrlock(&pp_rwlock);
 	rreq_msg->originator_sequence_number = ++seq_num_global;
@@ -110,7 +110,7 @@ dessert_msg_t* _create_rrep(uint8_t route_dest[ETH_ALEN], uint8_t route_source[E
 	return msg;
 }
 
-void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_msg_t* msg) {
+void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_msg_t* msg, uint8_t initial_hop_count) {
 
 	if(msg == NULL) {
 		// rreq_msg == NULL means: this is a first try from RREQ_RETRIES
@@ -125,7 +125,7 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
 			dessert_trace("we have reached RREQ_RATELIMIT");
 			return;
 		}
-		msg = _create_rreq(dhost_ether, TTL_START); // create RREQ
+		msg = _create_rreq(dhost_ether, TTL_START, initial_hop_count); // create RREQ
 	}
 
 	dessert_ext_t* ext;
@@ -325,10 +325,10 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 		/* RREQ gives route to his source. Process RREQ also as RREP */
 		int y = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->destination_sequence_number, rreq_msg->hop_count, &ts);
 		if (y == TRUE) {
-			dessert_debug("no need to search for next hop. Next hop is RREQ.msg->l2h.ether_shost");
+			// no need to search for next hop. Next hop is RREQ.msg->l2h.ether_shost
 			aodv_send_packets_from_buffer(l25h->ether_shost, msg->l2h.ether_shost, iface);
 		} else {
-			dessert_debug("we know a better route already");
+			dessert_debug(MAC ": we know a better route already", EXPLODE_ARRAY6(l25h->ether_shost));
 		}
 	}
 	return DESSERT_MSG_DROP;
@@ -569,7 +569,7 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, desse
 			dessert_trace("send data packet to mesh - to " MAC " over " MAC " id=%u route is known", EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(dhost_next_hop), data_seq_global);
 		} else {
 			aodv_db_push_packet(l25h->ether_dhost, msg, &ts);
-			aodv_send_rreq(l25h->ether_dhost, &ts, NULL); // create and send RREQ - NULL: new rreq
+			aodv_send_rreq(l25h->ether_dhost, &ts, NULL, 0); // create and send RREQ - without initial hop_count
 			dessert_trace("send data packet to mesh - to " MAC " id=%u but route is unknown -> push packet to FIFO and send RREQ", EXPLODE_ARRAY6(l25h->ether_dhost), data_seq_global);
 		}
 	}
