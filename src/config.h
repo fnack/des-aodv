@@ -57,7 +57,7 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define SCHEDULE_CHECK_INTERVAL			20 /* ms not in rfc */
 
 #define STATIC_HELLO_INTERVAL       1000 /* ms rfc=1000 */
-#define MOBILITY                    8 /* 1==no; 255==max rfc=none*/
+#define MOBILITY                    4 /* 1==no; 255==max rfc=none*/
 #define HELLO_INTERVAL              (STATIC_HELLO_INTERVAL / MOBILITY)
 
 #define HELLO_SIZE				128 /* bytes */

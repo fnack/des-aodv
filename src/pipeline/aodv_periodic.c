@@ -167,13 +167,12 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 			}
 		}
 	} else if (schedule_type == AODV_SC_SEND_OUT_RWARN) {
-		dessert_debug("AODV_SC_SEND_OUT_RWARN: " MAC, EXPLODE_ARRAY6(ether_addr));
-
 		_onlb_element_t* head = NULL;
-		aodv_db_get_route_endpoints_from_neighbor_and_set_warn(ether_addr, &head);
+		aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(ether_addr, &head);
 
 		_onlb_element_t *dest, *tmp;
 		DL_FOREACH_SAFE(head, dest, tmp) {
+			dessert_debug("AODV_SC_SEND_OUT_RWARN -> down: " MAC " dest: " MAC, EXPLODE_ARRAY6(ether_addr), EXPLODE_ARRAY6(dest->dhost_ether));
 			aodv_send_rreq(dest->dhost_ether, &timestamp, NULL);
 		}
 	} else if(schedule_type == AODV_SC_UPDATE_RSSI) {

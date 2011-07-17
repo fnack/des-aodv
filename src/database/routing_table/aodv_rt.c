@@ -251,7 +251,6 @@ int aodv_db_rt_capt_rrep(uint8_t dhost_ether[ETH_ALEN],
 	}
 	int u = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
 	int a = hf_comp_u32(rt_entry->destination_sequence_number, destination_sequence_number);
-	int b = hf_comp_u8(rt_entry->hop_count, hop_count); //hop count metric
 	dessert_trace("destination_sequence_number=%u:%u - hop_count=%u:%u", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->hop_count, hop_count);
 	if(u || a < 0) {
 
@@ -407,7 +406,7 @@ int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_o
 }
 
 //get all routes over one neighbor
-int aodv_db_rt_get_route_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], _onlb_element_t** head) {
+int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], _onlb_element_t** head) {
 	// find appropriate routing entry
 	nht_entry_t* nht_entry;
 	HASH_FIND(hh, nht, neighbor, ETH_ALEN, nht_entry);
@@ -419,10 +418,12 @@ int aodv_db_rt_get_route_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[E
 	struct nht_destlist_entry *dest, *tmp;
 
 	HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
-		_onlb_element_t* curr_el = malloc(sizeof(_onlb_element_t));
-		memcpy(curr_el->dhost_ether, dest->rt_entry->dhost_ether, ETH_ALEN);
-		DL_APPEND(*head, curr_el);
-		dest->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
+		if(!(dest->rt_entry->flags & AODV_FLAGS_ROUTE_WARN)) {
+			_onlb_element_t* curr_el = malloc(sizeof(_onlb_element_t));
+			memcpy(curr_el->dhost_ether, dest->rt_entry->dhost_ether, ETH_ALEN);
+			DL_APPEND(*head, curr_el);
+			dest->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
+		}
 	}
 	return TRUE;
 }

@@ -334,7 +334,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 		/* RREQ gives route to his source. Process RREQ also as RREP */
 		int y = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->destination_sequence_number, rreq_msg->hop_count, &ts);
 		if (y == TRUE) {
-			dessert_debug("no need to search for next hop. Next hop is RREQ.msg->l2h.ether_shost");
+			// no need to search for next hop. Next hop is RREQ.msg->l2h.ether_shost
 			aodv_send_packets_from_buffer(l25h->ether_shost, msg->l2h.ether_shost, iface);
 		} else {
 			dessert_debug("we know a better route already");
