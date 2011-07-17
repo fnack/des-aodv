@@ -95,7 +95,9 @@ int aodv_db_addschedule(struct timeval* execute_ts, uint8_t ether_addr[ETH_ALEN]
 
 int aodv_db_popschedule(struct timeval* timestamp, uint8_t ether_addr_out[ETH_ALEN], uint8_t* type, void* param);
 
-void aodv_db_dropschedule(uint8_t ether_addr[ETH_ALEN], uint8_t type);
+int aodv_db_schedule_exists(uint8_t ether_addr[ETH_ALEN], uint8_t type);
+
+int aodv_db_dropschedule(uint8_t ether_addr[ETH_ALEN], uint8_t type);
 
 void aodv_db_putrreq(struct timeval* timestamp);
 

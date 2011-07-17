@@ -223,10 +223,18 @@ int aodv_db_popschedule(struct timeval* timestamp, uint8_t ether_addr_out[ETH_AL
 	return result;
 }
 
-void aodv_db_dropschedule(uint8_t ether_addr[ETH_ALEN], uint8_t type) {
+int aodv_db_schedule_exists(uint8_t ether_addr[ETH_ALEN], uint8_t type) {
 	aodv_db_wlock();
-	aodv_db_sc_dropschedule(ether_addr, type);
+	int result =  aodv_db_sc_schedule_exists(ether_addr, type);
 	aodv_db_unlock();
+	return result;
+}
+
+int aodv_db_dropschedule(uint8_t ether_addr[ETH_ALEN], uint8_t type) {
+	aodv_db_wlock();
+	int result =  aodv_db_sc_dropschedule(ether_addr, type);
+	aodv_db_unlock();
+	return result;
 }
 
 void aodv_db_putrreq(struct timeval* timestamp) {
