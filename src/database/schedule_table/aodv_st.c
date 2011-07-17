@@ -110,14 +110,28 @@ int aodv_db_sc_popschedule(struct timeval* timestamp, uint8_t ether_addr_out[ETH
 	return FALSE;
 }
 
-void aodv_db_sc_dropschedule(uint8_t ether_addr[ETH_ALEN], uint8_t type) {
+int aodv_db_sc_schedule_exists(uint8_t ether_addr[ETH_ALEN], uint8_t type) {
 	schedule_t* schedule;
 	uint8_t key[ETH_ALEN + sizeof(uint8_t)];
 	memcpy(key, ether_addr, ETH_ALEN);
 	memcpy(key + ETH_ALEN, &type, sizeof(uint8_t));
 	HASH_FIND(hh, hash_table, key, ETH_ALEN + sizeof(uint8_t), schedule);
 
-	if (schedule == NULL) return;
+	if (schedule == NULL) {
+		return FALSE;
+	} else {
+		return TRUE;
+	}
+}
+
+int aodv_db_sc_dropschedule(uint8_t ether_addr[ETH_ALEN], uint8_t type) {
+	schedule_t* schedule;
+	uint8_t key[ETH_ALEN + sizeof(uint8_t)];
+	memcpy(key, ether_addr, ETH_ALEN);
+	memcpy(key + ETH_ALEN, &type, sizeof(uint8_t));
+	HASH_FIND(hh, hash_table, key, ETH_ALEN + sizeof(uint8_t), schedule);
+
+	if (schedule == NULL) return FALSE;
 
 	if (schedule->prev != NULL) {
 		schedule->prev->next = schedule->next;
@@ -130,4 +144,5 @@ void aodv_db_sc_dropschedule(uint8_t ether_addr[ETH_ALEN], uint8_t type) {
 	}
 	HASH_DEL(hash_table, schedule);
 	free(schedule);
+	return TRUE;
 }

@@ -177,6 +177,6 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 
 // ------------------------------ helper ------------------------------------------------------
 
-void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, uint8_t ttl);
+void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_msg_t* rreq_msg);
 
 #endif
