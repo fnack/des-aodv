@@ -121,11 +121,22 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
 	aodv_db_getrreqcount(ts, &rreq_count);
 	if (rreq_count >= RREQ_RATELIMIT) {
 		// we have reached RREQ_RATELIMIT -> send this RREQ later(try in 100ms)!
+		dessert_msg_t* newmsg;
+		dessert_msg_new(&newmsg);
+		dessert_msg_clone(&newmsg, msg, FALSE);
+		//use RREQ_RATELIMIT as a flag
+		newmsg->u16 |= AODV_FLAGS_RREQ_RATELIMIT;
+
 		struct timeval retry_time;
 		retry_time.tv_sec = 0;
 		retry_time.tv_usec = (100) * 1000;
 		hf_add_tv(ts, &retry_time, &retry_time);
-		aodv_db_addschedule(&retry_time, dhost_ether, AODV_SC_REPEAT_RREQ, msg);
+		aodv_db_addschedule(&retry_time, dhost_ether, AODV_SC_REPEAT_RREQ, newmsg);
+
+		if(msg->u16 & AODV_FLAGS_RREQ_RATELIMIT) {
+			//this was a rate dup, so we can destroy the msg, because it is a copy
+			dessert_msg_destroy(msg);
+		}
 		return;
 	}
 
@@ -142,8 +153,8 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
 	dessert_meshsend(msg, NULL);
 	aodv_db_putrreq(ts);
 
-	if(msg->ttl == TTL_MAX) {
-		//last RREQ is send
+	if(msg->ttl == TTL_MAX || msg->u16 & AODV_FLAGS_RREQ_RATELIMIT) {
+		//last RREQ is send or it was a copy
 		dessert_msg_destroy(msg);
 		return;
 	}
