@@ -127,7 +127,7 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
 			dessert_trace("we have reached RREQ_RATELIMIT");
 			return;
 		}
-		msg = _create_rreq(dhost_ether, TTL_START); // create RREQ
+		msg = _create_rreq(dhost_ether, TTL_START, initial_path_weight); // create RREQ
 	}
 
 	dessert_ext_t* ext;
