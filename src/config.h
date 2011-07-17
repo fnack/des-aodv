@@ -56,9 +56,9 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define DB_CLEANUP_INTERVAL			NET_TRAVERSAL_TIME /* not in rfc */
 #define SCHEDULE_CHECK_INTERVAL			20 /* ms not in rfc */
 
-#define STATIC_HELLO_INTERVAL       1000 /* ms rfc=1000 */
-#define MOBILITY                    4 /* 1==no; 255==max rfc=none*/
-#define HELLO_INTERVAL              (STATIC_HELLO_INTERVAL / MOBILITY)
+#define STATIC_HELLO_INTERVAL			1000 /* ms rfc=1000 */
+#define MOBILITY				1 /* 1==no; 255==max rfc=none*/
+#define HELLO_INTERVAL				(STATIC_HELLO_INTERVAL / MOBILITY)
 
 #define HELLO_SIZE				128 /* bytes */
 #define RREQ_SIZE				128 /* bytes */
@@ -79,11 +79,10 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
  */
 #define AODV_SC_SEND_OUT_RERR			3
 #define AODV_SC_SEND_OUT_RWARN			4
-#define AODV_SC_UPDATE_RSSI				5
+#define AODV_SC_UPDATE_RSSI			5
 
-#define SIGNAL_STRENGTH_BLACK_ZONE            -90 //dbm
-#define SIGNAL_STRENGTH_GREY_ZONE             -80 //dbm
-#define SIGNAL_STRENGTH_THRESHOLD              20 //dbm
+#define AODV_SIGNAL_STRENGTH_THRESHOLD		15 /* dbm */
+#define AODV_SIGNAL_STRENGTH_INIT		-120
 
 // --- Database Flags
 #define AODV_FLAGS_ROUTE_INVALID 		1

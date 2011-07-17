@@ -53,7 +53,7 @@ neighbor_entry_t* db_neighbor_entry_create(uint8_t ether_neighbor_addr[ETH_ALEN]
 
 	new_entry->mobility = remote_mobility;
 	new_entry->hello_interval = remote_hello_interval;
-	new_entry->max_rssi = -120;
+	new_entry->max_rssi = AODV_SIGNAL_STRENGTH_INIT;
 
 	return new_entry;
 }
@@ -76,6 +76,20 @@ void db_nt_on_neigbor_timeout(struct timeval* timestamp, void* src_object, void*
 	gettimeofday(&curr_time, NULL);
 	aodv_db_sc_addschedule(&curr_time, curr_entry->ether_neighbor, AODV_SC_SEND_OUT_RERR, 0);
 	free(curr_entry);
+}
+
+int db_nt_reset_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
+	dessert_debug("db_nt_reset_rssi: " MAC, EXPLODE_ARRAY6(ether_neighbor_addr));
+	neighbor_entry_t* curr_entry = NULL;
+	uint8_t addr_sum[ETH_ALEN + sizeof(void*)];
+	memcpy(addr_sum, ether_neighbor_addr, ETH_ALEN);
+	memcpy(addr_sum + ETH_ALEN, &iface, sizeof(void*));
+	HASH_FIND(hh, nt.entrys, addr_sum, ETH_ALEN + sizeof(void*), curr_entry);
+	if (curr_entry == NULL) {
+		return FALSE;
+	}
+	curr_entry->max_rssi = AODV_SIGNAL_STRENGTH_INIT;
+	return TRUE;
 }
 
 int db_nt_update_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {

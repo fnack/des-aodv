@@ -25,8 +25,9 @@ For further information and questions please use the web site
 #include "../timeslot.h"
 #include "../../config.h"
 #include "../../helper.h"
+#include "../neighbor_table/nt.h"
 
-#define  REPORT_RT_STR_LEN 150
+#define REPORT_RT_STR_LEN 150
 
 typedef struct aodv_rt_srclist_entry {
 	uint8_t					shost_ether[ETH_ALEN]; // ID
@@ -249,6 +250,9 @@ int aodv_db_rt_capt_rrep(uint8_t dhost_ether[ETH_ALEN],
 		}
 		HASH_ADD_KEYPTR(hh, rt.entrys, rt_entry->dhost_ether, ETH_ALEN, rt_entry);
 	}
+	//this is a routing update, so reset the max rssi val of the next hop
+	db_nt_reset_rssi(rt_entry->dhost_next_hop, rt_entry->output_iface, timestamp);
+
 	int u = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
 	int a = hf_comp_u32(rt_entry->destination_sequence_number, destination_sequence_number);
 	dessert_trace("destination_sequence_number=%u:%u - hop_count=%u:%u", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->hop_count, hop_count);
@@ -419,6 +423,7 @@ int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ET
 
 	HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
 		if(!(dest->rt_entry->flags & AODV_FLAGS_ROUTE_WARN)) {
+			dessert_debug("dest->rt_entry->flags = %u->%p", dest->rt_entry->flags, dest->rt_entry);
 			_onlb_element_t* curr_el = malloc(sizeof(_onlb_element_t));
 			memcpy(curr_el->dhost_ether, dest->rt_entry->dhost_ether, ETH_ALEN);
 			DL_APPEND(*head, curr_el);
@@ -434,7 +439,9 @@ int aodv_db_rt_get_warn_status(uint8_t dhost_ether[ETH_ALEN]) {
 	if (rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN)
 		return FALSE;
 
+	dessert_debug("rt_entry->flags = %u->%p", rt_entry->flags, rt_entry);
 	if(rt_entry->flags & AODV_FLAGS_ROUTE_WARN) {
+		dessert_debug("A: rt_entry->flags = %u->%p", rt_entry->flags, rt_entry);
 		return TRUE;
 	} else {
 		return FALSE;
