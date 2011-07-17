@@ -170,11 +170,11 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 		dessert_debug("AODV_SC_SEND_OUT_RWARN: " MAC, EXPLODE_ARRAY6(ether_addr));
 
 		_onlb_element_t* head = NULL;
-		uint16_t count = aodv_db_get_route_endpoints_from_neighbor(ether_addr, &head);
+		aodv_db_get_route_endpoints_from_neighbor(ether_addr, &head);
 
 		_onlb_element_t *dest, *tmp;
 		DL_FOREACH_SAFE(head, dest, tmp) {
-			aodv_send_rreq(dest->dhost_ether, &timestamp, TTL_START);
+			aodv_send_rreq(dest->dhost_ether, &timestamp, NULL);
 		}
 	} else if(schedule_type == AODV_SC_UPDATE_RSSI) {
 		dessert_meshif_t* iface = (dessert_meshif_t*) (schedule_param);

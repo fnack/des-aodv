@@ -416,7 +416,6 @@ uint16_t aodv_db_rt_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN]
 int aodv_db_rt_get_warn_status(uint8_t dhost_next_hop[ETH_ALEN]) {
 	// find appropriate routing entry
 	nht_entry_t* nht_entry;
-	nht_destlist_entry_t* nht_dest_entry;
 	HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
 	if ((nht_entry == NULL) || (nht_entry->dest_list == NULL)) return FALSE;
 
