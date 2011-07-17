@@ -167,7 +167,7 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 			}
 		}
 	} else {
-		dessert_crit("unknown schedule type=%d", schedule_type);
+		dessert_crit("unknown schedule type=%u", schedule_type);
 	}
 	return 0;
 }
