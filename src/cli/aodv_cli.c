@@ -38,14 +38,14 @@ int cli_set_hello_size(struct cli_def *cli, char *command, char *argv[], int arg
 
 	if(argc != 1) {
 		label_out_usage:
-		cli_print(cli, "usage %s [%d..1500]\n", command, min_size);
+		cli_print(cli, "usage %s [%u..1500]\n", command, min_size);
 		return CLI_ERROR;
 	}
 
 	uint16_t psize = (uint16_t) strtoul(argv[0], NULL, 10);
 	if(psize < min_size || psize > 1500) goto label_out_usage;
 	hello_size = psize;
-	dessert_notice("setting HELLO size to %d", hello_size);
+	dessert_notice("setting HELLO size to %u", hello_size);
 	return CLI_OK;
 }
 
@@ -62,7 +62,7 @@ int cli_set_hello_interval(struct cli_def *cli, char *command, char *argv[], int
 	hello_interval_t.tv_sec = hello_interval / 1000;
 	hello_interval_t.tv_usec = (hello_interval % 1000) * 1000;
 	periodic_send_hello = dessert_periodic_add(aodv_periodic_send_hello, NULL, NULL, &hello_interval_t);
-	dessert_notice("setting HELLO interval to %d", hello_interval);
+	dessert_notice("setting HELLO interval to %u", hello_interval);
 	return CLI_OK;
 }
 
@@ -71,14 +71,14 @@ int cli_set_rreq_size(struct cli_def *cli, char *command, char *argv[], int argc
 
 	if(argc != 1) {
 		label_out_usage:
-		cli_print(cli, "usage %s [%d..1500]\n", command, min_size);
+		cli_print(cli, "usage %s [%u..1500]\n", command, min_size);
 		return CLI_ERROR;
 	}
 
 	uint16_t psize = (uint16_t) strtoul(argv[0], NULL, 10);
 	if(psize < min_size || psize > 1500) goto label_out_usage;
 	rreq_size = psize;
-	dessert_notice("setting RREQ size to %d", rreq_size);
+	dessert_notice("setting RREQ size to %u", rreq_size);
 	return CLI_OK;
 }
 
@@ -95,7 +95,7 @@ int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
 
 	int initial_path_weight = 0; //sscanf can't handle uint8_t
 	if(argc > 1) {
-		sscanf(argv[1], "%d", &initial_path_weight);
+		sscanf(argv[1], "%u", &initial_path_weight);
 	}
 	if(len1 != 6) {
 		cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_path_weight]\n", command);
@@ -109,17 +109,17 @@ int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
 }
 
 int cli_show_hello_size(struct cli_def *cli, char *command, char *argv[], int argc) {
-	cli_print(cli, "HELLO size = %d bytes\n", hello_size);
+	cli_print(cli, "HELLO size = %u bytes\n", hello_size);
 	return CLI_OK;
 }
 
 int cli_show_hello_interval(struct cli_def *cli, char *command, char *argv[], int argc) {
-	cli_print(cli, "HELLO interval = %d millisec\n", hello_interval);
+	cli_print(cli, "HELLO interval = %u millisec\n", hello_interval);
 	return CLI_OK;
 }
 
 int cli_show_rreq_size(struct cli_def *cli, char *command, char *argv[], int argc) {
-	cli_print(cli, "RREQ size = %d bytes\n", rreq_size);
+	cli_print(cli, "RREQ size = %u bytes\n", rreq_size);
 	return CLI_OK;
 }
 

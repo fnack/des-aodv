@@ -204,7 +204,7 @@ int aodv_db_rt_capt_rreq(uint8_t dhost_ether[ETH_ALEN],
 		}
 		HASH_ADD_KEYPTR(hh, rt_entry->src_list, srclist_entry->shost_ether, ETH_ALEN, srclist_entry);
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
-		dessert_debug("create route to " MAC ": originator_sequence_number=%d",
+		dessert_debug("create route to " MAC ": originator_sequence_number=%u",
 		              EXPLODE_ARRAY6(shost_ether), srclist_entry->originator_sequence_number);
 		return TRUE;
 	}
@@ -215,10 +215,10 @@ int aodv_db_rt_capt_rreq(uint8_t dhost_ether[ETH_ALEN],
 	if(a < 0 || (a == 0 && b >= 0)) {
 
 		if(a == 0 && b > 0) {
-			dessert_info("METRIC HIT: originator_sequence_number=%d:%d - path_weight=%d:%d", srclist_entry->originator_sequence_number, originator_sequence_number, rt_entry->path_weight, path_weight);
+			dessert_info("METRIC HIT: originator_sequence_number=%u:%u - path_weight=%u:%u", srclist_entry->originator_sequence_number, originator_sequence_number, rt_entry->path_weight, path_weight);
 		}
 
-		dessert_debug("get rreq from " MAC ": originator_sequence_number=%d:%d",
+		dessert_debug("get rreq from " MAC ": originator_sequence_number=%u:%u",
 		              EXPLODE_ARRAY6(shost_ether), srclist_entry->originator_sequence_number, originator_sequence_number);
 
 		// overwrite several fields of source entry if source seq_num is newer
@@ -229,7 +229,7 @@ int aodv_db_rt_capt_rreq(uint8_t dhost_ether[ETH_ALEN],
 		return TRUE;
 	}
 
-	dessert_debug("get OLD rreq from " MAC ": originator_sequence_number=%d:%d",
+	dessert_debug("get OLD rreq from " MAC ": originator_sequence_number=%u:%u",
 		              EXPLODE_ARRAY6(shost_ether), srclist_entry->originator_sequence_number, originator_sequence_number);
 	return FALSE;
 }
@@ -255,14 +255,8 @@ int aodv_db_rt_capt_rrep(uint8_t dhost_ether[ETH_ALEN],
 	}
 	int u = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
 	int a = hf_comp_u32(rt_entry->destination_sequence_number, destination_sequence_number);
-//	int b = hf_comp_u8(rt_entry->hop_count, hop_count); //hop count metric
-	int b = hf_comp_u8(rt_entry->path_weight, path_weight); //path weight metric
-	dessert_trace("destination_sequence_number=%d:%d - path_weight=%d:%d", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->path_weight, path_weight);
-	if(u || a < 0 || (a == 0 && b > 0)) {
-
-		if(a == 0 && b > 0) {
-			dessert_info("METRIC HIT: destination_sequence_number=%d:%d - path_weight=%d:%d", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->path_weight, path_weight);
-		}
+	dessert_trace("destination_sequence_number=%u:%u - path_weight=%u:%u", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->path_weight, path_weight);
+	if(u || a <= 0) {
 
 		nht_entry_t* nht_entry;
 		nht_destlist_entry_t* destlist_entry;
