@@ -71,7 +71,6 @@ typedef struct nht_destlist_entry {
 typedef struct nht_entry {
 	uint8_t					dhost_next_hop[ETH_ALEN];
 	nht_destlist_entry_t*		dest_list;
-	uint8_t					flags;
 	UT_hash_handle				hh;
 } nht_entry_t;
 
@@ -285,6 +284,7 @@ int aodv_db_rt_capt_rrep(uint8_t dhost_ether[ETH_ALEN],
 		rt_entry->hop_count = hop_count;
 		rt_entry->flags &= ~AODV_FLAGS_NEXT_HOP_UNKNOWN;
 		rt_entry->flags &= ~AODV_FLAGS_ROUTE_INVALID;
+		rt_entry->flags &= ~AODV_FLAGS_ROUTE_WARN;
 
 		// map also this routing entry to next hop
 		HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
@@ -388,56 +388,12 @@ int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
 	return TRUE;
 }
 
-//get all routes over one neighbor
-uint16_t aodv_db_rt_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN], _onlb_element_t** head) {
-	// find appropriate routing entry
-	nht_entry_t* nht_entry;
-	HASH_FIND(hh, nht, neighbor, ETH_ALEN, nht_entry);
-	if ((nht_entry == NULL) || (nht_entry->dest_list == NULL)) {
-		return 0;
-	}
-
-	//mark as warned
-	nht_entry->flags |= AODV_FLAGS_ROUTE_WARN;
-
-	uint16_t dest_count = 0;
-	*head = NULL;
-	struct nht_destlist_entry *dest, *tmp;
-
-	HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
-		_onlb_element_t* curr_el = malloc(sizeof(_onlb_element_t));
-		memcpy(curr_el->dhost_ether, dest->rt_entry->dhost_ether, ETH_ALEN);
-		DL_APPEND(*head, curr_el);
-		dest_count++;
-	}
-	return dest_count;
-}
-
-int aodv_db_rt_get_warn_status(uint8_t dhost_next_hop[ETH_ALEN]) {
-	// find appropriate routing entry
-	nht_entry_t* nht_entry;
-	HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
-	if ((nht_entry == NULL) || (nht_entry->dest_list == NULL)) return FALSE;
-
-	if(nht_entry->flags & AODV_FLAGS_ROUTE_WARN) {
-		return TRUE;
-	} else {
-		return FALSE;
-	}
-}
-
 int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
 	// find appropriate routing entry
 	nht_entry_t* nht_entry;
 	nht_destlist_entry_t* nht_dest_entry;
 	HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
 	if ((nht_entry == NULL) || (nht_entry->dest_list == NULL)) return FALSE;
-
-	if(nht_entry->flags & AODV_FLAGS_ROUTE_WARN) {
-		//this neighbor is marked as warned, we don't need an error
-		return FALSE;
-	}
-
 	nht_dest_entry = nht_entry->dest_list;
 
 	// mark route as invalid and give this destination address back
@@ -452,6 +408,40 @@ int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_o
 		free(nht_entry);
 	}
 	return TRUE;
+}
+
+//get all routes over one neighbor
+int aodv_db_rt_get_route_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], _onlb_element_t** head) {
+	// find appropriate routing entry
+	nht_entry_t* nht_entry;
+	HASH_FIND(hh, nht, neighbor, ETH_ALEN, nht_entry);
+	if ((nht_entry == NULL) || (nht_entry->dest_list == NULL)) {
+		return FALSE;
+	}
+
+	*head = NULL;
+	struct nht_destlist_entry *dest, *tmp;
+
+	HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
+		_onlb_element_t* curr_el = malloc(sizeof(_onlb_element_t));
+		memcpy(curr_el->dhost_ether, dest->rt_entry->dhost_ether, ETH_ALEN);
+		DL_APPEND(*head, curr_el);
+		dest->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
+	}
+	return TRUE;
+}
+
+int aodv_db_rt_get_warn_status(uint8_t dhost_ether[ETH_ALEN]) {
+	aodv_rt_entry_t* rt_entry;
+	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
+	if (rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN)
+		return FALSE;
+
+	if(rt_entry->flags & AODV_FLAGS_ROUTE_WARN) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
 }
 
 int aodv_db_rt_cleanup (struct timeval* timestamp) {

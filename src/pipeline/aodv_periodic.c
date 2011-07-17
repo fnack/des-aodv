@@ -170,7 +170,7 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 		dessert_debug("AODV_SC_SEND_OUT_RWARN: " MAC, EXPLODE_ARRAY6(ether_addr));
 
 		_onlb_element_t* head = NULL;
-		aodv_db_get_route_endpoints_from_neighbor(ether_addr, &head);
+		aodv_db_get_route_endpoints_from_neighbor_and_set_warn(ether_addr, &head);
 
 		_onlb_element_t *dest, *tmp;
 		DL_FOREACH_SAFE(head, dest, tmp) {

@@ -81,7 +81,7 @@ int aodv_db_markrouteinv (uint8_t dhost_ether[ETH_ALEN]);
 
 int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]);
 
-uint16_t aodv_db_get_route_endpoints_from_neighbor(uint8_t neighbor[ETH_ALEN], _onlb_element_t** head);
+int aodv_db_get_route_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], _onlb_element_t** head);
 
 int aodv_db_get_warn_status(uint8_t dhost_ether[ETH_ALEN]);
 
@@ -89,7 +89,7 @@ int aodv_db_get_warn_status(uint8_t dhost_ether[ETH_ALEN]);
  * Take a record that the given neighbor seems to be
  * the 1 hop bidirectional neighbor
  */
-int aodv_db_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp, uint16_t remote_hello_interval);
+int aodv_db_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp, uint8_t remote_mobility, uint16_t remote_hello_interval);
 
 /**
  * Check whether given neighbor is 1 hop bidirectional neighbor
