@@ -109,6 +109,10 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
 
 	if(msg == NULL) {
 		// rreq_msg == NULL means: this is a first try from RREQ_RETRIES
+		if(aodv_db_schedule_exists(dhost_ether, AODV_SC_REPEAT_RREQ)) {
+			dessert_trace("there is a rreq_schedule to this dest we dont start a new series");
+			return;
+		}
 		msg = _create_rreq(dhost_ether, TTL_START); // create RREQ
 	}
 	if(msg->ttl == TTL_MAX) {
@@ -117,29 +121,14 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
 	}
 
 	// fist check if we have sent more then RREQ_LIMITH RREQ messages at last 1 sek.
-	uint32_t rreq_count;
+/*	uint32_t rreq_count;
 	aodv_db_getrreqcount(ts, &rreq_count);
 	if (rreq_count >= RREQ_RATELIMIT) {
-		// we have reached RREQ_RATELIMIT -> send this RREQ later(try in 100ms)!
-		dessert_msg_t* newmsg;
-		dessert_msg_new(&newmsg);
-		dessert_msg_clone(&newmsg, msg, FALSE);
-		//use RREQ_RATELIMIT as a flag
-		newmsg->u16 |= AODV_FLAGS_RREQ_RATELIMIT;
-
-		struct timeval retry_time;
-		retry_time.tv_sec = 0;
-		retry_time.tv_usec = (100) * 1000;
-		hf_add_tv(ts, &retry_time, &retry_time);
-		aodv_db_addschedule(&retry_time, dhost_ether, AODV_SC_REPEAT_RREQ, newmsg);
-
-		if(msg->u16 & AODV_FLAGS_RREQ_RATELIMIT) {
-			//this was a rate dup, so we can destroy the msg, because it is a copy
-			dessert_msg_destroy(msg);
-		}
+		dessert_trace("we have reached RREQ_RATELIMIT");
+		dessert_msg_destroy(msg);
 		return;
 	}
-
+*/
 	void* payload;
 	uint16_t size = max(rreq_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
 	dessert_msg_addpayload(msg, &payload, size);
@@ -153,13 +142,13 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
 	dessert_meshsend(msg, NULL);
 	aodv_db_putrreq(ts);
 
-	if(msg->ttl == TTL_MAX || msg->u16 & AODV_FLAGS_RREQ_RATELIMIT) {
-		//last RREQ is send or it was a copy
+	if(msg->ttl == TTL_MAX) {
+		dessert_trace("last RREQ is send");
 		dessert_msg_destroy(msg);
 		return;
 	}
 
-	// add task to repeat RREQ after
+	dessert_trace("add task to repeat RREQ");
 	msg->ttl = (msg->ttl > TTL_THRESHOLD) ? TTL_MAX : msg->ttl + TTL_INCREMENT;
 	uint32_t rep_time = (msg->ttl > TTL_THRESHOLD) ? NET_TRAVERSAL_TIME : (2 * NODE_TRAVERSAL_TIME * (msg->ttl));
 	struct timeval rreq_repeat_time;
