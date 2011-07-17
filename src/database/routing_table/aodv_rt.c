@@ -254,10 +254,6 @@ int aodv_db_rt_capt_rrep(uint8_t dhost_ether[ETH_ALEN],
 	dessert_trace("destination_sequence_number=%u:%u - hop_count=%u:%u", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->hop_count, hop_count);
 	if(u || a <= 0) {
 
-		if(a == 0 && b > 0) {
-			dessert_info("METRIC HIT: destination_sequence_number=%u:%u - hop_count=%u:%u", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->hop_count, hop_count);
-		}
-
 		nht_entry_t* nht_entry;
 		nht_destlist_entry_t* destlist_entry;
 		// remove old next_hop_entry if found
