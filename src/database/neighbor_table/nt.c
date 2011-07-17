@@ -31,6 +31,7 @@ typedef struct neighbor_entry {
 		uint8_t 				ether_neighbor[ETH_ALEN];
 		const dessert_meshif_t*	iface;
 		int8_t					max_rssi;
+		uint16_t				hello_interval;
 	};
 	UT_hash_handle				hh;
 } neighbor_entry_t;
@@ -42,13 +43,16 @@ typedef struct neighbor_table {
 
 neighbor_table_t nt;
 
-neighbor_entry_t* db_neighbor_entry_create(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface) {
+neighbor_entry_t* db_neighbor_entry_create(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, uint16_t remote_hello_interval) {
 	neighbor_entry_t* new_entry;
 	new_entry = malloc(sizeof(neighbor_entry_t));
 	if (new_entry == NULL) return NULL;
 	memcpy(new_entry->ether_neighbor, ether_neighbor_addr, ETH_ALEN);
 	new_entry->iface = iface;
+
 	new_entry->max_rssi = -120;
+	new_entry->hello_interval = remote_hello_interval;
+
 	return new_entry;
 }
 
@@ -102,7 +106,13 @@ int db_nt_init() {
 	return TRUE;
 }
 
-int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp) {
+void create_purge_timeout(struct timeval* purge_timeout, uint16_t remote_hello_interval) {
+	uint32_t hello_int_msek = remote_hello_interval * (ALLOWED_HELLO_LOST + 1);
+	purge_timeout->tv_sec = hello_int_msek / 1000;
+	purge_timeout->tv_usec = (hello_int_msek % 1000) * 1000;
+}
+
+int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp, uint16_t remote_hello_interval) {
 	neighbor_entry_t* curr_entry = NULL;
 	uint8_t addr_sum[ETH_ALEN + sizeof(void*)];
 	memcpy(addr_sum, ether_neighbor_addr, ETH_ALEN);
@@ -110,7 +120,7 @@ int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif
 	HASH_FIND(hh, nt.entrys, addr_sum, ETH_ALEN + sizeof(void*), curr_entry);
 	if (curr_entry == NULL) {
 		//this neigbor is new, so create an entry
-		curr_entry = db_neighbor_entry_create(ether_neighbor_addr, iface);
+		curr_entry = db_neighbor_entry_create(ether_neighbor_addr, iface, remote_hello_interval);
 		if (curr_entry == NULL) return FALSE;
 		HASH_ADD_KEYPTR(hh, nt.entrys, curr_entry->ether_neighbor, ETH_ALEN + sizeof(void*), curr_entry);
 		dessert_debug("%s <=====> " MAC, iface->if_name, EXPLODE_ARRAY6(ether_neighbor_addr));
@@ -118,7 +128,10 @@ int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif
 
 	aodv_db_sc_addschedule(timestamp, curr_entry->ether_neighbor, AODV_SC_UPDATE_RSSI, (void *) iface);
 
-	timeslot_addobject(nt.ts, timestamp, curr_entry);
+	struct timeval* purge_timeout = malloc(sizeof(struct timeval));
+	create_purge_timeout(purge_timeout, remote_hello_interval);
+	timeslot_addobject_with_timeout(nt.ts, timestamp, curr_entry, purge_timeout);
+	free(purge_timeout);
 	return TRUE;
 }
 

@@ -66,6 +66,26 @@ int cli_set_hello_interval(struct cli_def *cli, char *command, char *argv[], int
 	return CLI_OK;
 }
 
+int cli_set_mobility(struct cli_def *cli, char *command, char *argv[], int argc) {
+	if(argc != 1) {
+		cli_print(cli, "usage %s [interval]\n", command);
+		return CLI_ERROR;
+	}
+
+	mobility = (uint16_t) strtoul(argv[0], NULL, 10);
+	dessert_notice("setting mobility to %d", mobility);
+
+	hello_interval = (hello_interval / mobility);
+	db_nt_init();
+	dessert_periodic_del(periodic_send_hello);
+	struct timeval hello_interval_t;
+	hello_interval_t.tv_sec = hello_interval / 1000;
+	hello_interval_t.tv_usec = (hello_interval % 1000) * 1000;
+	periodic_send_hello = dessert_periodic_add(aodv_periodic_send_hello, NULL, NULL, &hello_interval_t);
+	dessert_notice("setting HELLO interval to %d", hello_interval);
+	return CLI_OK;
+}
+
 int cli_set_rreq_size(struct cli_def *cli, char *command, char *argv[], int argc) {
 	uint16_t min_size = sizeof(dessert_msg_t) + sizeof(struct ether_header) + 2;
 
@@ -105,6 +125,11 @@ int cli_show_hello_size(struct cli_def *cli, char *command, char *argv[], int ar
 
 int cli_show_hello_interval(struct cli_def *cli, char *command, char *argv[], int argc) {
 	cli_print(cli, "HELLO interval = %d millisec\n", hello_interval);
+	return CLI_OK;
+}
+
+int cli_show_mobility(struct cli_def* cli, char* command, char* argv[], int argc) {
+	cli_print(cli, "mobility = %d\n", mobility);
 	return CLI_OK;
 }
 
