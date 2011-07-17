@@ -251,9 +251,8 @@ int aodv_db_rt_capt_rrep(uint8_t dhost_ether[ETH_ALEN],
 	}
 	int u = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
 	int a = hf_comp_u32(rt_entry->destination_sequence_number, destination_sequence_number);
-	int b = hf_comp_u8(rt_entry->hop_count, hop_count); //hop count metric
 	dessert_trace("destination_sequence_number=%u:%u - hop_count=%u:%u", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->hop_count, hop_count);
-	if(u || a < 0 || (a == 0 && b > 0)) {
+	if(u || a <= 0) {
 
 		if(a == 0 && b > 0) {
 			dessert_info("METRIC HIT: destination_sequence_number=%u:%u - hop_count=%u:%u", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->hop_count, hop_count);
