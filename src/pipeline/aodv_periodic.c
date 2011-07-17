@@ -185,7 +185,7 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 			aodv_db_addschedule(&timestamp, ether_addr, AODV_SC_SEND_OUT_RWARN, 0);
 		}
 	} else {
-		dessert_crit("unknown schedule type=%d", schedule_type);
+		dessert_crit("unknown schedule type=%u", schedule_type);
 	}
 	return 0;
 }
