@@ -63,14 +63,6 @@ void db_nt_on_neigbor_timeout(struct timeval* timestamp, void* src_object, void*
 	dessert_debug("%s <= x => " MAC, curr_entry->iface->if_name, EXPLODE_ARRAY6(curr_entry->ether_neighbor));
 	HASH_DEL(nt.entrys, curr_entry);
 
-	if(curr_entry->mobility > 1) {
-		// mobility == 1 -> not mobile
-		// mobility > 1 -> mobile
-
-		//the neighbor is mobile so we asume that it does preeptive rreq -> don't send rerr!
-		return;
-	}
-
 	// add schedule
 	struct timeval curr_time;
 	gettimeofday(&curr_time, NULL);

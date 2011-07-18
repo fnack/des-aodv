@@ -381,15 +381,21 @@ int aodv_db_rt_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_o
 
 }
 
-int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
+int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN], uint32_t destination_sequence_number) {
 	aodv_rt_entry_t* rt_entry;
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
-	if (rt_entry == NULL) return FALSE;
+	if(rt_entry == NULL) {
+		return FALSE;
+	}
+	if(rt_entry->destination_sequence_number > destination_sequence_number) {
+		return FALSE;
+	}
+
 	rt_entry->flags |= AODV_FLAGS_ROUTE_INVALID;
 	return TRUE;
 }
 
-int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
+int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN], uint32_t* destination_sequence_number_out) {
 	// find appropriate routing entry
 	nht_entry_t* nht_entry;
 	nht_destlist_entry_t* nht_dest_entry;
@@ -400,6 +406,7 @@ int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_o
 	// mark route as invalid and give this destination address back
 	nht_dest_entry->rt_entry->flags |= AODV_FLAGS_ROUTE_INVALID;
 	memcpy(dhost_ether_out, nht_dest_entry->rt_entry->dhost_ether, ETH_ALEN);
+	*destination_sequence_number_out = nht_dest_entry->rt_entry->destination_sequence_number;
 
 	// cleanup next hop table
 	HASH_DEL(nht_entry->dest_list, nht_dest_entry);

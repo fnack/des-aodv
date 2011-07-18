@@ -122,8 +122,14 @@ struct aodv_msg_broadcast {
 
 typedef struct _onlb_dest_list_element {
 	uint8_t 							dhost_ether[ETH_ALEN];
+	uint32_t							destination_sequence_number;
 	struct _onlb_dest_list_element		*prev, *next;
 } _onlb_element_t;
+
+struct aodv_mac_seq {
+	uint8_t host[ETH_ALEN];
+	uint32_t sequence_number;
+} __attribute__ ((__packed__));
 
 // ------------- pipeline -----------------------------------------------------
 int aodv_handle_hello(dessert_msg_t* msg, size_t len,

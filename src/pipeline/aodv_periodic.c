@@ -105,11 +105,13 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count) {
 		int dl_len = (count >= max_dl_len) ? max_dl_len : count;
 		if(dessert_msg_addext(msg, &ext, RERRDL_EXT_TYPE, dl_len * ETH_ALEN) != DESSERT_OK)
 			break;
-		uint8_t *iter;
-		uint8_t *end = ext->data + dl_len * ETH_ALEN;
-		for(iter = ext->data; iter < end; iter += ETH_ALEN) {
+
+		struct aodv_mac_seq *start = (struct aodv_mac_seq*) ext->data, *iter;
+		for(iter = start; iter < start + dl_len; ++iter) {
 			_onlb_element_t* el = *head;
-			memcpy(iter, el->dhost_ether, ETH_ALEN);
+			memcpy(iter->host, el->dhost_ether, ETH_ALEN);
+			iter->sequence_number = el->destination_sequence_number;
+
 			DL_DELETE(*head, el);
 			free(el);
 			--count;
@@ -144,12 +146,14 @@ int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeva
 			uint8_t dhost_ether[ETH_ALEN];
 			_onlb_element_t* curr_el = NULL;
 			_onlb_element_t* head = NULL;
+			uint32_t destination_sequence_number = 0;
 
-			while(aodv_db_invroute(ether_addr, dhost_ether) == TRUE) {
+			while(aodv_db_invroute(ether_addr, dhost_ether, &destination_sequence_number) == TRUE) {
 				dessert_debug("invalidate route to " MAC, EXPLODE_ARRAY6(dhost_ether));
 				dest_count++;
 				curr_el = malloc(sizeof(_onlb_element_t));
 				memcpy(curr_el->dhost_ether, dhost_ether, ETH_ALEN);
+				curr_el->destination_sequence_number = destination_sequence_number;
 				curr_el->next = curr_el->prev = NULL;
 				DL_APPEND(head, curr_el);
 			}

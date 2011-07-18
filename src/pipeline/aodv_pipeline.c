@@ -355,28 +355,25 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 
 	int rerrdl_num = 0;
 	uint8_t rebroadcast_rerr = FALSE;
-	dessert_ext_t* rerrdl_ext;
+	dessert_ext_t *rerrdl_ext;
 	while (dessert_msg_getext(msg, &rerrdl_ext, RERRDL_EXT_TYPE, rerrdl_num++) > 0) {
-		int i;
-		void* dhost_pointer = rerrdl_ext->data;
-		for (i = 0; i < rerrdl_ext->len / ETH_ALEN; i++) {
-			uint8_t dhost_ether[ETH_ALEN];
-			// get the MAC address of destination that is no more reachable
-			memcpy(dhost_ether, dhost_pointer + i*ETH_ALEN, ETH_ALEN);
+		struct aodv_mac_seq *iter;
+		for(iter = (struct aodv_mac_seq *) rerrdl_ext->data; iter < rerrdl_ext->data + rerrdl_ext->len; ++iter) {
 
 			uint8_t dhost_next_hop[ETH_ALEN];
 			// get next hop towards this destination
-			int a = aodv_db_getnexthop(dhost_ether, dhost_next_hop);
-			if(a == TRUE) {
-				// if found, compare with entrys in interface-list this RRER.
-				// If equals then this this route is affected and must be invalidated!
-				int iface_num;
-				for (iface_num = 0; iface_num < rerr_msg->iface_addr_count; iface_num++) {
-					if (memcmp(rerr_msg->ifaces + iface_num * ETH_ALEN, dhost_next_hop, ETH_ALEN) == 0) {
-						rebroadcast_rerr = TRUE;
-						aodv_db_markrouteinv(dhost_ether);
-						dessert_debug("route to " MAC " marked as invalid", EXPLODE_ARRAY6(dhost_ether));
-					}
+			if (!aodv_db_getnexthop(iter->host, dhost_next_hop)) {
+				continue;
+			}
+
+			// if found, compare with entrys in interface-list this RRER.
+			// If equals then this this route is affected and must be invalidated!
+			int iface_num;
+			for (iface_num = 0; iface_num < rerr_msg->iface_addr_count; iface_num++) {
+				if (memcmp(rerr_msg->ifaces + iface_num * ETH_ALEN, dhost_next_hop, ETH_ALEN) == 0) {
+					rebroadcast_rerr = TRUE;
+					aodv_db_markrouteinv(iter->host, iter->sequence_number);
+					dessert_debug("route to " MAC " marked as invalid", EXPLODE_ARRAY6(dhost_ether));
 				}
 			}
 		}

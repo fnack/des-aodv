@@ -168,9 +168,9 @@ int aodv_db_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out)
 	return result;
 }
 
-int aodv_db_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
+int aodv_db_markrouteinv(uint8_t dhost_ether[ETH_ALEN], uint32_t destination_sequence_number) {
 	aodv_db_wlock();
-	int result =  aodv_db_rt_markrouteinv(dhost_ether);
+	int result =  aodv_db_rt_markrouteinv(dhost_ether, destination_sequence_number);
 	aodv_db_unlock();
 	return result;
 }
@@ -181,9 +181,9 @@ int aodv_db_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
  * the destination address of this route. Returns FALSE if no route to invalidate
  * (i.e. no route that uses dhost_next_hop)
  */
-int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
+int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN], uint32_t *destination_sequence_number_out) {
 	pthread_rwlock_wrlock(&db_rwlock);
-	int result =  aodv_db_rt_inv_route(dhost_next_hop, dhost_ether_out);
+	int result =  aodv_db_rt_inv_route(dhost_next_hop, dhost_ether_out, destination_sequence_number_out);
 	pthread_rwlock_unlock(&db_rwlock);
 	return result;
 }
