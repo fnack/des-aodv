@@ -377,7 +377,6 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, d
 				if (memcmp(rerr_msg->ifaces + iface_num * ETH_ALEN, dhost_next_hop, ETH_ALEN) == 0) {
 					rebroadcast_rerr = TRUE;
 					aodv_db_markrouteinv(dhost_ether, destination_sequence_number);
-					dessert_debug("route to " MAC " marked as invalid", EXPLODE_ARRAY6(dhost_ether));
 				}
 			}
 		}
