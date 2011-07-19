@@ -74,10 +74,7 @@ dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl, uint8_t 
 	brc_str->id = ++broadcast_id;
 	pthread_rwlock_unlock(&pp_rwlock);
 
-	void* payload;
-	uint16_t size = max(rreq_size - sizeof(dessert_msg_t) - sizeof(struct ether_header) - 2, 0);
-	dessert_msg_addpayload(msg, &payload, size);
-	memset(payload, 0xA, size);
+	dessert_msg_dummy_payload(msg, rreq_size);
 
 	return msg;
 }

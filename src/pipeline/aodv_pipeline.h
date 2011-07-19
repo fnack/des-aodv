@@ -166,14 +166,14 @@ int aodv_drop_errors(dessert_msg_t* msg, size_t len,
 
 // ------------------------------ periodic ----------------------------------------------------
 
-int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timeval *interval);
+dessert_per_result_t aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timeval *interval);
 
 /** clean up database from old entrys */
-int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct timeval *interval);
+dessert_per_result_t aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct timeval *interval);
 
 dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count);
 
-int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval);
+dessert_per_result_t aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval);
 
 // ------------------------------ helper ------------------------------------------------------
 
