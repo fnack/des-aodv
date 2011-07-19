@@ -32,7 +32,6 @@ For further information and questions please use the web site
 #include "../config.h"
 
 extern pthread_rwlock_t pp_rwlock;
-extern uint32_t broadcast_id;
 
 /**
  * Unknown sequence number
@@ -109,15 +108,6 @@ struct aodv_msg_rerr {
 
 /** HELLO - Hello Message */
 struct aodv_msg_hello {
-} __attribute__ ((__packed__));
-
-struct aodv_msg_broadcast {
-	/**
-	 * Broadcast ID;
-	 * A sequence number uniqiely identifying the broadcast packet (RREQ or simple packet)
-	 * in combination with ether_shost
-	 */
-	uint32_t		id;
 } __attribute__ ((__packed__));
 
 typedef struct _onlb_dest_list_element {

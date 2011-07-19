@@ -30,7 +30,6 @@ For further information and questions please use the web site
 #include "../helper.h"
 
 uint32_t seq_num_global = 0;
-uint32_t broadcast_id = 0;
 pthread_rwlock_t pp_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
 uint16_t data_seq_global = 0;
@@ -66,13 +65,6 @@ dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl, uint8_t 
 		rreq_msg->flags |= AODV_FLAGS_RREQ_U;
 	}
 	rreq_msg->destination_sequence_number = last_destination_sequence_number;
-
-	// add broadcast id ext since RREQ is an broadcast message
-	dessert_msg_addext(msg, &ext, BROADCAST_EXT_TYPE, sizeof(struct aodv_msg_broadcast));
-	struct aodv_msg_broadcast* brc_str = (struct aodv_msg_broadcast*) ext->data;
-	pthread_rwlock_wrlock(&pp_rwlock);
-	brc_str->id = ++broadcast_id;
-	pthread_rwlock_unlock(&pp_rwlock);
 
 	dessert_msg_dummy_payload(msg, rreq_size);
 
@@ -195,11 +187,9 @@ int aodv_drop_errors(dessert_msg_t* msg, size_t len,
 		return DESSERT_MSG_DROP;
 	}
 	/**
-	 * Check neighborhood and broadcast id.
 	 * First check neighborhood, since it is possible that one
 	 * RREQ from one unidirectional neighbor can be added to broadcast id table
 	 * and then dropped as a message from unidirectional neighbor!
-	 * -> Dirty entry in broadcast id table.
 	 */
 	dessert_ext_t* ext;
 	struct timeval ts;
@@ -207,29 +197,11 @@ int aodv_drop_errors(dessert_msg_t* msg, size_t len,
 
 	// check whether control messages were sent over bidirectional links, otherwise DROP
 	// Hint: RERR must be resent in both directions.
-	if ((dessert_msg_getext(msg, &ext, RREQ_EXT_TYPE, 0) != 0)
-			|| (dessert_msg_getext(msg, &ext, RREP_EXT_TYPE, 0) != 0)) {
+	if ((dessert_msg_getext(msg, &ext, RREQ_EXT_TYPE, 0) != 0) || (dessert_msg_getext(msg, &ext, RREP_EXT_TYPE, 0) != 0)) {
 		if (aodv_db_check2Dneigh(msg->l2h.ether_shost, iface, &ts) != TRUE) {
 			return DESSERT_MSG_DROP;
 		}
 	}
-
-	// drop broadcast errors (packet with given brc_id is were already processed)
-	if (dessert_msg_getext(msg, &ext, BROADCAST_EXT_TYPE, 0) != 0) {
-		struct ether_header* l25h = dessert_msg_getl25ether(msg);
-		struct aodv_msg_broadcast* brc_msg = (struct aodv_msg_broadcast*) ext->data;
-
-		// Drop all broadcasts with broadcast extensions send from me
-		if (memcmp(l25h->ether_shost, dessert_l25_defsrc, ETH_ALEN) == 0) {
-			return DESSERT_MSG_DROP;
-		}
-
-		// or if packet were already processed
-		if (aodv_db_add_brcid(l25h->ether_shost, brc_msg->id, &ts) != TRUE) {
-			return DESSERT_MSG_DROP;
-		}
-	}
-	return DESSERT_MSG_KEEP;
 }
 
 int aodv_handle_hello(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, dessert_meshif_t *iface, dessert_frameid_t id){
@@ -539,13 +511,11 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, desse
 	struct ether_header* l25h = dessert_msg_getl25ether(msg);
 
 	if (memcmp(l25h->ether_dhost, ether_broadcast, ETH_ALEN) == 0) {
-		dessert_trace("send broadcast message -> add broadcast extension to avoid broadcast loops");
-		dessert_ext_t* ext;
-		dessert_msg_addext(msg, &ext, BROADCAST_EXT_TYPE, sizeof(struct aodv_msg_broadcast));
-		struct aodv_msg_broadcast* brc_str = (struct aodv_msg_broadcast*) ext->data;
-		pthread_rwlock_wrlock(&pp_rwlock);
-		brc_str->id = ++broadcast_id;
-		pthread_rwlock_unlock(&pp_rwlock);
+		uint16_t data_seq_copy = 0;
+		pthread_rwlock_wrlock(&data_seq_lock);
+		data_seq_copy = ++data_seq_global;
+		pthread_rwlock_unlock(&data_seq_lock);
+		msg->u16 = data_seq_copy;
 		dessert_meshsend(msg, NULL);
 	} else {
 		uint8_t dhost_next_hop[ETH_ALEN];

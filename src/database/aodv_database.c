@@ -27,7 +27,6 @@ For further information and questions please use the web site
 #include "aodv_database.h"
 #include "../config.h"
 #include "routing_table/aodv_rt.h"
-#include "broadcast_table/aodv_broadcast_t.h"
 #include "data_seq/data_seq.h"
 #include "neighbor_table/nt.h"
 #include "packet_buffer/packet_buffer.h"
@@ -52,9 +51,7 @@ void aodv_db_unlock() {
 int aodv_db_init() {
 	int success = TRUE;
 	aodv_db_wlock();
-	success &= aodv_db_rl_init();
 	success &= db_nt_init();
-	success &= aodv_db_brct_init();
 	success &= aodv_db_rt_init();
 	success &= pb_init();
 	success &= aodv_db_rerrl_init();
@@ -65,8 +62,8 @@ int aodv_db_init() {
 int aodv_db_cleanup(struct timeval* timestamp) {
 	int success = TRUE;
 	aodv_db_wlock();
-	success &= aodv_db_rt_cleanup(timestamp);
 	success &= db_nt_cleanup(timestamp);
+	success &= aodv_db_rt_cleanup(timestamp);
 	success &= pb_cleanup(timestamp);
 	aodv_db_unlock();
 	return success;
@@ -81,18 +78,6 @@ void aodv_db_push_packet(uint8_t dhost_ether[ETH_ALEN], dessert_msg_t* msg, stru
 dessert_msg_t* aodv_db_pop_packet(uint8_t dhost_ether[ETH_ALEN]) {
 	aodv_db_wlock();
 	dessert_msg_t* result = pb_pop_packet(dhost_ether);
-	aodv_db_unlock();
-	return result;
-}
-
-/**
- * Returns TRUE if no broadcast messages for this source
- * for the last PATH_DESCOVERY_TIME were captured.
- * Also captures rreq_id.
- */
-int aodv_db_add_brcid(uint8_t shost_ether[ETH_ALEN], uint32_t brc_id, struct timeval* timestamp) {
-	aodv_db_wlock();
-	int result = aodv_db_brct_addid(shost_ether, brc_id, timestamp);
 	aodv_db_unlock();
 	return result;
 }

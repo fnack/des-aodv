@@ -41,13 +41,6 @@ void aodv_db_push_packet(uint8_t dhost_ether[ETH_ALEN], dessert_msg_t* msg, stru
 dessert_msg_t* aodv_db_pop_packet(uint8_t dhost_ether[ETH_ALEN]);
 
 /**
- * Returns TRUE if no broadcast messages for this source
- * for the last PATH_DESCOVERY_TIME were captured.
- * Also captures rreq_id.
- */
-int aodv_db_add_brcid(uint8_t shost_ether[ETH_ALEN], uint32_t rreq_id, struct timeval* timestamp);
-
-/**
  * Captures seq_num of the source. Also add to source list for
  * this destination. All messages to source (example: RREP) must be send
  * over shost_prev_hop (nodes output interface: output_iface).

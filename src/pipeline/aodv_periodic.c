@@ -61,13 +61,6 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count) {
 	// set ttl
 	msg->ttl = 255;
 
-	// add broadcast id ext since RERR is an broadcast message
-	dessert_msg_addext(msg, &ext, BROADCAST_EXT_TYPE, sizeof(struct aodv_msg_broadcast));
-	struct aodv_msg_broadcast* brc_str = (struct aodv_msg_broadcast*) ext->data;
-	pthread_rwlock_wrlock(&pp_rwlock);
-	brc_str->id = ++broadcast_id;
-	pthread_rwlock_unlock(&pp_rwlock);
-
 	// add l25h header
 	dessert_msg_addext(msg, &ext, DESSERT_EXT_ETH, ETHER_HDR_LEN);
 	struct ether_header* rreq_l25h = (struct ether_header*) ext->data;
