@@ -177,8 +177,7 @@ void aodv_send_packets_from_buffer(uint8_t ether_dhost[ETH_ALEN], uint8_t next_h
 
 // ---------------------------- pipeline callbacks ---------------------------------------------
 
-int aodv_drop_errors(dessert_msg_t* msg, size_t len,
-		dessert_msg_proc_t *proc, dessert_meshif_t *iface, dessert_frameid_t id) {
+int aodv_drop_errors(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, dessert_meshif_t *iface, dessert_frameid_t id) {
 	// drop packets sent by myself.
 	if (proc->lflags & DESSERT_RX_FLAG_L2_SRC) {
 		return DESSERT_MSG_DROP;
@@ -202,6 +201,7 @@ int aodv_drop_errors(dessert_msg_t* msg, size_t len,
 			return DESSERT_MSG_DROP;
 		}
 	}
+	return DESSERT_MSG_KEEP;
 }
 
 int aodv_handle_hello(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, dessert_meshif_t *iface, dessert_frameid_t id){

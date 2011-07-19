@@ -55,6 +55,7 @@ int aodv_db_init() {
 	success &= aodv_db_rt_init();
 	success &= pb_init();
 	success &= aodv_db_rerrl_init();
+	success &= aodv_db_rl_init();
 	aodv_db_unlock();
 	return success;
 }
