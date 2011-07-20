@@ -29,45 +29,12 @@ For further information and questions please use the web site
 
 #define REPORT_RT_STR_LEN 150
 
-typedef struct aodv_rt_srclist_entry {
-	uint8_t					shost_ether[ETH_ALEN]; // ID
-	uint8_t					shost_prev_hop[ETH_ALEN];
-	dessert_meshif_t*		output_iface;
-	uint32_t					originator_sequence_number;
-	UT_hash_handle				hh;
-} aodv_rt_srclist_entry_t;
-
-typedef struct aodv_rt_entry {
-	uint8_t					dhost_ether[ETH_ALEN]; // ID
-	uint8_t					dhost_next_hop[ETH_ALEN];
-	dessert_meshif_t*		output_iface;
-	uint32_t					destination_sequence_number;
-	uint8_t					hop_count;
-	/**
-	 * flags format: 0 0 0 0 0 0 U I
-	 * I - Invalid flag; route is invalid due of link breakage
-	 * U - next hop Unknown flag;
-	 */
-	uint8_t					flags;
-	aodv_rt_srclist_entry_t*	src_list;
-	UT_hash_handle				hh;
-} aodv_rt_entry_t;
-
 typedef struct aodv_rt {
 	aodv_rt_entry_t*			entrys;
 	timeslot_t*					ts;
 } aodv_rt_t;
 
 aodv_rt_t						rt;
-
-/**
- * Mapping next_hop -> destination list
- */
-typedef struct nht_destlist_entry {
-	uint8_t					dhost_ether[ETH_ALEN];
-	aodv_rt_entry_t*			rt_entry;
-	UT_hash_handle				hh;
-} nht_destlist_entry_t;
 
 typedef struct nht_entry {
 	uint8_t					dhost_next_hop[ETH_ALEN];
@@ -397,31 +364,59 @@ int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN], uint32_t destination_
 	return TRUE;
 }
 
-int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN], uint32_t* destination_sequence_number_out) {
+int aodv_db_rt_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], nht_destlist_entry_t **destlist) {
 	// find appropriate routing entry
 	nht_entry_t* nht_entry;
-	nht_destlist_entry_t* nht_dest_entry;
 	HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
-	if ((nht_entry == NULL) || (nht_entry->dest_list == NULL)) return FALSE;
-	nht_dest_entry = nht_entry->dest_list;
+	if(nht_entry == NULL) {
+		return FALSE;
+	}
+	*destlist = nht_entry->dest_list;
+	return TRUE;
+}
 
+int aodv_db_rt_inv_over_nexthop(uint8_t next_hop[ETH_ALEN]) {
 	// mark route as invalid and give this destination address back
-	nht_dest_entry->rt_entry->flags |= AODV_FLAGS_ROUTE_INVALID;
-	memcpy(dhost_ether_out, nht_dest_entry->rt_entry->dhost_ether, ETH_ALEN);
-	*destination_sequence_number_out = nht_dest_entry->rt_entry->destination_sequence_number;
+	nht_entry_t* nht_entry;
+	HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
+	if (nht_entry == NULL) {
+		return FALSE;
+	}
 
-	// cleanup next hop table
-	HASH_DEL(nht_entry->dest_list, nht_dest_entry);
-	free(nht_dest_entry);
-	if (nht_entry->dest_list == NULL) {
-		HASH_DEL(nht, nht_entry);
-		free(nht_entry);
+	struct nht_destlist_entry *dest, *tmp;
+
+	HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
+		dest->rt_entry->flags |= AODV_FLAGS_ROUTE_INVALID;
 	}
 	return TRUE;
 }
 
+/*
+ * cleanup next hop table
+ * returns TRUE on success
+ */
+int aodv_db_rt_remove_nexthop(uint8_t next_hop[ETH_ALEN]) {
+
+	nht_entry_t* nht_entry;
+	HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
+	if (nht_entry == NULL) {
+		return FALSE;
+	}
+
+	struct nht_destlist_entry *dest, *tmp;
+
+	HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
+		HASH_DEL(nht_entry->dest_list, dest);
+		free(dest);
+	}
+
+	HASH_DEL(nht, nht_entry);
+	free(nht_entry);
+	return TRUE;
+}
+
 //get all routes over one neighbor
-int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], _onlb_element_t** head) {
+int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], nht_destlist_entry_t** head) {
 	// find appropriate routing entry
 	nht_entry_t* nht_entry;
 	HASH_FIND(hh, nht, neighbor, ETH_ALEN, nht_entry);
@@ -435,7 +430,7 @@ int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ET
 	HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
 		if(!(dest->rt_entry->flags & AODV_FLAGS_ROUTE_WARN)) {
 			dessert_debug("dest->rt_entry->flags = %u->%p", dest->rt_entry->flags, dest->rt_entry);
-			_onlb_element_t* curr_el = malloc(sizeof(_onlb_element_t));
+			nht_destlist_entry_t* curr_el = malloc(sizeof(nht_destlist_entry_t));
 			memcpy(curr_el->dhost_ether, dest->rt_entry->dhost_ether, ETH_ALEN);
 			DL_APPEND(*head, curr_el);
 			dest->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;

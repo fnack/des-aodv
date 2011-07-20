@@ -188,7 +188,7 @@ int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[E
 	return result;
 }
 
-int aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], _onlb_element_t** head) {
+int aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], nht_destlist_entry_t** head) {
 	aodv_db_wlock();
 	int result = aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(neighbor, head);
 	aodv_db_unlock();

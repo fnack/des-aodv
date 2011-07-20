@@ -505,13 +505,11 @@ int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, desse
 		if (rerr_count >= RERR_RATELIMIT)
 			return DESSERT_MSG_DROP;
 		// route unknown -> send rerr towards source
-		_onlb_element_t *head, *curr_el;
-		
-		curr_el = malloc(sizeof(_onlb_element_t));
-		memcpy(curr_el->dhost_ether, l25h->ether_dhost, ETH_ALEN);
-		head = NULL;
-		DL_APPEND(head, curr_el);
-		dessert_msg_t* rerr_msg = aodv_create_rerr(&head, 1);
+		nht_destlist_entry_t *head = NULL;
+		nht_destlist_entry_t *entry = malloc(sizeof(nht_destlist_entry_t));
+		memcpy(entry->dhost_ether, l25h->ether_dhost, ETH_ALEN);
+		DL_APPEND(head, entry);
+		dessert_msg_t* rerr_msg = aodv_create_rerr(&head);
 		if (rerr_msg != NULL) {
 			dessert_meshsend(rerr_msg, NULL);
 			dessert_msg_destroy(rerr_msg);

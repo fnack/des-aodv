@@ -81,7 +81,7 @@ int aodv_db_markrouteinv (uint8_t dhost_ether[ETH_ALEN], uint32_t destination_se
 
 int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN], uint32_t *destination_sequence_number_out);
 
-int aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], _onlb_element_t** head);
+int aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], nht_destlist_entry_t** head);
 
 int aodv_db_get_warn_status(uint8_t dhost_ether[ETH_ALEN]);
 

@@ -30,6 +30,7 @@ For further information and questions please use the web site
 
 #include <dessert.h>
 #include "../config.h"
+#include "../database/routing_table/aodv_rt.h"
 
 extern pthread_rwlock_t pp_rwlock;
 extern uint32_t broadcast_id;
@@ -120,16 +121,11 @@ struct aodv_msg_broadcast {
 	uint32_t		id;
 } __attribute__ ((__packed__));
 
-typedef struct _onlb_dest_list_element {
-	uint8_t 							dhost_ether[ETH_ALEN];
-	uint32_t							destination_sequence_number;
-	struct _onlb_dest_list_element		*prev, *next;
-} _onlb_element_t;
-
 struct aodv_mac_seq {
 	uint8_t host[ETH_ALEN];
 	uint32_t sequence_number;
 } __attribute__ ((__packed__));
+#define MAX_MAC_SEQ_PER_EXT (DESSERT_MAXEXTDATALEN / sizeof(struct aodv_mac_seq))
 
 // ------------- pipeline -----------------------------------------------------
 int aodv_handle_hello(dessert_msg_t* msg, size_t len,
@@ -177,7 +173,7 @@ int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timev
 /** clean up database from old entrys */
 int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct timeval *interval);
 
-dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count);
+dessert_msg_t* aodv_create_rerr(nht_destlist_entry_t** destlist, uint16_t count);
 
 int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval);
 
