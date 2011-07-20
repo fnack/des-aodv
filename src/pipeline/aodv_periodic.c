@@ -59,7 +59,7 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count) {
 	dessert_msg_new(&msg);
 
 	// set ttl
-	msg->ttl = 255;
+	msg->ttl =TTL_MAX;
 
 	// add l25h header
 	dessert_msg_addext(msg, &ext, DESSERT_EXT_ETH, ETHER_HDR_LEN);

@@ -28,45 +28,12 @@ For further information and questions please use the web site
 
 #define REPORT_RT_STR_LEN 150
 
-typedef struct aodv_rt_srclist_entry {
-	uint8_t					shost_ether[ETH_ALEN]; // ID
-	uint8_t					shost_prev_hop[ETH_ALEN];
-	dessert_meshif_t*		output_iface;
-	uint32_t					originator_sequence_number;
-	UT_hash_handle				hh;
-} aodv_rt_srclist_entry_t;
-
-typedef struct aodv_rt_entry {
-	uint8_t					dhost_ether[ETH_ALEN]; // ID
-	uint8_t					dhost_next_hop[ETH_ALEN];
-	dessert_meshif_t*		output_iface;
-	uint32_t					destination_sequence_number;
-	uint8_t					hop_count;
-	/**
-	 * flags format: 0 0 0 0 0 0 U I
-	 * I - Invalid flag; route is invalid due of link breakage
-	 * U - next hop Unknown flag;
-	 */
-	uint8_t					flags;
-	aodv_rt_srclist_entry_t*	src_list;
-	UT_hash_handle				hh;
-} aodv_rt_entry_t;
-
 typedef struct aodv_rt {
 	aodv_rt_entry_t*			entrys;
 	timeslot_t*					ts;
 } aodv_rt_t;
 
 aodv_rt_t						rt;
-
-/**
- * Mapping next_hop -> destination list
- */
-typedef struct nht_destlist_entry {
-	uint8_t					dhost_ether[ETH_ALEN];
-	aodv_rt_entry_t*			rt_entry;
-	UT_hash_handle				hh;
-} nht_destlist_entry_t;
 
 typedef struct nht_entry {
 	uint8_t					dhost_next_hop[ETH_ALEN];
@@ -377,7 +344,10 @@ int aodv_db_rt_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_o
 int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
 	aodv_rt_entry_t* rt_entry;
 	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
-	if (rt_entry == NULL) return FALSE;
+	if(rt_entry == NULL) {
+		return FALSE;
+	}
+	dessert_debug("route to " MAC " marked as invalid", EXPLODE_ARRAY6(dhost_ether));
 	rt_entry->flags |= AODV_FLAGS_ROUTE_INVALID;
 	return TRUE;
 }
