@@ -39,11 +39,15 @@ int aodv_db_rl_init() {
 	return timeslot_create(&rreq_log_ts, &timeout, NULL, rreq_decrement_counter);
 }
 
+int aodv_db_rl_cleanup(struct timeval* timestamp) {
+	return timeslot_purgeobjects(rreq_log_ts, timestamp);
+}
+
 void aodv_db_rl_putrreq(struct timeval* timestamp) {
 	if (timeslot_addobject(rreq_log_ts, timestamp, rreq_pseudo_pointer++) == TRUE) rreq_count++;
 }
 
 void aodv_db_rl_getrreqcount(struct timeval* timestamp, uint32_t* count_out) {
-	timeslot_purgeobjects(rreq_log_ts, timestamp);
+	aodv_db_rl_cleanup(timestamp);
 	*count_out = rreq_count;
 }

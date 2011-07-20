@@ -32,7 +32,6 @@ For further information and questions please use the web site
 #include "../config.h"
 
 extern pthread_rwlock_t pp_rwlock;
-extern uint32_t broadcast_id;
 
 /**
  * Unknown sequence number
@@ -115,15 +114,6 @@ struct aodv_msg_rerr {
 struct aodv_msg_hello {
 } __attribute__ ((__packed__));
 
-struct aodv_msg_broadcast {
-	/**
-	 * Broadcast ID;
-	 * A sequence number uniqiely identifying the broadcast packet (RREQ or simple packet)
-	 * in combination with ether_shost
-	 */
-	uint32_t		id;
-} __attribute__ ((__packed__));
-
 typedef struct _onlb_dest_list_element {
 	uint8_t 							dhost_ether[ETH_ALEN];
 	struct _onlb_dest_list_element		*prev, *next;
@@ -170,14 +160,14 @@ int aodv_drop_errors(dessert_msg_t* msg, size_t len,
 
 // ------------------------------ periodic ----------------------------------------------------
 
-int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timeval *interval);
+dessert_per_result_t aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timeval *interval);
 
 /** clean up database from old entrys */
-int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct timeval *interval);
+dessert_per_result_t aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct timeval *interval);
 
 dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count);
 
-int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval);
+dessert_per_result_t aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval);
 
 // ------------------------------ helper ------------------------------------------------------
 
