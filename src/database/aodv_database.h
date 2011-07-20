@@ -25,7 +25,7 @@ For further information and questions please use the web site
 #define AODV_DATABASE
 
 #include <dessert.h>
-#include "../pipeline/aodv_pipeline.h"
+#include "../config.h"
 
 #ifdef ANDROID
 #include <linux/if_ether.h>
@@ -40,13 +40,6 @@ int aodv_db_cleanup(struct timeval* timestamp);
 void aodv_db_push_packet(uint8_t dhost_ether[ETH_ALEN], dessert_msg_t* msg, struct timeval* timestamp);
 
 dessert_msg_t* aodv_db_pop_packet(uint8_t dhost_ether[ETH_ALEN]);
-
-/**
- * Returns TRUE if no broadcast messages for this source
- * for the last PATH_DESCOVERY_TIME were captured.
- * Also captures rreq_id.
- */
-int aodv_db_add_brcid(uint8_t shost_ether[ETH_ALEN], uint32_t rreq_id, struct timeval* timestamp);
 
 /**
  * Captures seq_num of the source. Also add to source list for
@@ -79,9 +72,11 @@ int aodv_db_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out)
 
 int aodv_db_markrouteinv (uint8_t dhost_ether[ETH_ALEN], uint32_t destination_sequence_number);
 
-int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN], uint32_t *destination_sequence_number_out);
+int aodv_db_rt_remove_nexthop(uint8_t next_hop[ETH_ALEN]);
+int aodv_db_rt_inv_over_nexthop(uint8_t next_hop[ETH_ALEN]);
+int aodv_db_rt_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], aodv_mac_seq_list_t **destlist);
 
-int aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], nht_destlist_entry_t** head);
+int aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], aodv_mac_seq_list_t** head);
 
 int aodv_db_get_warn_status(uint8_t dhost_ether[ETH_ALEN]);
 

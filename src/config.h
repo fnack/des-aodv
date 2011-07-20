@@ -30,15 +30,15 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 
 #define RREQ_RETRIES				5 /* ferhat=5 rfc=2 */
 #define RREQ_RATELIMIT				10 /* rfc=10 */
-#define TTL_START				1 /* rfc=1 */
+#define TTL_START				4 /* rfc=1 */
 #define TTL_INCREMENT				2 /* rfc=2 */
-#define TTL_THRESHOLD				7 /* rfc=7 */
+#define TTL_THRESHOLD				10 /* rfc=7 */
 #define TTL_MAX					UINT8_MAX
 
 #define ACTIVE_ROUTE_TIMEOUT			3000 /* ms rfc=3000 */
 #define ALLOWED_HELLO_LOST			4 /* christian=4 rfc=2 */
 #define NODE_TRAVERSAL_TIME			2 /* ms christian=2 rfc=40 */
-#define NET_DIAMETER				8 /* christian=8 rfc=35 */
+#define NET_DIAMETER				10 /* christian=8 rfc=35 */
 #define NET_TRAVERSAL_TIME			(2 * NODE_TRAVERSAL_TIME * NET_DIAMETER) /* rfc */
 #define BLACKLIST_TIMEOUT			(RREQ_RETRIES * NET_TRAVERSAL_TIME) /* rfc */
 #define MY_ROUTE_TIMEOUT			(2 * ACTIVE_ROUTE_TIMEOUT) /* rfc */
@@ -99,5 +99,18 @@ extern int 							hello_size;
 extern int 							hello_interval;
 extern int 							rreq_size;
 extern int 							mobility;
+
+typedef struct aodv_mac_seq_list {
+	uint8_t host[ETH_ALEN];
+	uint32_t sequence_number;
+	struct aodv_mac_seq_list *next;
+	struct aodv_mac_seq_list *prev;
+} aodv_mac_seq_list_t;
+
+typedef struct aodv_mac_seq {
+	uint8_t host[ETH_ALEN];
+	uint32_t sequence_number;
+} __attribute__ ((__packed__)) aodv_mac_seq_t;
+#define MAX_MAC_SEQ_PER_EXT (DESSERT_MAXEXTDATALEN / sizeof(struct aodv_mac_seq))
 
 #endif

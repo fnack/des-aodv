@@ -30,10 +30,8 @@ For further information and questions please use the web site
 
 #include <dessert.h>
 #include "../config.h"
-#include "../database/routing_table/aodv_rt.h"
 
 extern pthread_rwlock_t pp_rwlock;
-extern uint32_t broadcast_id;
 
 /**
  * Unknown sequence number
@@ -112,21 +110,6 @@ struct aodv_msg_rerr {
 struct aodv_msg_hello {
 } __attribute__ ((__packed__));
 
-struct aodv_msg_broadcast {
-	/**
-	 * Broadcast ID;
-	 * A sequence number uniqiely identifying the broadcast packet (RREQ or simple packet)
-	 * in combination with ether_shost
-	 */
-	uint32_t		id;
-} __attribute__ ((__packed__));
-
-struct aodv_mac_seq {
-	uint8_t host[ETH_ALEN];
-	uint32_t sequence_number;
-} __attribute__ ((__packed__));
-#define MAX_MAC_SEQ_PER_EXT (DESSERT_MAXEXTDATALEN / sizeof(struct aodv_mac_seq))
-
 // ------------- pipeline -----------------------------------------------------
 int aodv_handle_hello(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, dessert_meshif_t *iface, dessert_frameid_t id);
@@ -168,17 +151,17 @@ int aodv_drop_errors(dessert_msg_t* msg, size_t len,
 
 // ------------------------------ periodic ----------------------------------------------------
 
-int aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timeval *interval);
+dessert_per_result_t aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timeval *interval);
 
 /** clean up database from old entrys */
-int aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct timeval *interval);
+dessert_per_result_t aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct timeval *interval);
 
-dessert_msg_t* aodv_create_rerr(nht_destlist_entry_t** destlist, uint16_t count);
+dessert_msg_t* aodv_create_rerr(aodv_mac_seq_list_t** destlist);
 
-int aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval);
+dessert_per_result_t aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval);
 
 // ------------------------------ helper ------------------------------------------------------
 
-void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_msg_t* rreq_msg);
+void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_msg_t* rreq_msg, uint8_t initial_hop_count);
 
 #endif

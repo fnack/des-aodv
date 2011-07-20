@@ -41,12 +41,12 @@ int db_nt_update_rssi(uint8_t ether_neighbor[ETH_ALEN], dessert_meshif_t* iface,
  * Take a record that the given neighbor seems to be
  * 1 hop bidirectional neighbor
  */
-int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp, uint8_t remote_mobility, uint16_t remote_hello_interval);
+int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp, uint8_t remote_mobility, uint16_t remote_hello_interval);
 
 /**
  * Check whether given neighbor is 1 hop bidirectional neighbor
  */
-int db_nt_check2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp);
+int db_nt_check2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp);
 
 int db_nt_cleanup(struct timeval* timestamp);
 

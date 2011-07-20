@@ -364,27 +364,33 @@ int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN], uint32_t destination_
 	return TRUE;
 }
 
-int aodv_db_rt_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], nht_destlist_entry_t **destlist) {
+int aodv_db_rt_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], aodv_mac_seq_list_t **destlist) {
 	// find appropriate routing entry
 	nht_entry_t* nht_entry;
 	HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
 	if(nht_entry == NULL) {
 		return FALSE;
 	}
-	*destlist = nht_entry->dest_list;
+
+	struct nht_destlist_entry *dest, *tmp;
+	HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
+		aodv_mac_seq_list_t *el = malloc(sizeof(aodv_mac_seq_list_t));
+		memcpy(el->host, dest->rt_entry->dhost_ether, ETH_ALEN);
+		el->sequence_number = dest->rt_entry->destination_sequence_number;
+		DL_APPEND(*destlist, el);
+	}
 	return TRUE;
 }
 
 int aodv_db_rt_inv_over_nexthop(uint8_t next_hop[ETH_ALEN]) {
 	// mark route as invalid and give this destination address back
 	nht_entry_t* nht_entry;
-	HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
+	HASH_FIND(hh, nht, next_hop, ETH_ALEN, nht_entry);
 	if (nht_entry == NULL) {
 		return FALSE;
 	}
 
 	struct nht_destlist_entry *dest, *tmp;
-
 	HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
 		dest->rt_entry->flags |= AODV_FLAGS_ROUTE_INVALID;
 	}
@@ -398,7 +404,7 @@ int aodv_db_rt_inv_over_nexthop(uint8_t next_hop[ETH_ALEN]) {
 int aodv_db_rt_remove_nexthop(uint8_t next_hop[ETH_ALEN]) {
 
 	nht_entry_t* nht_entry;
-	HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
+	HASH_FIND(hh, nht, next_hop, ETH_ALEN, nht_entry);
 	if (nht_entry == NULL) {
 		return FALSE;
 	}
@@ -416,7 +422,7 @@ int aodv_db_rt_remove_nexthop(uint8_t next_hop[ETH_ALEN]) {
 }
 
 //get all routes over one neighbor
-int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], nht_destlist_entry_t** head) {
+int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], aodv_mac_seq_list_t** head) {
 	// find appropriate routing entry
 	nht_entry_t* nht_entry;
 	HASH_FIND(hh, nht, neighbor, ETH_ALEN, nht_entry);
@@ -428,13 +434,15 @@ int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ET
 	struct nht_destlist_entry *dest, *tmp;
 
 	HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
-		if(!(dest->rt_entry->flags & AODV_FLAGS_ROUTE_WARN)) {
-			dessert_debug("dest->rt_entry->flags = %u->%p", dest->rt_entry->flags, dest->rt_entry);
-			nht_destlist_entry_t* curr_el = malloc(sizeof(nht_destlist_entry_t));
-			memcpy(curr_el->dhost_ether, dest->rt_entry->dhost_ether, ETH_ALEN);
-			DL_APPEND(*head, curr_el);
-			dest->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
+		if(dest->rt_entry->flags & AODV_FLAGS_ROUTE_WARN) {
+			continue;
 		}
+		dessert_debug("dest->rt_entry->flags = %u->%p", dest->rt_entry->flags, dest->rt_entry);
+		aodv_mac_seq_list_t* curr_el = malloc(sizeof(aodv_mac_seq_list_t));
+		memcpy(curr_el->host, dest->rt_entry->dhost_ether, ETH_ALEN);
+		curr_el->sequence_number = dest->rt_entry->destination_sequence_number;
+		DL_APPEND(*head, curr_el);
+		dest->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
 	}
 	return TRUE;
 }
@@ -446,12 +454,7 @@ int aodv_db_rt_get_warn_status(uint8_t dhost_ether[ETH_ALEN]) {
 		return FALSE;
 
 	dessert_debug("rt_entry->flags = %u->%p", rt_entry->flags, rt_entry);
-	if(rt_entry->flags & AODV_FLAGS_ROUTE_WARN) {
-		dessert_debug("A: rt_entry->flags = %u->%p", rt_entry->flags, rt_entry);
-		return TRUE;
-	} else {
-		return FALSE;
-	}
+	return ((rt_entry->flags & AODV_FLAGS_ROUTE_WARN) ? TRUE : FALSE);
 }
 
 int aodv_db_rt_cleanup (struct timeval* timestamp) {

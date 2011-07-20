@@ -29,7 +29,7 @@ For further information and questions please use the web site
 typedef struct neighbor_entry {
 	struct __attribute__ ((__packed__)) { // key
 		uint8_t 				ether_neighbor[ETH_ALEN];
-		const dessert_meshif_t*	iface;
+		dessert_meshif_t*	iface;
 		uint8_t					mobility;
 		int8_t					max_rssi;
 		uint16_t				hello_interval;
@@ -44,7 +44,7 @@ typedef struct neighbor_table {
 
 neighbor_table_t nt;
 
-neighbor_entry_t* db_neighbor_entry_create(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, uint8_t remote_mobility, uint16_t remote_hello_interval) {
+neighbor_entry_t* db_neighbor_entry_create(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, uint8_t remote_mobility, uint16_t remote_hello_interval) {
 	neighbor_entry_t* new_entry;
 	new_entry = malloc(sizeof(neighbor_entry_t));
 	if (new_entry == NULL) return NULL;
@@ -95,7 +95,7 @@ int db_nt_update_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* i
 		return 0;
 	}
 	int8_t new = -120;
-	avg_node_result_t neigh_result = dessert_rssi_avg(ether_neighbor_addr, curr_entry->iface->if_name);
+	avg_node_result_t neigh_result = dessert_rssi_avg(ether_neighbor_addr, curr_entry->iface);
 	if(neigh_result.avg_rssi != 0) {
 		new = neigh_result.avg_rssi;
 	}
@@ -128,7 +128,7 @@ void db_nt_create_purge_timeout(struct timeval* purge_timeout, uint16_t remote_h
 	purge_timeout->tv_usec = (hello_int_msek % 1000) * 1000;
 }
 
-int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp, uint8_t mobility, uint16_t remote_hello_interval) {
+int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp, uint8_t mobility, uint16_t remote_hello_interval) {
 	neighbor_entry_t* curr_entry = NULL;
 	uint8_t addr_sum[ETH_ALEN + sizeof(void*)];
 	memcpy(addr_sum, ether_neighbor_addr, ETH_ALEN);
@@ -150,7 +150,7 @@ int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif
 	return TRUE;
 }
 
-int db_nt_check2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], const dessert_meshif_t* iface, struct timeval* timestamp) {
+int db_nt_check2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
 	timeslot_purgeobjects(nt.ts, timestamp);
 	neighbor_entry_t* curr_entry;
 	uint8_t addr_sum[ETH_ALEN + sizeof(void*)];

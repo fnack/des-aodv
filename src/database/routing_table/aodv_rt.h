@@ -26,7 +26,8 @@ For further information and questions please use the web site
 
 #include <dessert.h>
 #include <utlist.h>
-#include "../../pipeline/aodv_pipeline.h"
+#include <uthash.h>
+#include "../aodv_database.h"
 
 #ifdef ANDROID
 #include <linux/if_ether.h>
@@ -91,9 +92,11 @@ int aodv_db_rt_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_o
 
 int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN], uint32_t destination_sequence_number);
 
-int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN], uint32_t *destination_sequence_number_out);
+int aodv_db_rt_remove_nexthop(uint8_t next_hop[ETH_ALEN]);
+int aodv_db_rt_inv_over_nexthop(uint8_t next_hop[ETH_ALEN]);
+int aodv_db_rt_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], aodv_mac_seq_list_t **destlist);
 
-int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], nht_destlist_entry_t** head);
+int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], aodv_mac_seq_list_t** head);
 
 int aodv_db_rt_get_warn_status(uint8_t dhost_ether[ETH_ALEN]);
 
