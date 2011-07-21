@@ -70,21 +70,19 @@ int aodv_db_get_originator_sequence_number(uint8_t dhost_ether[ETH_ALEN], uint8_
 
 int aodv_db_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out);
 
-int aodv_db_markrouteinv (uint8_t dhost_ether[ETH_ALEN], uint32_t destination_sequence_number);
-
+int aodv_db_markrouteinv(uint8_t dhost_ether[ETH_ALEN], uint32_t destination_sequence_number);
 int aodv_db_rt_remove_nexthop(uint8_t next_hop[ETH_ALEN]);
 int aodv_db_rt_inv_over_nexthop(uint8_t next_hop[ETH_ALEN]);
 int aodv_db_rt_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], aodv_mac_seq_list_t **destlist);
 
 int aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], aodv_mac_seq_list_t** head);
-
 int aodv_db_get_warn_status(uint8_t dhost_ether[ETH_ALEN]);
 
 /**
  * Take a record that the given neighbor seems to be
  * the 1 hop bidirectional neighbor
  */
-int aodv_db_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp, uint8_t remote_mobility, uint16_t remote_hello_interval);
+int aodv_db_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp);
 
 /**
  * Check whether given neighbor is 1 hop bidirectional neighbor

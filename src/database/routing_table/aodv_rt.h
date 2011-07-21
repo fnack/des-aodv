@@ -97,7 +97,6 @@ int aodv_db_rt_inv_over_nexthop(uint8_t next_hop[ETH_ALEN]);
 int aodv_db_rt_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], aodv_mac_seq_list_t **destlist);
 
 int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], aodv_mac_seq_list_t** head);
-
 int aodv_db_rt_get_warn_status(uint8_t dhost_ether[ETH_ALEN]);
 
 int aodv_db_rt_cleanup (struct timeval* timestamp);

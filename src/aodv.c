@@ -34,7 +34,6 @@ For further information and questions please use the web site
 int     hello_size	        = HELLO_SIZE;
 int     hello_interval      = HELLO_INTERVAL;
 int     rreq_size	        = RREQ_SIZE;
-int     mobility            = MOBILITY;//flag in hello_msg
 
 dessert_periodic_t* periodic_send_hello;
 
@@ -72,7 +71,6 @@ int main(int argc, char** argv) {
 
     cli_register_command(dessert_cli, dessert_cli_show, "hello_size", cli_show_hello_size, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show HELLO packet size");
     cli_register_command(dessert_cli, dessert_cli_show, "hello_interval", cli_show_hello_interval, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show HELLO packet interval");
-    cli_register_command(dessert_cli, dessert_cli_show, "mobility", cli_show_mobility, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show moblity");
     cli_register_command(dessert_cli, dessert_cli_show, "rreq_size", cli_show_rreq_size, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show RREQ packet size");
     cli_register_command(dessert_cli, dessert_cli_show, "rt", cli_show_rt, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show routing table");
 
