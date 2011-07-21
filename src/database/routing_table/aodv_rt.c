@@ -164,13 +164,13 @@ int aodv_db_rt_capt_rreq(uint8_t dhost_ether[ETH_ALEN],
 	HASH_FIND(hh, rt_entry->src_list, shost_ether, ETH_ALEN, srclist_entry);
 	if (srclist_entry == NULL) {
 		// if not found -> create new source entry of source list
-		if (rt_srclist_entry_create(&srclist_entry, shost_ether, shost_prev_hop, output_iface, originator_sequence_number) != TRUE) {
+		if (rt_srclist_entry_create(&srclist_entry, shost_ether, shost_prev_hop, output_iface, 0) != TRUE) {
 			return FALSE;
 		}
 		HASH_ADD_KEYPTR(hh, rt_entry->src_list, srclist_entry->shost_ether, ETH_ALEN, srclist_entry);
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
 		dessert_debug("create route to " MAC ": originator_sequence_number=%u",
-		              EXPLODE_ARRAY6(shost_ether), srclist_entry->originator_sequence_number);
+		              EXPLODE_ARRAY6(shost_ether), originator_sequence_number);
 		return TRUE;
 	}
 
@@ -178,7 +178,7 @@ int aodv_db_rt_capt_rreq(uint8_t dhost_ether[ETH_ALEN],
 	int b = hf_comp_u8(rt_entry->hop_count, hop_count); // METRIC
 	if(a < 0 || (a == 0 && b >= 0)) {
 
-		if(a == 0 && b > 0) {
+		if(a == 0 && b >= 0) {
 			dessert_info("METRIC HIT: originator_sequence_number=%u:%u - hop_count=%u:%u", srclist_entry->originator_sequence_number, originator_sequence_number, rt_entry->hop_count, hop_count);
 		}
 

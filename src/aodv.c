@@ -39,21 +39,21 @@ dessert_periodic_t* periodic_send_hello;
 
 int main(int argc, char** argv) {
 	/* initialize daemon with correct parameters */
-	dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
 
 	FILE *cfg = NULL;
 	if ((argc >= 2) && (strcmp(argv[1], "-n") == 0)) {
 		dessert_info("starting AODV in non daemonize mode");
-
 		char cfg_file_name[] = "./des-aodv.cli";
 		cfg = fopen(cfg_file_name, "r");
 		if (cfg == NULL) {
 				printf("Config file '%s' not found. Exit ...\n", cfg_file_name);
 				return EXIT_FAILURE;
 		}
+		dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
 	} else {
 		dessert_info("starting AODV in daemonize mode");
 		cfg = dessert_cli_get_cfg(argc, argv);
+		dessert_init("AODV", 0x03, DESSERT_OPT_DAEMONIZE);
 	}
 
 	/* routing table initialization */
