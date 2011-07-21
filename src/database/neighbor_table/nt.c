@@ -59,15 +59,13 @@ void db_nt_on_neigbor_timeout(struct timeval* timestamp, void* src_object, void*
 	dessert_debug("%s <= x => " MAC, curr_entry->iface->if_name, EXPLODE_ARRAY6(curr_entry->ether_neighbor));
 	HASH_DEL(nt.entrys, curr_entry);
 
-	// add schedule
-	struct timeval curr_time;
-	gettimeofday(&curr_time, NULL);
-	aodv_db_sc_addschedule(&curr_time, curr_entry->ether_neighbor, AODV_SC_SEND_OUT_RERR, 0);
+	aodv_db_sc_addschedule(timestamp, curr_entry->ether_neighbor, AODV_SC_SEND_OUT_RERR, 0);
+	aodv_db_sc_dropschedule(curr_entry->ether_neighbor, AODV_SC_UPDATE_RSSI);
 	free(curr_entry);
 }
 
 int db_nt_reset_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
-	dessert_debug("db_nt_reset_rssi: " MAC, EXPLODE_ARRAY6(ether_neighbor_addr));
+	dessert_debug("neighbor reset rssi: " MAC " -> %d", EXPLODE_ARRAY6(ether_neighbor_addr), AODV_SIGNAL_STRENGTH_INIT);
 	neighbor_entry_t* curr_entry = NULL;
 	uint8_t addr_sum[ETH_ALEN + sizeof(void*)];
 	memcpy(addr_sum, ether_neighbor_addr, ETH_ALEN);
@@ -80,7 +78,7 @@ int db_nt_reset_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* if
 	return TRUE;
 }
 
-int db_nt_update_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
+int8_t db_nt_update_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
 
 	neighbor_entry_t* curr_entry = NULL;
 	uint8_t addr_sum[ETH_ALEN + sizeof(void*)];
@@ -90,19 +88,18 @@ int db_nt_update_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* i
 	if (curr_entry == NULL) {
 		return 0;
 	}
-	int8_t new = -120;
+	int8_t new = AODV_SIGNAL_STRENGTH_INIT;
 	avg_node_result_t neigh_result = dessert_rssi_avg(ether_neighbor_addr, curr_entry->iface);
 	if(neigh_result.avg_rssi != 0) {
 		new = neigh_result.avg_rssi;
 	}
 
-	int diff = (curr_entry->max_rssi - new);
+	int8_t diff = (curr_entry->max_rssi - new);
 	if(diff < 0) {
 		//walking to the ap
 		dessert_debug("%s <= R %d > %d => " MAC, iface->if_name, curr_entry->max_rssi, new, EXPLODE_ARRAY6(ether_neighbor_addr));
 		curr_entry->max_rssi = new;
 	}
-	//-25 - -45
 	return diff;
 }
 
@@ -131,6 +128,7 @@ int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* if
 		HASH_ADD_KEYPTR(hh, nt.entrys, curr_entry->ether_neighbor, ETH_ALEN + sizeof(void*), curr_entry);
 		dessert_debug("%s <=====> " MAC, iface->if_name, EXPLODE_ARRAY6(ether_neighbor_addr));
 	}
+	aodv_db_sc_addschedule(timestamp, curr_entry->ether_neighbor, AODV_SC_UPDATE_RSSI, (void *) iface);
 	timeslot_addobject(nt.ts, timestamp, curr_entry);
 	return TRUE;
 }

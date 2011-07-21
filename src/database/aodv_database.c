@@ -224,7 +224,7 @@ int aodv_db_reset_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* 
 	return result;
 }
 
-int aodv_db_update_rssi(uint8_t ether_neighbor[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
+int8_t aodv_db_update_rssi(uint8_t ether_neighbor[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
 	aodv_db_wlock();
 	int result = db_nt_update_rssi(ether_neighbor, iface, timestamp);
 	aodv_db_unlock();
