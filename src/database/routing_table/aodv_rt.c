@@ -249,6 +249,10 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
 		timeslot_addobject(rt.ts, timestamp, rt_entry);
 		return TRUE;
 	}
+
+	dessert_debug("get OLD rrep from " MAC ": destination_sequence_number=%u:%u",
+	              EXPLODE_ARRAY6(destination_host), rt_entry->destination_sequence_number, destination_sequence_number);
+
 	return FALSE;
 }
 
