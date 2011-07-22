@@ -275,7 +275,7 @@ int aodv_db_rt_getnexthop(uint8_t destination_host[ETH_ALEN], uint8_t destinatio
 }
 
 int aodv_db_rt_getprevhop(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN],
-		uint8_t originator_host_next_hop_out[ETH_ALEN], dessert_meshif_t** output_iface_out) {
+		uint8_t originator_host_prev_hop_out[ETH_ALEN], dessert_meshif_t** output_iface_out) {
 
 	aodv_rt_entry_t* rt_entry;
 	aodv_rt_srclist_entry_t* srclist_entry;
@@ -284,7 +284,7 @@ int aodv_db_rt_getprevhop(uint8_t destination_host[ETH_ALEN], uint8_t originator
 
 	HASH_FIND(hh, rt_entry->src_list, originator_host, ETH_ALEN, srclist_entry);
 	if (srclist_entry == NULL) return FALSE;
-	memcpy(originator_host_next_hop_out, srclist_entry->originator_host_next_hop, ETH_ALEN);
+	memcpy(originator_host_prev_hop_out, srclist_entry->originator_host_prev_hop, ETH_ALEN);
 	*output_iface_out = srclist_entry->output_iface;
 
 	return TRUE;

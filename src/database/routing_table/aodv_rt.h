@@ -98,23 +98,23 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
                          uint8_t hop_count,
                          struct timeval* timestamp);
 
-int aodv_db_rt_getroute2dest(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN],
+int aodv_db_rt_getroute2dest(uint8_t destination_host[ETH_ALEN], uint8_t destination_host_next_hop_out[ETH_ALEN],
 		dessert_meshif_t** output_iface_out, struct timeval* timestamp);
 
-int aodv_db_rt_getnexthop(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN]);
+int aodv_db_rt_getnexthop(uint8_t destination_host[ETH_ALEN], uint8_t destination_host_next_hop_out[ETH_ALEN]);
 
-int aodv_db_rt_getprevhop(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN],
-		uint8_t shost_next_hop_out[ETH_ALEN], dessert_meshif_t** output_iface_out);
+int aodv_db_rt_getprevhop(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN],
+		uint8_t originator_host_prev_hop_out[ETH_ALEN], dessert_meshif_t** output_iface_out);
 
-int aodv_db_rt_get_destination_sequence_number(uint8_t dhost_ether[ETH_ALEN], uint32_t *destination_sequence_number_out);
+int aodv_db_rt_get_destination_sequence_number(uint8_t destination_host[ETH_ALEN], uint32_t *destination_sequence_number_out);
 
-int aodv_db_rt_get_originator_sequence_number(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN], uint32_t* originator_sequence_number_out);
+int aodv_db_rt_get_originator_sequence_number(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint32_t* originator_sequence_number_out);
 
-int aodv_db_rt_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out);
+int aodv_db_rt_get_hop_count(uint8_t destination_host[ETH_ALEN], uint8_t* hop_count_out);
 
-int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN]);
+int aodv_db_rt_markrouteinv(uint8_t destination_host[ETH_ALEN]);
 
-int aodv_db_rt_inv_route(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]);
+int aodv_db_rt_inv_route(uint8_t destination_host_next_hop[ETH_ALEN], uint8_t destination_host_out[ETH_ALEN]);
 
 int aodv_db_rt_cleanup (struct timeval* timestamp);
 
