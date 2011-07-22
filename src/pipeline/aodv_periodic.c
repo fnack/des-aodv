@@ -48,8 +48,10 @@ dessert_per_result_t aodv_periodic_send_hello(void *data, struct timeval *schedu
 dessert_per_result_t aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct timeval *interval) {
 	struct timeval timestamp;
 	gettimeofday(&timestamp, NULL);
-	aodv_db_cleanup(&timestamp);
-	return DESSERT_PER_KEEP;
+	if(aodv_db_cleanup(&timestamp))
+		return DESSERT_PER_KEEP;
+	else
+		return DESSERT_PER_UNREGISTER;
 }
 
 dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count) {

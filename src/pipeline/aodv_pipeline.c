@@ -78,7 +78,7 @@ dessert_msg_t* _create_rrep(uint8_t route_dest[ETH_ALEN], uint8_t route_source[E
 	dessert_ext_t* ext;
 	dessert_msg_new(&msg);
 
-	msg->ttl = 255;
+	msg->ttl = TTL_MAX;
 
 	// add l25h header
 	dessert_msg_addext(msg, &ext, DESSERT_EXT_ETH, ETHER_HDR_LEN);

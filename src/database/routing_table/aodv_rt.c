@@ -210,7 +210,7 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
 		nht_destlist_entry_t* destlist_entry;
 		// remove old next_hop_entry if found
 		if (!(rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN)) {
-			HASH_FIND(hh, nht, rt_entry->destination_host, ETH_ALEN, nht_entry);
+			HASH_FIND(hh, nht, rt_entry->destination_host_next_hop, ETH_ALEN, nht_entry);
 			if (nht_entry != NULL) {
 				HASH_FIND(hh, nht_entry->dest_list, rt_entry->destination_host, ETH_ALEN, destlist_entry);
 				if (destlist_entry != NULL) {
@@ -333,13 +333,13 @@ int aodv_db_rt_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_o
 
 }
 
-int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
+int aodv_db_rt_markrouteinv(uint8_t destination_host[ETH_ALEN]) {
 	aodv_rt_entry_t* rt_entry;
-	HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
+	HASH_FIND(hh, rt.entrys, destination_host, ETH_ALEN, rt_entry);
 	if(rt_entry == NULL) {
 		return FALSE;
 	}
-	dessert_debug("route to " MAC " marked as invalid", EXPLODE_ARRAY6(dhost_ether));
+	dessert_debug("route to " MAC " marked as invalid", EXPLODE_ARRAY6(destination_host));
 	rt_entry->flags |= AODV_FLAGS_ROUTE_INVALID;
 	return TRUE;
 }
