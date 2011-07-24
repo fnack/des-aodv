@@ -91,6 +91,7 @@ int rt_srclist_entry_create(aodv_rt_srclist_entry_t** srclist_entry_out,
     memcpy(srclist_entry->originator_host_prev_hop, originator_host_prev_hop, ETH_ALEN);
     srclist_entry->output_iface = output_iface;
     srclist_entry->originator_sequence_number = 0; //initial
+    srclist_entry->hop_count = UINT8_MAX; //initial
 
     *srclist_entry_out = srclist_entry;
     return true;
@@ -109,7 +110,7 @@ int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out, uint8_t destination_host[
     rt_entry->flags = AODV_FLAGS_NEXT_HOP_UNKNOWN | AODV_FLAGS_ROUTE_INVALID;
     rt_entry->src_list = NULL;
     rt_entry->destination_sequence_number = 0; //we know nothing about the destination
-    rt_entry->hop_count = 0; //initial
+    rt_entry->hop_count = UINT8_MAX; //initial
 
     *rreqt_entry_out = rt_entry;
     return true;
@@ -163,7 +164,7 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
 
     if(rt_entry == NULL) {
         // if not found -> create routing entry
-        if(rt_entry_create(&rt_entry, destination_host) != true) {
+        if(!rt_entry_create(&rt_entry, destination_host)) {
             return false;
         }
 
@@ -175,7 +176,7 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
 
     if(srclist_entry == NULL) {
         // if not found -> create new source entry of source list
-        if(rt_srclist_entry_create(&srclist_entry, originator_host, originator_host_prev_hop, output_iface) != true) {
+        if(!rt_srclist_entry_create(&srclist_entry, originator_host, originator_host_prev_hop, output_iface)) {
             return false;
         }
 
@@ -185,7 +186,7 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
     }
 
     int a = hf_comp_u32(srclist_entry->originator_sequence_number, originator_sequence_number);
-    int b = hf_comp_u8(rt_entry->hop_count, hop_count); // METRIC
+    int b = hf_comp_u8(srclist_entry->hop_count, hop_count); // METRIC
     dessert_trace("X: originator_sequence_number=%u:%u - hop_count=%u:%u p=%p", srclist_entry->originator_sequence_number, originator_sequence_number, rt_entry->hop_count, hop_count, rt_entry);
 
     if(a < 0 || (a == 0 && b >= 0)) {
@@ -224,7 +225,7 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
 
     if(rt_entry == NULL) {
         // if not found -> create routing entry
-        if(rt_entry_create(&rt_entry, destination_host) == false) {
+        if(!rt_entry_create(&rt_entry, destination_host)) {
             return false;
         }
 

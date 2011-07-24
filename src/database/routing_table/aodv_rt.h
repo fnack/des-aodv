@@ -41,6 +41,7 @@ typedef struct aodv_rt_srclist_entry {
     uint8_t				originator_host_prev_hop[ETH_ALEN];
     dessert_meshif_t*		output_iface;
     uint32_t			originator_sequence_number;
+    uint32_t            hop_count;
     UT_hash_handle			hh;
 } aodv_rt_srclist_entry_t;
 

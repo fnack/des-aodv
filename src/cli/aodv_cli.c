@@ -140,7 +140,12 @@ int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
     uint8_t dhost_hwaddr[ETHER_ADDR_LEN];
     int len1 = sscanf(argv[0], MAC, EXPLODE_ARRAY6(&dhost_hwaddr));
 
-    uint8_t initial_hop_count = (uint8_t) strtoul(argv[1], NULL, 10);
+    uint8_t initial_hop_count = 0;
+    if(argc == 2) {
+        sscanf(argv[1], "%hhu", &initial_hop_count);
+    }
+
+    cli_print(cli, "using %u as initial_hop_count\n", initial_hop_count);
 
     if(len1 != 6) {
         cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_hop_count]\n", command);

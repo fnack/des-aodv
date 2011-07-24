@@ -150,9 +150,11 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
     rreq_repeat_time.tv_sec = rep_time / 1000;
     rreq_repeat_time.tv_usec = (rep_time % 1000) * 1000;
     hf_add_tv(ts, &rreq_repeat_time, &rreq_repeat_time);
-    pthread_rwlock_wrlock(&pp_rwlock);
-    rreq_msg->originator_sequence_number = ++seq_num_global;
-    pthread_rwlock_unlock(&pp_rwlock);
+
+//    pthread_rwlock_wrlock(&pp_rwlock);
+//    rreq_msg->originator_sequence_number = ++seq_num_global;
+//    pthread_rwlock_unlock(&pp_rwlock);
+
     aodv_db_addschedule(&rreq_repeat_time, dhost_ether, AODV_SC_REPEAT_RREQ, msg);
 
 }
@@ -270,7 +272,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
     if(memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) != 0) {  // RREQ not for me
         int x = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->originator_sequence_number, rreq_msg->hop_count, &ts);
 
-        if(x != true) {
+        if(!x) {
             dessert_debug("got RREQ for " MAC "  -> don't answer with RREP is OLD", EXPLODE_ARRAY6(l25h->ether_dhost));
             return DESSERT_MSG_DROP;
         }
