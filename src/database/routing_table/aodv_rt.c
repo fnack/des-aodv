@@ -202,6 +202,7 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
         memcpy(srclist_entry->originator_host_prev_hop, originator_host_prev_hop, ETH_ALEN);
         srclist_entry->output_iface = output_iface;
         srclist_entry->originator_sequence_number = originator_sequence_number;
+        srclist_entry->hop_count = hop_count;
         timeslot_addobject(rt.ts, timestamp, rt_entry);
         return true;
     }
