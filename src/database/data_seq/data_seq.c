@@ -28,40 +28,43 @@ For further information and questions please use the web site
 #include "../../config.h"
 
 typedef struct data_packet_id {
-	uint8_t src_addr[ETH_ALEN]; // key
-	uint16_t seq_num;
-	UT_hash_handle hh;
+    uint8_t         src_addr[ETH_ALEN]; // key
+    uint16_t        seq_num;
+    UT_hash_handle  hh;
 } data_packet_id_t;
 
 data_packet_id_t* entrys = NULL;
 
-//returns TRUE if input entry is newer
-//        FALSE if input entry is older
+//returns true if input entry is newer
+//        false if input entry is older
 //        -1 if error
 int aodv_db_ds_data_capt_data_seq(uint8_t shost_ether[ETH_ALEN], uint16_t shost_seq_num) {
 
-	data_packet_id_t* entry = NULL;
-	HASH_FIND(hh, entrys, shost_ether, ETH_ALEN, entry);
-	if (entry == NULL) {
-		//never got data from this host
-		entry = malloc(sizeof(data_packet_id_t));
-		if (entry == NULL) {
-			return -1;
-		}
-		memcpy(entry->src_addr, shost_ether, ETH_ALEN);
-		HASH_ADD_KEYPTR(hh, entrys, entry->src_addr, ETH_ALEN, entry);
-		entry->seq_num = shost_seq_num;
-		return TRUE;
-	}
-	
-	//data source is known
-	if ((entry->seq_num - shost_seq_num > (1<<15)) || (entry->seq_num < shost_seq_num)) {
-		//data packet is newer
-		entry->seq_num = shost_seq_num;
-		return TRUE;
-	}
-	
-	//data packet is old
-	return FALSE;
+    data_packet_id_t* entry = NULL;
+    HASH_FIND(hh, entrys, shost_ether, ETH_ALEN, entry);
+
+    if(entry == NULL) {
+        //never got data from this host
+        entry = malloc(sizeof(data_packet_id_t));
+
+        if(entry == NULL) {
+            return -1;
+        }
+
+        memcpy(entry->src_addr, shost_ether, ETH_ALEN);
+        HASH_ADD_KEYPTR(hh, entrys, entry->src_addr, ETH_ALEN, entry);
+        entry->seq_num = shost_seq_num;
+        return true;
+    }
+
+    //data source is known
+    if((entry->seq_num - shost_seq_num > (1 << 15)) || (entry->seq_num < shost_seq_num)) {
+        //data packet is newer
+        entry->seq_num = shost_seq_num;
+        return true;
+    }
+
+    //data packet is old
+    return false;
 }
 
