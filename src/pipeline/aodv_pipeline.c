@@ -151,10 +151,6 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
     rreq_repeat_time.tv_usec = (rep_time % 1000) * 1000;
     hf_add_tv(ts, &rreq_repeat_time, &rreq_repeat_time);
 
-//    pthread_rwlock_wrlock(&pp_rwlock);
-//    rreq_msg->originator_sequence_number = ++seq_num_global;
-//    pthread_rwlock_unlock(&pp_rwlock);
-
     aodv_db_addschedule(&rreq_repeat_time, dhost_ether, AODV_SC_REPEAT_RREQ, msg);
 
 }
@@ -508,10 +504,10 @@ int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, desse
         memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
         dessert_meshsend(msg, output_iface);
         dessert_debug(MAC " over " MAC " ----ME----> " MAC " to " MAC,
-            EXPLODE_ARRAY6(l25h->ether_shost),
-            EXPLODE_ARRAY6(msg->l2h.ether_shost),
-            EXPLODE_ARRAY6(msg->l2h.ether_dhost),
-            EXPLODE_ARRAY6(l25h->ether_dhost));
+                      EXPLODE_ARRAY6(l25h->ether_shost),
+                      EXPLODE_ARRAY6(msg->l2h.ether_shost),
+                      EXPLODE_ARRAY6(msg->l2h.ether_dhost),
+                      EXPLODE_ARRAY6(l25h->ether_dhost));
     }
     else {
         uint32_t rerr_count;
@@ -537,10 +533,10 @@ int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, desse
         }
 
         dessert_debug(MAC " over " MAC " ----XXX----> " MAC " to " MAC,
-            EXPLODE_ARRAY6(l25h->ether_shost),
-            EXPLODE_ARRAY6(msg->l2h.ether_shost),
-            EXPLODE_ARRAY6(msg->l2h.ether_dhost),
-            EXPLODE_ARRAY6(l25h->ether_dhost));
+                      EXPLODE_ARRAY6(l25h->ether_shost),
+                      EXPLODE_ARRAY6(msg->l2h.ether_shost),
+                      EXPLODE_ARRAY6(msg->l2h.ether_dhost),
+                      EXPLODE_ARRAY6(l25h->ether_dhost));
     }
 
     return DESSERT_MSG_DROP;
