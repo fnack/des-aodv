@@ -187,12 +187,12 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
 
     int a = hf_comp_u32(srclist_entry->originator_sequence_number, originator_sequence_number);
     int b = hf_comp_u8(srclist_entry->hop_count, hop_count); // METRIC
-    dessert_trace("X: originator_sequence_number=%u:%u - hop_count=%u:%u p=%p", srclist_entry->originator_sequence_number, originator_sequence_number, rt_entry->hop_count, hop_count, rt_entry);
+    dessert_trace("X: originator_sequence_number=%u:%u - hop_count=%u:%u p=%p", srclist_entry->originator_sequence_number, originator_sequence_number, srclist_entry->hop_count, hop_count, rt_entry);
 
     if(a < 0 || (a == 0 && b >= 0)) {
 
         if(a == 0 && b >= 0) {
-            dessert_info("METRIC HIT: originator_sequence_number=%u:%u - hop_count=%u:%u", srclist_entry->originator_sequence_number, originator_sequence_number, rt_entry->hop_count, hop_count);
+            dessert_info("METRIC HIT: originator_sequence_number=%u:%u - hop_count=%u:%u", srclist_entry->originator_sequence_number, originator_sequence_number, srclist_entry->hop_count, hop_count);
         }
 
         dessert_debug("get rreq from " MAC ": originator_sequence_number=%u:%u",

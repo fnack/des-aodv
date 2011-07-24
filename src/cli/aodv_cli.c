@@ -132,31 +132,28 @@ int cli_set_gossipp(struct cli_def* cli, char* command, char* argv[], int argc) 
 
 int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
 
-    if(argc < 1 || 2 < argc) {
+    if(argc != 2) {
         cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_hop_count]\n", command);
         return CLI_ERROR_ARG;
     }
 
-    uint8_t dhost_hwaddr[ETHER_ADDR_LEN];
-    int len1 = sscanf(argv[0], MAC, EXPLODE_ARRAY6(&dhost_hwaddr));
+    mac_addr host;
+    int ok = dessert_parse_mac(argv[0], &host);
+    if(ok != 0) {
+        cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_hop_count]\n", command);
+        return CLI_ERROR_ARG;
+    }
 
     uint8_t initial_hop_count = 0;
-    if(argc == 2) {
-        sscanf(argv[1], "%hhu", &initial_hop_count);
-    }
+    sscanf(argv[1], "%hhu", &initial_hop_count);
 
-    cli_print(cli, "using %u as initial_hop_count\n", initial_hop_count);
-
-    if(len1 != 6) {
-        cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_hop_count]\n", command);
-        return CLI_ERROR_ARG;
-    }
+    cli_print(cli, MAC " -> using %u as initial_hop_count\n", EXPLODE_ARRAY6(host), initial_hop_count);
 
     struct timeval ts;
 
     gettimeofday(&ts, NULL);
 
-    aodv_send_rreq(dhost_hwaddr, &ts, NULL, initial_hop_count);
+    aodv_send_rreq(host, &ts, NULL, initial_hop_count);
 
     return CLI_OK;
 }
