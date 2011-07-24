@@ -181,8 +181,6 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
         }
 
         HASH_ADD_KEYPTR(hh, rt_entry->src_list, srclist_entry->originator_host, ETH_ALEN, srclist_entry);
-        dessert_debug("create route to " MAC ": originator_sequence_number=%u",
-                      EXPLODE_ARRAY6(originator_host), originator_sequence_number);
     }
 
     int a = hf_comp_u32(srclist_entry->originator_sequence_number, originator_sequence_number);
@@ -229,6 +227,9 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
         if(!rt_entry_create(&rt_entry, destination_host)) {
             return false;
         }
+
+        dessert_debug("create route to " MAC ": destination_sequence_number=%u",
+              EXPLODE_ARRAY6(destination_host), destination_sequence_number);
 
         HASH_ADD_KEYPTR(hh, rt.entrys, rt_entry->destination_host, ETH_ALEN, rt_entry);
     }
@@ -387,16 +388,24 @@ int aodv_db_rt_get_originator_sequence_number(uint8_t dhost_ether[ETH_ALEN], uin
     return true;
 }
 
-int aodv_db_rt_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out) {
+int aodv_db_rt_get_orginator_hop_count(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t *last_hop_count_orginator_out) {
     aodv_rt_entry_t* rt_entry;
-    HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
+    HASH_FIND(hh, rt.entrys, destination_host, ETH_ALEN, rt_entry);
 
     if(rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN) {
-        *hop_count_out = UINT8_MAX;
+        *last_hop_count_orginator_out = UINT8_MAX;
         return false;
     }
 
-    *hop_count_out = rt_entry->hop_count;
+    aodv_rt_srclist_entry_t* src_entry;
+    HASH_FIND(hh, rt_entry->src_list, originator_host, ETH_ALEN, src_entry);
+
+    if(src_entry == NULL) {
+        *last_hop_count_orginator_out = UINT8_MAX;
+        return false;
+    }
+
+    *last_hop_count_orginator_out = src_entry->hop_count;
     return true;
 
 }

@@ -291,9 +291,9 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
             //we have a routte to this dest and
             //we have never info
             // i know route to destination that have seq_num greater then that of source (route is newer)
-            uint8_t last_hop_count_dest_me;
-            aodv_db_get_hop_count(l25h->ether_dhost, &last_hop_count_dest_me);
-            dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_destination_sequence_number /*this is what we know*/ , AODV_FLAGS_RREP_A, last_hop_count_dest_me);
+            uint8_t last_hop_count_orginator;
+            aodv_db_get_orginator_hop_count(l25h->ether_dhost, l25h->ether_shost, &last_hop_count_orginator);
+            dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_destination_sequence_number /*this is what we know*/ , AODV_FLAGS_RREP_A, last_hop_count_orginator);
             dessert_debug("repair link to " MAC, EXPLODE_ARRAY6(l25h->ether_dhost));
 
             dessert_meshsend(rrep_msg, iface);
@@ -306,7 +306,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
                 dessert_meshsend(msg, NULL);
             }
             else {
-                dessert_debug("stop RREQ to " MAC " id=%d", EXPLODE_ARRAY6(l25h->ether_dhost), rreq_msg->originator_sequence_number);
+                dessert_debug("stop RREQ to " MAC " id=%u", EXPLODE_ARRAY6(l25h->ether_dhost), rreq_msg->originator_sequence_number);
             }
         }
     }
