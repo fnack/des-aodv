@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see http://www.gnu.org/licenses/ .
 --------------------------------------------------------------------------------
 For further information and questions please use the web site
-    http://www.des-testbed.net
+	http://www.des-testbed.net
 *******************************************************************************/
 
 #include <string.h>
@@ -31,19 +31,27 @@ For further information and questions please use the web site
 #include "pipeline/aodv_pipeline.h"
 #include "database/aodv_database.h"
 
-int     hello_size	        = HELLO_SIZE;
-int     hello_interval      = HELLO_INTERVAL;
-int     rreq_size	        = RREQ_SIZE;
+uint16_t hello_size = HELLO_SIZE;
+uint16_t hello_interval = HELLO_INTERVAL;
+uint16_t rreq_size = RREQ_SIZE;
+double gossipp = GOSSIPP;
+int dest_only = DESTONLY;
 
 dessert_periodic_t* periodic_send_hello;
 
+static void register_names() {
+    dessert_register_ptr_name(aodv_periodic_send_hello, "aodv_periodic_send_hello");
+    dessert_register_ptr_name(aodv_periodic_cleanup_database, "aodv_periodic_cleanup_database");
+    dessert_register_ptr_name(aodv_periodic_scexecute, "aodv_periodic_scexecute");
+}
+
 int main(int argc, char** argv) {
     /* initialize daemon with correct parameters */
+
     FILE* cfg = NULL;
 
-    if((argc == 2) && (strcmp(argv[1], "-nondaemonize") == 0)) {
+    if((argc >= 2) && (strcmp(argv[1], "-n") == 0)) {
         dessert_info("starting AODV in non daemonize mode");
-        dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
         char cfg_file_name[] = "./des-aodv.cli";
         cfg = fopen(cfg_file_name, "r");
 
@@ -51,12 +59,16 @@ int main(int argc, char** argv) {
             printf("Config file '%s' not found. Exit ...\n", cfg_file_name);
             return EXIT_FAILURE;
         }
+
+        dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
     }
     else {
         dessert_info("starting AODV in daemonize mode");
         cfg = dessert_cli_get_cfg(argc, argv);
         dessert_init("AODV", 0x03, DESSERT_OPT_DAEMONIZE);
     }
+
+    register_names();
 
     /* routing table initialization */
     aodv_db_init();
@@ -71,6 +83,8 @@ int main(int argc, char** argv) {
     cli_register_command(dessert_cli, dessert_cli_set, "hello_size", cli_set_hello_size, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set HELLO packet size");
     cli_register_command(dessert_cli, dessert_cli_set, "hello_interval", cli_set_hello_interval, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set HELLO packet interval");
     cli_register_command(dessert_cli, dessert_cli_set, "rreq_size", cli_set_rreq_size, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set RREQ packet size");
+    cli_register_command(dessert_cli, dessert_cli_set, "gossip_p", cli_set_gossipp, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set p for gossip  p in [0.0,...,1.0]");
+    cli_register_command(dessert_cli, dessert_cli_set, "shortcut", cli_set_shortcut, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set shortcut mode");
 
     cli_register_command(dessert_cli, dessert_cli_show, "hello_size", cli_show_hello_size, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show HELLO packet size");
     cli_register_command(dessert_cli, dessert_cli_show, "hello_interval", cli_show_hello_interval, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show HELLO packet interval");

@@ -26,8 +26,6 @@ For further information and questions please use the web site
 
 #include <dessert.h>
 
-enum aodv_bool {TRUE = 1, FALSE = 0};
-
 #define RREQ_RETRIES				5 /* ferhat=5 rfc=2 */
 #define RREQ_RATELIMIT				10 /* rfc=10 */
 #define TTL_START				4 /* rfc=1 */
@@ -61,6 +59,9 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define HELLO_SIZE				128 /* bytes */
 #define RREQ_SIZE				128 /* bytes */
 
+#define GOSSIPP					 	1		// flooding
+#define DESTONLY					false
+
 /**
  * Schedule type = send out packets from FIFO puffer for
  * destination with ether_addr
@@ -87,8 +88,10 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 extern dessert_periodic_t* 			periodic_send_hello;
-extern int 							hello_size;
-extern int 							hello_interval;
-extern int 							rreq_size;
+extern uint16_t 					hello_size;
+extern uint16_t 							hello_interval;
+extern uint16_t 							rreq_size;
+extern double 						gossipp;
+extern int 							dest_only;
 
 #endif

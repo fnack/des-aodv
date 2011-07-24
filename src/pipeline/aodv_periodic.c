@@ -29,7 +29,6 @@ For further information and questions please use the web site
 #include <utlist.h>
 
 dessert_per_result_t aodv_periodic_send_hello(void* data, struct timeval* scheduled, struct timeval* interval) {
-
     // create new HELLO message with hello_ext.
     dessert_msg_t* hello_msg;
     dessert_msg_new(&hello_msg);
@@ -48,8 +47,13 @@ dessert_per_result_t aodv_periodic_send_hello(void* data, struct timeval* schedu
 dessert_per_result_t aodv_periodic_cleanup_database(void* data, struct timeval* scheduled, struct timeval* interval) {
     struct timeval timestamp;
     gettimeofday(&timestamp, NULL);
-    aodv_db_cleanup(&timestamp);
-    return DESSERT_PER_KEEP;
+
+    if(aodv_db_cleanup(&timestamp)) {
+        return DESSERT_PER_KEEP;
+    }
+    else {
+        return DESSERT_PER_UNREGISTER;
+    }
 }
 
 dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count) {
@@ -126,7 +130,7 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
     struct timeval timestamp;
     gettimeofday(&timestamp, NULL);
 
-    if(aodv_db_popschedule(&timestamp, ether_addr, &schedule_type, &schedule_param) == FALSE) {
+    if(aodv_db_popschedule(&timestamp, ether_addr, &schedule_type, &schedule_param) == false) {
         return DESSERT_PER_KEEP;
     }
 
@@ -146,7 +150,7 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
             _onlb_element_t* curr_el = NULL;
             _onlb_element_t* head = NULL;
 
-            while(aodv_db_invroute(ether_addr, dhost_ether) == TRUE) {
+            while(aodv_db_invroute(ether_addr, dhost_ether) == true) {
                 dessert_debug("invalidate route to " MAC, EXPLODE_ARRAY6(dhost_ether));
                 dest_count++;
                 curr_el = malloc(sizeof(_onlb_element_t));

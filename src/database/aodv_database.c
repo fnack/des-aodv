@@ -49,7 +49,7 @@ void aodv_db_unlock() {
 }
 
 int aodv_db_init() {
-    int success = TRUE;
+    int success = true;
     aodv_db_wlock();
     success &= db_nt_init();
     success &= aodv_db_rt_init();
@@ -61,7 +61,7 @@ int aodv_db_init() {
 }
 
 int aodv_db_cleanup(struct timeval* timestamp) {
-    int success = TRUE;
+    int success = true;
     aodv_db_wlock();
     success &= db_nt_cleanup(timestamp);
     success &= aodv_db_rt_cleanup(timestamp);
@@ -88,25 +88,21 @@ dessert_msg_t* aodv_db_pop_packet(uint8_t dhost_ether[ETH_ALEN]) {
  * this destination. All messages to source (example: RREP) must be send
  * over shost_prev_hop (nodes output interface: output_iface).
  */
-int aodv_db_capt_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN],
-                      uint8_t shost_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface,
-                      uint32_t originator_sequence_number, uint8_t hop_count, uint8_t path_weight, struct timeval* timestamp) {
+int aodv_db_capt_rreq(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t originator_host_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint32_t originator_sequence_number, uint8_t hop_count, uint8_t path_weight, struct timeval* timestamp) {
     aodv_db_wlock();
-    int result = aodv_db_rt_capt_rreq(dhost_ether, shost_ether, shost_prev_hop, output_iface, originator_sequence_number, hop_count, path_weight, timestamp);
+    int result = aodv_db_rt_capt_rreq(destination_host, originator_host, originator_host_prev_hop, output_iface, originator_sequence_number, hop_count, path_weight, timestamp);
     aodv_db_unlock();
     return result;
 }
 
-int aodv_db_capt_rrep(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[ETH_ALEN],
-                      dessert_meshif_t* output_iface, uint32_t destination_sequence_number, uint8_t hop_count, uint8_t path_weight, struct timeval* timestamp) {
+int aodv_db_capt_rrep(uint8_t destination_host[ETH_ALEN], uint8_t destination_host_next_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint32_t destination_sequence_number, uint8_t hop_count, uint8_t path_weight, struct timeval* timestamp) {
     aodv_db_wlock();
-    int result =  aodv_db_rt_capt_rrep(dhost_ether, dhost_next_hop, output_iface, destination_sequence_number, hop_count, path_weight, timestamp);
+    int result =  aodv_db_rt_capt_rrep(destination_host, destination_host_next_hop, output_iface, destination_sequence_number, hop_count, path_weight, timestamp);
     aodv_db_unlock();
     return result;
 }
 
-int aodv_db_getroute2dest(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN],
-                          dessert_meshif_t** output_iface_out, struct timeval* timestamp) {
+int aodv_db_getroute2dest(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN], dessert_meshif_t** output_iface_out, struct timeval* timestamp) {
     aodv_db_wlock();
     int result =  aodv_db_rt_getroute2dest(dhost_ether, dhost_next_hop_out, output_iface_out, timestamp);
     aodv_db_unlock();
@@ -125,8 +121,7 @@ int aodv_db_getnexthop(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out
  * that has produces an RREQ to destination with dhost_ether address
  * (DB - read)
  */
-int aodv_db_getprevhop(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN],
-                       uint8_t shost_next_hop_out[ETH_ALEN], dessert_meshif_t** output_iface_out) {
+int aodv_db_getprevhop(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN], uint8_t shost_next_hop_out[ETH_ALEN], dessert_meshif_t** output_iface_out) {
     aodv_db_rlock();
     int result =  aodv_db_rt_getprevhop(dhost_ether, shost_ether, shost_next_hop_out, output_iface_out);
     aodv_db_unlock();
@@ -147,16 +142,16 @@ int aodv_db_get_originator_sequence_number(uint8_t dhost_ether[ETH_ALEN], uint8_
     return result;
 }
 
-int aodv_db_get_path_weight(uint8_t dhost_ether[ETH_ALEN], uint8_t* path_weight_out) {
+int aodv_db_get_orginator_path_weight(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN], uint8_t* last_path_weight_out) {
     aodv_db_rlock();
-    int result = aodv_db_rt_get_path_weight(dhost_ether, path_weight_out);
+    int result = aodv_db_rt_get_orginator_path_weight(dhost_ether, shost_ether, last_path_weight_out);
     aodv_db_unlock();
     return result;
 }
 
-int aodv_db_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out) {
+int aodv_db_get_orginator_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN], uint8_t* last_hop_count_orginator_out) {
     aodv_db_rlock();
-    int result = aodv_db_rt_get_hop_count(dhost_ether, hop_count_out);
+    int result = aodv_db_rt_get_orginator_hop_count(dhost_ether, shost_ether, last_hop_count_orginator_out);
     aodv_db_unlock();
     return result;
 }
@@ -170,8 +165,8 @@ int aodv_db_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
 
 /**
  * Marks only one route from database with next_hop = dhost_next_hop as invalid.
- * @return TRUE if route was invalidated. In that case contains dhost_ether
- * the destination address of this route. Returns FALSE if no route to invalidate
+ * @return true if route was invalidated. In that case contains dhost_ether
+ * the destination address of this route. Returns false if no route to invalidate
  * (i.e. no route that uses dhost_next_hop)
  */
 int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {

@@ -28,17 +28,15 @@ For further information and questions please use the web site
 #include "aodv_st.h"
 
 typedef struct schedule {
-    struct timeval 		execute_ts;
+    struct timeval      execute_ts;
     struct __attribute__((__packed__)) {
-        uint8_t 			ether_addr[ETH_ALEN];
-        uint8_t 			schedule_id;
+        uint8_t         ether_addr[ETH_ALEN];
+        uint8_t         schedule_id;
     };
-    void*			schedule_param;
-
-    struct schedule* 	next;
-    struct schedule* 	prev;
-
-    UT_hash_handle		hh;
+    void*               schedule_param;
+    struct schedule*    next;
+    struct schedule*    prev;
+    UT_hash_handle      hh;
 } schedule_t;
 
 schedule_t* first_schedule = NULL;
@@ -68,7 +66,7 @@ int aodv_db_sc_addschedule(struct timeval* execute_ts, uint8_t ether_addr[ETH_AL
     schedule_t* el = create_schedule(execute_ts, ether_addr, type, param);
 
     if(el == NULL) {
-        return FALSE;
+        return false;
     }
 
     HASH_ADD_KEYPTR(hh, hash_table, el->ether_addr, ETH_ALEN + sizeof(uint8_t), el);
@@ -107,7 +105,7 @@ int aodv_db_sc_addschedule(struct timeval* execute_ts, uint8_t ether_addr[ETH_AL
         }
     }
 
-    return TRUE;
+    return true;
 }
 
 int aodv_db_sc_popschedule(struct timeval* timestamp, uint8_t ether_addr_out[ETH_ALEN], uint8_t* type, void** param) {
@@ -124,10 +122,10 @@ int aodv_db_sc_popschedule(struct timeval* timestamp, uint8_t ether_addr_out[ETH
         *param = sc->schedule_param;
         HASH_DEL(hash_table, sc);
         free(sc);
-        return TRUE;
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 int aodv_db_sc_schedule_exists(uint8_t ether_addr[ETH_ALEN], uint8_t type) {
@@ -138,10 +136,10 @@ int aodv_db_sc_schedule_exists(uint8_t ether_addr[ETH_ALEN], uint8_t type) {
     HASH_FIND(hh, hash_table, key, ETH_ALEN + sizeof(uint8_t), schedule);
 
     if(schedule == NULL) {
-        return FALSE;
+        return false;
     }
     else {
-        return TRUE;
+        return true;
     }
 }
 
@@ -153,7 +151,7 @@ int aodv_db_sc_dropschedule(uint8_t ether_addr[ETH_ALEN], uint8_t type) {
     HASH_FIND(hh, hash_table, key, ETH_ALEN + sizeof(uint8_t), schedule);
 
     if(schedule == NULL) {
-        return FALSE;
+        return false;
     }
 
     if(schedule->prev != NULL) {
@@ -169,5 +167,5 @@ int aodv_db_sc_dropschedule(uint8_t ether_addr[ETH_ALEN], uint8_t type) {
 
     HASH_DEL(hash_table, schedule);
     free(schedule);
-    return TRUE;
+    return true;
 }

@@ -71,7 +71,7 @@ int hf_add_tv(struct timeval* tv1, struct timeval* tv2, struct timeval* sum) {
         sum->tv_usec = usec_sum;
     }
 
-    return TRUE;
+    return true;
 }
 
 /* rssi is typicaly in [-128, 0] */
