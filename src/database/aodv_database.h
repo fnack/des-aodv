@@ -45,23 +45,23 @@ dessert_msg_t* aodv_db_pop_packet(uint8_t dhost_ether[ETH_ALEN]);
  * this destination. All messages to source (example: RREP) must be send
  * over shost_prev_hop (nodes output interface: output_iface).
  */
-int aodv_db_capt_rreq (uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN],
-		uint8_t shost_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface,
-		uint32_t originator_sequence_number, uint8_t hop_count, uint8_t path_weight, struct timeval* timestamp);
+int aodv_db_capt_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN],
+                      uint8_t shost_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface,
+                      uint32_t originator_sequence_number, uint8_t hop_count, uint8_t path_weight, struct timeval* timestamp);
 
-int aodv_db_capt_rrep (uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[ETH_ALEN],
-		dessert_meshif_t* output_iface, uint32_t destination_sequence_number, uint8_t hop_count, uint8_t path_weight, struct timeval* timestamp);
+int aodv_db_capt_rrep(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop[ETH_ALEN],
+                      dessert_meshif_t* output_iface, uint32_t destination_sequence_number, uint8_t hop_count, uint8_t path_weight, struct timeval* timestamp);
 /**
  * gets prev_hop adress and output_iface towards source with shost_ether address
  * that has produces an RREQ to destination with dhost_ether address
  */
 int aodv_db_getroute2dest(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN],
-		dessert_meshif_t** output_iface_out, struct timeval* timestamp);
+                          dessert_meshif_t** output_iface_out, struct timeval* timestamp);
 
 int aodv_db_getnexthop(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN]);
 
 int aodv_db_getprevhop(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN],
-		uint8_t shost_next_hop_out[ETH_ALEN], dessert_meshif_t** output_iface_out);
+                       uint8_t shost_next_hop_out[ETH_ALEN], dessert_meshif_t** output_iface_out);
 
 int aodv_db_get_destination_sequence_number(uint8_t dhost_ether[ETH_ALEN], uint32_t* destination_sequence_number_out);
 
@@ -71,7 +71,7 @@ int aodv_db_get_path_weight(uint8_t dhost_ether[ETH_ALEN], uint8_t* path_weight_
 
 int aodv_db_get_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t* hop_count_out);
 
-int aodv_db_markrouteinv (uint8_t dhost_ether[ETH_ALEN]);
+int aodv_db_markrouteinv(uint8_t dhost_ether[ETH_ALEN]);
 
 int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]);
 
