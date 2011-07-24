@@ -42,7 +42,7 @@ typedef struct aodv_rt_srclist_entry {
     dessert_meshif_t*		output_iface;
     uint32_t			originator_sequence_number;
     uint32_t            hop_count;
-	uint8_t					path_weight; //used in rreq
+    uint8_t					path_weight; //used in rreq
     UT_hash_handle			hh;
 } aodv_rt_srclist_entry_t;
 
@@ -52,7 +52,7 @@ typedef struct aodv_rt_entry {
     dessert_meshif_t*		output_iface;
     uint32_t			destination_sequence_number;
     uint8_t				hop_count;
-	uint8_t					path_weight; //used in rreq
+    uint8_t					path_weight; //used in rreq
     /**
      * flags format: 0 0 0 0 0 0 U I
      * I - Invalid flag; route is invalid due of link breakage
@@ -100,7 +100,7 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
                          dessert_meshif_t* output_iface,
                          uint32_t destination_sequence_number,
                          uint8_t hop_count,
-						 uint8_t path_weight,
+                         uint8_t path_weight,
                          struct timeval* timestamp);
 
 int aodv_db_rt_getroute2dest(uint8_t destination_host[ETH_ALEN], uint8_t destination_host_next_hop_out[ETH_ALEN],

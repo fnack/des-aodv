@@ -51,7 +51,7 @@ int aodv_db_capt_rreq(uint8_t destination_host[ETH_ALEN],
                       dessert_meshif_t* output_iface,
                       uint32_t originator_sequence_number,
                       uint8_t hop_count,
-                      uint8_t path_weight, 
+                      uint8_t path_weight,
                       struct timeval* timestamp);
 
 int aodv_db_capt_rrep(uint8_t destination_host[ETH_ALEN],

@@ -92,7 +92,7 @@ int rt_srclist_entry_create(aodv_rt_srclist_entry_t** srclist_entry_out,
     srclist_entry->output_iface = output_iface;
     srclist_entry->originator_sequence_number = 0; //initial
     srclist_entry->hop_count = UINT8_MAX; //initial
-	srclist_entry->path_weight = UINT8_MAX; //initial
+    srclist_entry->path_weight = UINT8_MAX; //initial
 
     *srclist_entry_out = srclist_entry;
     return true;
@@ -112,7 +112,7 @@ int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out, uint8_t destination_host[
     rt_entry->src_list = NULL;
     rt_entry->destination_sequence_number = 0; //we know nothing about the destination
     rt_entry->hop_count = UINT8_MAX; //initial
-	rt_entry->path_weight = UINT8_MAX; //initial
+    rt_entry->path_weight = UINT8_MAX; //initial
 
     *rreqt_entry_out = rt_entry;
     return true;
@@ -204,7 +204,7 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
         srclist_entry->output_iface = output_iface;
         srclist_entry->originator_sequence_number = originator_sequence_number;
         srclist_entry->hop_count = hop_count;
-		srclist_entry->path_weight = path_weight;
+        srclist_entry->path_weight = path_weight;
         timeslot_addobject(rt.ts, timestamp, rt_entry);
         return true;
     }
