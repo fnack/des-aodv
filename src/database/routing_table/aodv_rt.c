@@ -417,20 +417,20 @@ int aodv_db_rt_get_orginator_hop_count(uint8_t destination_host[ETH_ALEN], uint8
 
 }
 
-int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN], uint32_t destination_sequence_number) {
+int aodv_db_rt_markrouteinv(uint8_t destination_host[ETH_ALEN], uint32_t destination_sequence_number) {
     aodv_rt_entry_t* rt_entry;
-    HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
+    HASH_FIND(hh, rt.entrys, destination_host, ETH_ALEN, rt_entry);
 
     if(rt_entry == NULL) {
         return false;
     }
 
     if(rt_entry->destination_sequence_number > destination_sequence_number) {
-        dessert_debug("route to " MAC " seq=%u NOT marked as invalid", EXPLODE_ARRAY6(dhost_ether), destination_sequence_number);
+        dessert_debug("route to " MAC " seq=%u NOT marked as invalid", EXPLODE_ARRAY6(destination_host), destination_sequence_number);
         return false;
     }
 
-    dessert_debug("route to " MAC " seq=%u marked as invalid", EXPLODE_ARRAY6(dhost_ether), destination_sequence_number);
+    dessert_debug("route to " MAC " seq=%u marked as invalid", EXPLODE_ARRAY6(destination_host), destination_sequence_number);
     rt_entry->flags |= AODV_FLAGS_ROUTE_INVALID;
     return true;
 }
