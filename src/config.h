@@ -92,23 +92,23 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
-extern dessert_periodic_t *			periodic_send_hello;
+extern dessert_periodic_t* 			periodic_send_hello;
 extern int 							hello_size;
 extern int 							hello_interval;
 extern int 							rreq_size;
 extern int 							mobility;
 
 typedef struct aodv_mac_seq_list {
-	uint8_t host[ETH_ALEN];
-	uint32_t sequence_number;
-	struct aodv_mac_seq_list *next;
-	struct aodv_mac_seq_list *prev;
+    uint8_t host[ETH_ALEN];
+    uint32_t sequence_number;
+    struct aodv_mac_seq_list* next;
+    struct aodv_mac_seq_list* prev;
 } aodv_mac_seq_list_t;
 
 typedef struct aodv_mac_seq {
-	uint8_t host[ETH_ALEN];
-	uint32_t sequence_number;
-} __attribute__ ((__packed__)) aodv_mac_seq_t;
+    uint8_t host[ETH_ALEN];
+    uint32_t sequence_number;
+} __attribute__((__packed__)) aodv_mac_seq_t;
 #define MAX_MAC_SEQ_PER_EXT (DESSERT_MAXEXTDATALEN / sizeof(struct aodv_mac_seq))
 
 #endif

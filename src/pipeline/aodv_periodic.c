@@ -28,161 +28,180 @@ For further information and questions please use the web site
 #include <pthread.h>
 #include <utlist.h>
 
-dessert_per_result_t aodv_periodic_send_hello(void *data, struct timeval *scheduled, struct timeval *interval) {
+dessert_per_result_t aodv_periodic_send_hello(void* data, struct timeval* scheduled, struct timeval* interval) {
 
-	// create new HELLO message with hello_ext.
-	dessert_msg_t* hello_msg;
-	dessert_msg_new(&hello_msg);
-	hello_msg->ttl = 2;
+    // create new HELLO message with hello_ext.
+    dessert_msg_t* hello_msg;
+    dessert_msg_new(&hello_msg);
+    hello_msg->ttl = 2;
 
-	dessert_ext_t* ext;
-	dessert_msg_addext(hello_msg, &ext, HELLO_EXT_TYPE, sizeof(struct aodv_msg_hello));
+    dessert_ext_t* ext;
+    dessert_msg_addext(hello_msg, &ext, HELLO_EXT_TYPE, sizeof(struct aodv_msg_hello));
 
-	dessert_msg_dummy_payload(hello_msg, hello_size);
+    dessert_msg_dummy_payload(hello_msg, hello_size);
 
-	dessert_meshsend(hello_msg, NULL);
-	dessert_msg_destroy(hello_msg);
-	return DESSERT_PER_KEEP;
+    dessert_meshsend(hello_msg, NULL);
+    dessert_msg_destroy(hello_msg);
+    return DESSERT_PER_KEEP;
 }
 
-dessert_per_result_t aodv_periodic_cleanup_database(void *data, struct timeval *scheduled, struct timeval *interval) {
-	struct timeval timestamp;
-	gettimeofday(&timestamp, NULL);
-	aodv_db_cleanup(&timestamp);
-	return DESSERT_PER_KEEP;
+dessert_per_result_t aodv_periodic_cleanup_database(void* data, struct timeval* scheduled, struct timeval* interval) {
+    struct timeval timestamp;
+    gettimeofday(&timestamp, NULL);
+    aodv_db_cleanup(&timestamp);
+    return DESSERT_PER_KEEP;
 }
 
-dessert_msg_t* aodv_create_rerr(aodv_mac_seq_list_t **destlist) {
-	if (*destlist == NULL) return NULL;
-	dessert_msg_t* msg;
-	dessert_ext_t* ext;
-	dessert_msg_new(&msg);
+dessert_msg_t* aodv_create_rerr(aodv_mac_seq_list_t** destlist) {
+    if(*destlist == NULL) {
+        return NULL;
+    }
 
-	// set ttl
-	msg->ttl =TTL_MAX;
+    dessert_msg_t* msg;
+    dessert_ext_t* ext;
+    dessert_msg_new(&msg);
 
-	// add l25h header
-	dessert_msg_addext(msg, &ext, DESSERT_EXT_ETH, ETHER_HDR_LEN);
-	struct ether_header* rreq_l25h = (struct ether_header*) ext->data;
-	memcpy(rreq_l25h->ether_dhost, ether_broadcast, ETH_ALEN);
+    // set ttl
+    msg->ttl = TTL_MAX;
 
-	// add RERR ext
-	dessert_msg_addext(msg, &ext, RERR_EXT_TYPE, sizeof(struct aodv_msg_rerr));
-	struct aodv_msg_rerr* rerr_msg = (struct aodv_msg_rerr*) ext->data;
-	rerr_msg->flags = AODV_FLAGS_RERR_N;
+    // add l25h header
+    dessert_msg_addext(msg, &ext, DESSERT_EXT_ETH, ETHER_HDR_LEN);
+    struct ether_header* rreq_l25h = (struct ether_header*) ext->data;
+    memcpy(rreq_l25h->ether_dhost, ether_broadcast, ETH_ALEN);
 
-	// write addresses of all my mesh interfaces
-	void* ifaceaddr_pointer = rerr_msg->ifaces;
-	uint8_t ifaces_count = 0;
-	dessert_meshif_t *iface;
-	MESHIFLIST_ITERATOR_START(iface)
-		if(ifaces_count >= MAX_MESH_IFACES_COUNT)
-			break;
-		memcpy(ifaceaddr_pointer, iface->hwaddr, ETH_ALEN);
-		ifaceaddr_pointer += ETH_ALEN;
-		ifaces_count++;
-	MESHIFLIST_ITERATOR_STOP;
-	rerr_msg->iface_addr_count = ifaces_count;
+    // add RERR ext
+    dessert_msg_addext(msg, &ext, RERR_EXT_TYPE, sizeof(struct aodv_msg_rerr));
+    struct aodv_msg_rerr* rerr_msg = (struct aodv_msg_rerr*) ext->data;
+    rerr_msg->flags = AODV_FLAGS_RERR_N;
 
-	while(*destlist) {
-		unsigned long dl_len = 0;
+    // write addresses of all my mesh interfaces
+    void* ifaceaddr_pointer = rerr_msg->ifaces;
+    uint8_t ifaces_count = 0;
+    dessert_meshif_t* iface;
+    MESHIFLIST_ITERATOR_START(iface)
 
-		//count the length of destlist up to MAX_MAC_SEQ_PER_EXT elements
-		aodv_mac_seq_list_t *count_iter;
-		for(count_iter = *destlist;
-		    (dl_len <= MAX_MAC_SEQ_PER_EXT) && count_iter;
-		    ++dl_len, count_iter = count_iter->next) {
-		}
-		if(dessert_msg_addext(msg, &ext, RERRDL_EXT_TYPE, dl_len * sizeof(struct aodv_mac_seq)) != DESSERT_OK)
-			break;
+    if(ifaces_count >= MAX_MESH_IFACES_COUNT) {
+        break;
+    }
 
-		struct aodv_mac_seq *start = (struct aodv_mac_seq*) ext->data, *iter;
-		for(iter = start; iter < start + dl_len; ++iter) {
-			aodv_mac_seq_list_t* el = *destlist;
-			memcpy(iter->host, el->host, ETH_ALEN);
-			iter->sequence_number = el->sequence_number;
+    memcpy(ifaceaddr_pointer, iface->hwaddr, ETH_ALEN);
+    ifaceaddr_pointer += ETH_ALEN;
+    ifaces_count++;
+    MESHIFLIST_ITERATOR_STOP;
+    rerr_msg->iface_addr_count = ifaces_count;
 
-			DL_DELETE(*destlist, el);
-			free(el);
-		}
-	}
+    while(*destlist) {
+        unsigned long dl_len = 0;
 
-	return msg;
+        //count the length of destlist up to MAX_MAC_SEQ_PER_EXT elements
+        aodv_mac_seq_list_t* count_iter;
+
+        for(count_iter = *destlist;
+            (dl_len <= MAX_MAC_SEQ_PER_EXT) && count_iter;
+            ++dl_len, count_iter = count_iter->next) {
+        }
+
+        if(dessert_msg_addext(msg, &ext, RERRDL_EXT_TYPE, dl_len * sizeof(struct aodv_mac_seq)) != DESSERT_OK) {
+            break;
+        }
+
+        struct aodv_mac_seq* start = (struct aodv_mac_seq*) ext->data, *iter;
+
+        for(iter = start; iter < start + dl_len; ++iter) {
+            aodv_mac_seq_list_t* el = *destlist;
+            memcpy(iter->host, el->host, ETH_ALEN);
+            iter->sequence_number = el->sequence_number;
+
+            DL_DELETE(*destlist, el);
+            free(el);
+        }
+    }
+
+    return msg;
 }
 
-dessert_per_result_t aodv_periodic_scexecute(void *data, struct timeval *scheduled, struct timeval *interval) {
-	uint8_t schedule_type;
-	void* schedule_param = NULL;
-	uint8_t ether_addr[ETH_ALEN];
-	struct timeval timestamp;
-	gettimeofday(&timestamp, NULL);
+dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* scheduled, struct timeval* interval) {
+    uint8_t schedule_type;
+    void* schedule_param = NULL;
+    uint8_t ether_addr[ETH_ALEN];
+    struct timeval timestamp;
+    gettimeofday(&timestamp, NULL);
 
-	if (aodv_db_popschedule(&timestamp, ether_addr, &schedule_type, &schedule_param) == FALSE) {
-		//nothing to do come back later
-		return DESSERT_PER_KEEP;
-	}
+    if(aodv_db_popschedule(&timestamp, ether_addr, &schedule_type, &schedule_param) == FALSE) {
+        //nothing to do come back later
+        return DESSERT_PER_KEEP;
+    }
 
-	switch(schedule_type) {
-	case AODV_SC_SEND_OUT_PACKET: {
-			//do nothing
-			break;
-		}
-	case AODV_SC_REPEAT_RREQ: {
-			aodv_send_rreq(ether_addr, &timestamp, (dessert_msg_t*) (schedule_param), 0/*send rreq without initial hop_count*/);
-			break;
-		}
-	case AODV_SC_SEND_OUT_RERR: {
-			uint32_t rerr_count;
-			aodv_db_getrerrcount(&timestamp, &rerr_count);
-			if (rerr_count >= RERR_RATELIMIT) {
-				return 0;
-			}
-			if(!aodv_db_rt_inv_over_nexthop(ether_addr)) {
-				return 0; //nexthop not in nht
-			}
+    switch(schedule_type) {
+        case AODV_SC_SEND_OUT_PACKET: {
+            //do nothing
+            break;
+        }
+        case AODV_SC_REPEAT_RREQ: {
+            aodv_send_rreq(ether_addr, &timestamp, (dessert_msg_t*)(schedule_param), 0/*send rreq without initial hop_count*/);
+            break;
+        }
+        case AODV_SC_SEND_OUT_RERR: {
+            uint32_t rerr_count;
+            aodv_db_getrerrcount(&timestamp, &rerr_count);
 
-			aodv_mac_seq_list_t *destlist = NULL;
-			if(!aodv_db_rt_get_destlist(ether_addr, &destlist)) {
-				return 0; //nexthop not in nht
-			}
+            if(rerr_count >= RERR_RATELIMIT) {
+                return 0;
+            }
 
-			while(TRUE) {
-				dessert_msg_t* rerr_msg = aodv_create_rerr(&destlist);
-				if (!rerr_msg) {
-					break;
-				}
-				dessert_meshsend(rerr_msg, NULL);
-				dessert_msg_destroy(rerr_msg);
-				aodv_db_putrerr(&timestamp);
-			}
-			break;
-		}
-	case AODV_SC_SEND_OUT_RWARN: {
-			aodv_mac_seq_list_t *head = NULL;
-			aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(ether_addr, &head);
+            if(!aodv_db_rt_inv_over_nexthop(ether_addr)) {
+                return 0; //nexthop not in nht
+            }
 
-			aodv_mac_seq_list_t *dest, *tmp;
-			DL_FOREACH_SAFE(head, dest, tmp) {
-				dessert_debug("AODV_SC_SEND_OUT_RWARN: " MAC " -> " MAC,
-				              EXPLODE_ARRAY6(ether_addr),
-				              EXPLODE_ARRAY6(dest->host));
-				aodv_send_rreq(dest->host, &timestamp, NULL, 0);
-			}
-			break;
-		}
-	case AODV_SC_UPDATE_RSSI: {
-			dessert_meshif_t* iface = (dessert_meshif_t*) (schedule_param);
-			int8_t diff = aodv_db_update_rssi(ether_addr, iface, &timestamp);
-			if(diff > AODV_SIGNAL_STRENGTH_THRESHOLD) {
-				//walking away -> we need to send a new warn
-				dessert_debug("%s <= W => " MAC, iface->if_name, EXPLODE_ARRAY6(ether_addr));
-				aodv_db_addschedule(&timestamp, ether_addr, AODV_SC_SEND_OUT_RWARN, 0);
-			}
-			break;
-		}
-	default: {
-			dessert_crit("unknown schedule type=%u", schedule_type);
-		}
-	}
-	return DESSERT_PER_KEEP;
+            aodv_mac_seq_list_t* destlist = NULL;
+
+            if(!aodv_db_rt_get_destlist(ether_addr, &destlist)) {
+                return 0; //nexthop not in nht
+            }
+
+            while(TRUE) {
+                dessert_msg_t* rerr_msg = aodv_create_rerr(&destlist);
+
+                if(!rerr_msg) {
+                    break;
+                }
+
+                dessert_meshsend(rerr_msg, NULL);
+                dessert_msg_destroy(rerr_msg);
+                aodv_db_putrerr(&timestamp);
+            }
+
+            break;
+        }
+        case AODV_SC_SEND_OUT_RWARN: {
+            aodv_mac_seq_list_t* head = NULL;
+            aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(ether_addr, &head);
+
+            aodv_mac_seq_list_t* dest, *tmp;
+            DL_FOREACH_SAFE(head, dest, tmp) {
+                dessert_debug("AODV_SC_SEND_OUT_RWARN: " MAC " -> " MAC,
+                              EXPLODE_ARRAY6(ether_addr),
+                              EXPLODE_ARRAY6(dest->host));
+                aodv_send_rreq(dest->host, &timestamp, NULL, 0);
+            }
+            break;
+        }
+        case AODV_SC_UPDATE_RSSI: {
+            dessert_meshif_t* iface = (dessert_meshif_t*)(schedule_param);
+            int8_t diff = aodv_db_update_rssi(ether_addr, iface, &timestamp);
+
+            if(diff > AODV_SIGNAL_STRENGTH_THRESHOLD) {
+                //walking away -> we need to send a new warn
+                dessert_debug("%s <= W => " MAC, iface->if_name, EXPLODE_ARRAY6(ether_addr));
+                aodv_db_addschedule(&timestamp, ether_addr, AODV_SC_SEND_OUT_RWARN, 0);
+            }
+
+            break;
+        }
+        default: {
+            dessert_crit("unknown schedule type=%u", schedule_type);
+        }
+    }
+
+    return DESSERT_PER_KEEP;
 }
