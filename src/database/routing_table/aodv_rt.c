@@ -435,7 +435,7 @@ int aodv_db_rt_markrouteinv(uint8_t dhost_ether[ETH_ALEN], uint32_t destination_
     return true;
 }
 
-int aodv_db_rt_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], aodv_mac_seq_list_t** destlist) {
+int aodv_db_rt_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], aodv_link_break_element_t** destlist) {
     // find appropriate routing entry
     nht_entry_t* nht_entry;
     HASH_FIND(hh, nht, dhost_next_hop, ETH_ALEN, nht_entry);
@@ -447,7 +447,7 @@ int aodv_db_rt_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], aodv_mac_seq_list_
     struct nht_destlist_entry* dest, *tmp;
 
     HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
-        aodv_mac_seq_list_t* el = malloc(sizeof(aodv_mac_seq_list_t));
+        aodv_link_break_element_t* el = malloc(sizeof(aodv_link_break_element_t));
         memcpy(el->host, dest->rt_entry->destination_host, ETH_ALEN);
         el->sequence_number = dest->rt_entry->destination_sequence_number;
         DL_APPEND(*destlist, el);
@@ -500,7 +500,7 @@ int aodv_db_rt_remove_nexthop(uint8_t next_hop[ETH_ALEN]) {
 }
 
 //get all routes over one neighbor
-int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], aodv_mac_seq_list_t** head) {
+int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], aodv_link_break_element_t** head) {
     // find appropriate routing entry
     nht_entry_t* nht_entry;
     HASH_FIND(hh, nht, neighbor, ETH_ALEN, nht_entry);
@@ -518,7 +518,7 @@ int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ET
         }
 
         dessert_debug("dest->rt_entry->flags = %u->%p", dest->rt_entry->flags, dest->rt_entry);
-        aodv_mac_seq_list_t* curr_el = malloc(sizeof(aodv_mac_seq_list_t));
+        aodv_link_break_element_t* curr_el = malloc(sizeof(aodv_link_break_element_t));
         memcpy(curr_el->host, dest->rt_entry->destination_host, ETH_ALEN);
         curr_el->sequence_number = dest->rt_entry->destination_sequence_number;
         DL_APPEND(*head, curr_el);

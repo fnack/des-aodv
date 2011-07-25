@@ -156,7 +156,7 @@ dessert_per_result_t aodv_periodic_send_hello(void* data, struct timeval* schedu
 /** clean up database from old entrys */
 dessert_per_result_t aodv_periodic_cleanup_database(void* data, struct timeval* scheduled, struct timeval* interval);
 
-dessert_msg_t* aodv_create_rerr(aodv_mac_seq_list_t** destlist);
+dessert_msg_t* aodv_create_rerr(aodv_link_break_element_t** destlist);
 
 dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* scheduled, struct timeval* interval);
 

@@ -56,7 +56,7 @@ dessert_per_result_t aodv_periodic_cleanup_database(void* data, struct timeval* 
     }
 }
 
-dessert_msg_t* aodv_create_rerr(aodv_mac_seq_list_t** destlist) {
+dessert_msg_t* aodv_create_rerr(aodv_link_break_element_t** destlist) {
     if(*destlist == NULL) {
         return NULL;
     }
@@ -100,7 +100,7 @@ dessert_msg_t* aodv_create_rerr(aodv_mac_seq_list_t** destlist) {
         unsigned long dl_len = 0;
 
         //count the length of destlist up to MAX_MAC_SEQ_PER_EXT elements
-        aodv_mac_seq_list_t* count_iter;
+        aodv_link_break_element_t* count_iter;
 
         for(count_iter = *destlist;
             (dl_len <= MAX_MAC_SEQ_PER_EXT) && count_iter;
@@ -114,7 +114,7 @@ dessert_msg_t* aodv_create_rerr(aodv_mac_seq_list_t** destlist) {
         struct aodv_mac_seq* start = (struct aodv_mac_seq*) ext->data, *iter;
 
         for(iter = start; iter < start + dl_len; ++iter) {
-            aodv_mac_seq_list_t* el = *destlist;
+            aodv_link_break_element_t* el = *destlist;
             memcpy(iter->host, el->host, ETH_ALEN);
             iter->sequence_number = el->sequence_number;
 
@@ -159,7 +159,7 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
                 return 0; //nexthop not in nht
             }
 
-            aodv_mac_seq_list_t* destlist = NULL;
+            aodv_link_break_element_t* destlist = NULL;
 
             if(!aodv_db_get_destlist(ether_addr, &destlist)) {
                 return 0; //nexthop not in nht
@@ -180,10 +180,10 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
             break;
         }
         case AODV_SC_SEND_OUT_RWARN: {
-            aodv_mac_seq_list_t* head = NULL;
+            aodv_link_break_element_t* head = NULL;
             aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(ether_addr, &head);
 
-            aodv_mac_seq_list_t* dest, *tmp;
+            aodv_link_break_element_t* dest, *tmp;
             DL_FOREACH_SAFE(head, dest, tmp) {
                 dessert_debug("AODV_SC_SEND_OUT_RWARN: " MAC " -> " MAC,
                               EXPLODE_ARRAY6(ether_addr),
