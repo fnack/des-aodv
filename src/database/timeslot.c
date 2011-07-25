@@ -45,8 +45,7 @@ int create_new_ts_element(timeslot_element_t** ts_el_out, struct timeval* timest
     return true;
 }
 
-int timeslot_create(timeslot_t** ts_out, struct timeval* purge_timeout,
-                    void* src_object, object_purger_t* object_purger) {
+int timeslot_create(timeslot_t** ts_out, struct timeval* purge_timeout, void* src_object, object_purger_t* object_purger) {
     timeslot_t* ts;
     ts = malloc(sizeof(timeslot_t));
 
