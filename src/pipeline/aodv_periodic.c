@@ -131,20 +131,27 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
     gettimeofday(&timestamp, NULL);
 
     if(aodv_db_popschedule(&timestamp, ether_addr, &schedule_type, &schedule_param) == false) {
+        //nothing to do come back later
         return DESSERT_PER_KEEP;
     }
 
-    if(schedule_type == AODV_SC_SEND_OUT_PACKET) {
-        //do nothing
-    }
-    else if(schedule_type == AODV_SC_REPEAT_RREQ) {
-        aodv_send_rreq(ether_addr, &timestamp, (dessert_msg_t*)(schedule_param), 0/*send rreq without initial hop_count*/);
-    }
-    else if(schedule_type == AODV_SC_SEND_OUT_RERR) {
-        uint32_t rerr_count;
-        aodv_db_getrerrcount(&timestamp, &rerr_count);
+    switch(schedule_type) {
+        case AODV_SC_SEND_OUT_PACKET: {
+            //do nothing
+            break;
+        }
+        case AODV_SC_REPEAT_RREQ: {
+            aodv_send_rreq(ether_addr, &timestamp, (dessert_msg_t*)(schedule_param), 0/*send rreq without initial hop_count*/);
+            break;
+        }
+        case AODV_SC_SEND_OUT_RERR: {
+            uint32_t rerr_count;
+            aodv_db_getrerrcount(&timestamp, &rerr_count);
 
-        if(rerr_count < RERR_RATELIMIT) {
+            if(rerr_count >= RERR_RATELIMIT) {
+                return DESSERT_PER_KEEP;
+            }
+
             uint16_t dest_count = 0;
             uint8_t dhost_ether[ETH_ALEN];
             _onlb_element_t* curr_el = NULL;
@@ -171,10 +178,13 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
                     }
                 }
             }
+
+            break;
+
         }
-    }
-    else {
-        dessert_crit("unknown schedule type=%u", schedule_type);
+        default: {
+            dessert_crit("unknown schedule type=%u", schedule_type);
+        }
     }
 
     return DESSERT_PER_KEEP;

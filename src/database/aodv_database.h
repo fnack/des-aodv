@@ -78,7 +78,6 @@ int aodv_db_get_originator_sequence_number(uint8_t dhost_ether[ETH_ALEN], uint8_
 int aodv_db_get_orginator_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN], uint8_t* last_hop_count_orginator_out);
 
 int aodv_db_markrouteinv(uint8_t dhost_ether[ETH_ALEN]);
-
 int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]);
 
 /**
