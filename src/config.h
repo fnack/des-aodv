@@ -25,8 +25,7 @@ For further information and questions please use the web site
 #define AODV_CONFIG
 
 #include <dessert.h>
-
-enum aodv_bool {TRUE = 1, FALSE = 0};
+#include <stdbool.h>
 
 #define RREQ_RETRIES				5 /* ferhat=5 rfc=2 */
 #define RREQ_RATELIMIT				10 /* rfc=10 */

@@ -49,7 +49,7 @@ void aodv_db_unlock() {
 }
 
 int aodv_db_init() {
-    int success = TRUE;
+    int success = true;
     aodv_db_wlock();
     success &= db_nt_init();
     success &= aodv_db_rt_init();
@@ -61,7 +61,7 @@ int aodv_db_init() {
 }
 
 int aodv_db_cleanup(struct timeval* timestamp) {
-    int success = TRUE;
+    int success = true;
     aodv_db_wlock();
     success &= db_nt_cleanup(timestamp);
     success &= aodv_db_rt_cleanup(timestamp);

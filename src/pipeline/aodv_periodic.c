@@ -127,7 +127,7 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
     struct timeval timestamp;
     gettimeofday(&timestamp, NULL);
 
-    if(aodv_db_popschedule(&timestamp, ether_addr, &schedule_type, &schedule_param) == FALSE) {
+    if(aodv_db_popschedule(&timestamp, ether_addr, &schedule_type, &schedule_param) == false) {
         //nothing to do come back later
         return DESSERT_PER_KEEP;
     }
@@ -159,7 +159,7 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
                 return 0; //nexthop not in nht
             }
 
-            while(TRUE) {
+            while(true) {
                 dessert_msg_t* rerr_msg = aodv_create_rerr(&destlist);
 
                 if(!rerr_msg) {
