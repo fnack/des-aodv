@@ -33,6 +33,8 @@ For further information and questions please use the web site
 /** initialize all tables of routing database */
 int aodv_db_init();
 
+int aodv_db_neighbor_table_reset();
+
 /** cleanup (purge) old entrys from all database tables */
 int aodv_db_cleanup(struct timeval* timestamp);
 

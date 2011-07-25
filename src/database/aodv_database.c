@@ -49,6 +49,7 @@ void aodv_db_unlock() {
 }
 
 int aodv_db_init() {
+    aodv_db_wlock();
     int success = true;
     aodv_db_wlock();
     success &= db_nt_init();
@@ -57,18 +58,29 @@ int aodv_db_init() {
     success &= aodv_db_rerrl_init();
     success &= aodv_db_rl_init();
     aodv_db_unlock();
+    aodv_db_unlock();
     return success;
 }
 
 int aodv_db_cleanup(struct timeval* timestamp) {
+    aodv_db_wlock();
     int success = true;
     aodv_db_wlock();
     success &= db_nt_cleanup(timestamp);
     success &= aodv_db_rt_cleanup(timestamp);
     success &= pb_cleanup(timestamp);
     aodv_db_unlock();
+    aodv_db_unlock();
     return success;
 }
+
+int aodv_db_neighbor_table_reset() {
+    aodv_db_wlock();
+    int success = db_nt_reset();
+    aodv_db_unlock();
+    return success;
+}
+
 
 void aodv_db_push_packet(uint8_t dhost_ether[ETH_ALEN], dessert_msg_t* msg, struct timeval* timestamp) {
     aodv_db_wlock();
