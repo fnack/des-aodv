@@ -30,8 +30,12 @@ For further information and questions please use the web site
 #include <linux/if_ether.h>
 #endif
 
+#include "../config.h"
+
 /** initialize all tables of routing database */
 int aodv_db_init();
+
+int aodv_db_neighbor_table_reset();
 
 /** cleanup (purge) old entrys from all database tables */
 int aodv_db_cleanup(struct timeval* timestamp);
@@ -77,12 +81,10 @@ int aodv_db_get_destination_sequence_number(uint8_t dhost_ether[ETH_ALEN], uint3
 
 int aodv_db_get_originator_sequence_number(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN], uint32_t* originator_sequence_number_out);
 
+int aodv_db_get_orginator_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN], uint8_t* last_hop_count_orginator_out);
 int aodv_db_get_orginator_path_weight(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN], uint8_t* last_path_weight_out);
 
-int aodv_db_get_orginator_hop_count(uint8_t dhost_ether[ETH_ALEN], uint8_t shost_ether[ETH_ALEN], uint8_t* last_hop_count_orginator_out);
-
 int aodv_db_markrouteinv(uint8_t dhost_ether[ETH_ALEN]);
-
 int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]);
 
 /**

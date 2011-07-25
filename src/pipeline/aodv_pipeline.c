@@ -544,9 +544,9 @@ int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, desse
         }
 
         // route unknown -> send rerr towards source
-        _onlb_element_t* head, *curr_el;
+        aodv_on_link_break_element_t* head, *curr_el;
 
-        curr_el = malloc(sizeof(_onlb_element_t));
+        curr_el = malloc(sizeof(aodv_on_link_break_element_t));
         memcpy(curr_el->dhost_ether, l25h->ether_dhost, ETH_ALEN);
         head = NULL;
         DL_APPEND(head, curr_el);
