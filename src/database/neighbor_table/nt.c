@@ -130,6 +130,10 @@ int db_nt_init() {
     return true;
 }
 
+int db_nt_reset() {
+    return db_nt_init();
+}
+
 int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
     neighbor_entry_t* curr_entry = NULL;
     uint8_t addr_sum[ETH_ALEN + sizeof(void*)];

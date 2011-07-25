@@ -528,7 +528,9 @@ int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, desse
         // route unknown -> send rerr towards source
         aodv_mac_seq_list_t* head = NULL;
         aodv_mac_seq_list_t* entry = malloc(sizeof(aodv_mac_seq_list_t));
+        memset(entry, NULL, sizeof(aodv_mac_seq_list_t));
         memcpy(entry->host, l25h->ether_dhost, ETH_ALEN);
+        entry->seq_num = UINT32_MAX;
         DL_APPEND(head, entry);
         dessert_msg_t* rerr_msg = aodv_create_rerr(&head);
 

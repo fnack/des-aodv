@@ -155,13 +155,13 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
                 return DESSERT_PER_KEEP;
             }
 
-            if(!aodv_db_rt_inv_over_nexthop(ether_addr)) {
+            if(!aodv_db_inv_over_nexthop(ether_addr)) {
                 return 0; //nexthop not in nht
             }
 
             aodv_mac_seq_list_t* destlist = NULL;
 
-            if(!aodv_db_rt_get_destlist(ether_addr, &destlist)) {
+            if(!aodv_db_get_destlist(ether_addr, &destlist)) {
                 return 0; //nexthop not in nht
             }
 

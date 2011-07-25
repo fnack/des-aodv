@@ -80,7 +80,7 @@ int cli_set_hello_interval(struct cli_def* cli, char* command, char* argv[], int
     }
 
     hello_interval = (uint16_t) strtoul(argv[0], NULL, 10);
-    db_nt_init();
+    aodv_db_neighbor_table_reset();
     dessert_periodic_del(periodic_send_hello);
     struct timeval hello_interval_t;
     hello_interval_t.tv_sec = hello_interval / 1000;
