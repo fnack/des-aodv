@@ -24,17 +24,18 @@ For further information and questions please use the web site
 #include "../../config.h"
 #include "../timeslot.h"
 
-timeslot_t* rreq_log_ts 	= NULL;
-uint32_t rreq_count 		= 0;
-void* rreq_pseudo_pointer 	= 0;
+timeslot_t* rreq_log_ts = NULL;
+uint32_t rreq_count = 0;
+void* rreq_pseudo_pointer = 0;
 
 void rreq_decrement_counter(struct timeval* timestamp, void* src_object, void* object) {
     rreq_count--;
 }
 
 int aodv_db_rl_init() {
+    // 1 sek timeout since we are interested for number of sent RREQ in last 1 sec
     struct timeval timeout;
-    timeout.tv_sec = 1;			// 1 sek timeout since we are interested for number of sent RREQ in last 1 sek
+    timeout.tv_sec = 1;
     timeout.tv_usec = 0;
     return timeslot_create(&rreq_log_ts, &timeout, NULL, rreq_decrement_counter);
 }

@@ -29,7 +29,6 @@ For further information and questions please use the web site
 #include <utlist.h>
 
 dessert_per_result_t aodv_periodic_send_hello(void* data, struct timeval* scheduled, struct timeval* interval) {
-
     // create new HELLO message with hello_ext.
     dessert_msg_t* hello_msg;
     dessert_msg_new(&hello_msg);
@@ -48,8 +47,13 @@ dessert_per_result_t aodv_periodic_send_hello(void* data, struct timeval* schedu
 dessert_per_result_t aodv_periodic_cleanup_database(void* data, struct timeval* scheduled, struct timeval* interval) {
     struct timeval timestamp;
     gettimeofday(&timestamp, NULL);
-    aodv_db_cleanup(&timestamp);
-    return DESSERT_PER_KEEP;
+
+    if(aodv_db_cleanup(&timestamp)) {
+        return DESSERT_PER_KEEP;
+    }
+    else {
+        return DESSERT_PER_UNREGISTER;
+    }
 }
 
 dessert_msg_t* aodv_create_rerr(aodv_mac_seq_list_t** destlist) {
@@ -67,6 +71,7 @@ dessert_msg_t* aodv_create_rerr(aodv_mac_seq_list_t** destlist) {
     // add l25h header
     dessert_msg_addext(msg, &ext, DESSERT_EXT_ETH, ETHER_HDR_LEN);
     struct ether_header* rreq_l25h = (struct ether_header*) ext->data;
+    memcpy(rreq_l25h->ether_shost, dessert_l25_defsrc, ETH_ALEN);
     memcpy(rreq_l25h->ether_dhost, ether_broadcast, ETH_ALEN);
 
     // add RERR ext
@@ -88,6 +93,7 @@ dessert_msg_t* aodv_create_rerr(aodv_mac_seq_list_t** destlist) {
     ifaceaddr_pointer += ETH_ALEN;
     ifaces_count++;
     MESHIFLIST_ITERATOR_STOP;
+
     rerr_msg->iface_addr_count = ifaces_count;
 
     while(*destlist) {
@@ -146,7 +152,7 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
             aodv_db_getrerrcount(&timestamp, &rerr_count);
 
             if(rerr_count >= RERR_RATELIMIT) {
-                return 0;
+                return DESSERT_PER_KEEP;
             }
 
             if(!aodv_db_rt_inv_over_nexthop(ether_addr)) {

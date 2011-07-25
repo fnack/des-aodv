@@ -25,13 +25,33 @@ For further information and questions please use the web site
 #include <string.h>
 #include <time.h>
 
+#include "../config.h"
 #include "aodv_cli.h"
 #include "../database/aodv_database.h"
-#include "../database/neighbor_table/nt.h"
-#include "../config.h"
 #include "../pipeline/aodv_pipeline.h"
 
 // -------------------- Testing ------------------------------------------------------------
+
+int cli_set_shortcut(struct cli_def* cli, char* command, char* argv[], int argc) {
+    uint32_t mode;
+
+    if(argc != 1 || sscanf(argv[0], "%u", &mode) != 1 || (mode != 0 && mode != 1)) {
+        cli_print(cli, "usage of %s command [0, 1]\n", command);
+        return CLI_ERROR_ARG;
+    }
+
+    if(mode == 1) {
+        dessert_info("use dest_only = true");
+        dest_only = true;
+    }
+    else {
+        dessert_info("use dest_only = false");
+        dest_only = false;
+    }
+
+    return CLI_OK;
+}
+
 
 int cli_set_hello_size(struct cli_def* cli, char* command, char* argv[], int argc) {
     uint16_t min_size = sizeof(dessert_msg_t) + sizeof(struct ether_header) + 2;
@@ -90,29 +110,50 @@ int cli_set_rreq_size(struct cli_def* cli, char* command, char* argv[], int argc
     return CLI_OK;
 }
 
+int cli_set_gossipp(struct cli_def* cli, char* command, char* argv[], int argc) {
+
+    if(argc != 1) {
+    label_out_usage:
+        cli_print(cli, "usage %s [0.0..1.0]\n", command);
+        return CLI_ERROR;
+    }
+
+    double psize = strtod(argv[0], NULL);
+
+    if(psize < 0 || psize > 1) {
+        goto label_out_usage;
+    }
+
+    gossipp = psize;
+    dessert_notice("setting p for gossip to %lf", gossipp);
+    return CLI_OK;
+}
+
 int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
 
-    if(argc < 1 || 2 < argc) {
+    if(argc != 2) {
         cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_hop_count]\n", command);
         return CLI_ERROR_ARG;
     }
 
-    uint8_t dhost_hwaddr[ETHER_ADDR_LEN];
-    int len1 = sscanf(argv[0], MAC, &dhost_hwaddr[0], &dhost_hwaddr[1], &dhost_hwaddr[2],
-                      &dhost_hwaddr[3], &dhost_hwaddr[4], &dhost_hwaddr[5]);
+    mac_addr host;
+    int ok = dessert_parse_mac(argv[0], &host);
 
-    uint8_t initial_hop_count = (uint8_t) strtoul(argv[1], NULL, 10);
-
-    if(len1 != 6) {
+    if(ok != 0) {
         cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_hop_count]\n", command);
         return CLI_ERROR_ARG;
     }
+
+    uint8_t initial_hop_count = 0;
+    sscanf(argv[1], "%hhu", &initial_hop_count);
+
+    cli_print(cli, MAC " -> using %u as initial_hop_count\n", EXPLODE_ARRAY6(host), initial_hop_count);
 
     struct timeval ts;
 
     gettimeofday(&ts, NULL);
 
-    aodv_send_rreq(dhost_hwaddr, &ts, NULL, initial_hop_count);
+    aodv_send_rreq(host, &ts, NULL, initial_hop_count);
 
     return CLI_OK;
 }

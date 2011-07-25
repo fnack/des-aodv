@@ -26,34 +26,34 @@ For further information and questions please use the web site
 #include "../timeslot.h"
 
 typedef struct fifo_list_el {
-    dessert_msg_t* 			msg;
-    struct fifo_list_el*	next;
+    dessert_msg_t*          msg;
+    struct fifo_list_el*    next;
 } fifo_list_el_t;
 
 typedef struct fifo_list {
     fifo_list_el_t* head;
     fifo_list_el_t* tail;
-    uint8_t		size;
+    uint8_t         size;
 } fifo_list_t;
 
 /**
  * Packet buffer element
  */
 typedef struct pb_el {
-    uint8_t		dhost_ether[ETH_ALEN];
-    fifo_list_t		fl;
-    UT_hash_handle	hh;
+    uint8_t         dhost_ether[ETH_ALEN];
+    fifo_list_t     fl;
+    UT_hash_handle  hh;
 } pb_el_t;
 
 /**
  * Packet buffer
  */
 typedef struct pb {
-    pb_el_t*				entrys;
-    timeslot_t*				ts;
+    pb_el_t*    entrys;
+    timeslot_t* ts;
 } pb_t;
 
-pb_t						pbt;
+pb_t pbt;
 
 void purge_packets(struct timeval* timestamp, void* src_object, void* object) {
     pb_el_t* pb_el = object;

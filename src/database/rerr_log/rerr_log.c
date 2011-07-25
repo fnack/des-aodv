@@ -23,10 +23,8 @@ For further information and questions please use the web site
 
 #include "../../config.h"
 #include "../timeslot.h"
-#include "rerr_log.h"
 
 timeslot_t* rerr_log_ts = NULL;
-
 uint32_t rerr_count = 0;
 void* rerr_pseudo_pointer = 0;
 

@@ -28,17 +28,15 @@ For further information and questions please use the web site
 #include "aodv_st.h"
 
 typedef struct schedule {
-    struct timeval 		execute_ts;
+    struct timeval      execute_ts;
     struct __attribute__((__packed__)) {
-        uint8_t 			ether_addr[ETH_ALEN];
-        uint8_t 			schedule_id;
+        uint8_t         ether_addr[ETH_ALEN];
+        uint8_t         schedule_id;
     };
-    void*			schedule_param;
-
-    struct schedule* 	next;
-    struct schedule* 	prev;
-
-    UT_hash_handle		hh;
+    void*               schedule_param;
+    struct schedule*    next;
+    struct schedule*    prev;
+    UT_hash_handle      hh;
 } schedule_t;
 
 schedule_t* first_schedule = NULL;
