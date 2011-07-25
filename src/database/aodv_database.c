@@ -25,7 +25,6 @@ For further information and questions please use the web site
 #include <dessert.h>
 
 #include "aodv_database.h"
-#include "../config.h"
 #include "routing_table/aodv_rt.h"
 #include "data_seq/data_seq.h"
 #include "neighbor_table/nt.h"
@@ -49,7 +48,6 @@ void aodv_db_unlock() {
 }
 
 int aodv_db_init() {
-    aodv_db_wlock();
     int success = true;
     aodv_db_wlock();
     success &= db_nt_init();
@@ -58,18 +56,15 @@ int aodv_db_init() {
     success &= aodv_db_rerrl_init();
     success &= aodv_db_rl_init();
     aodv_db_unlock();
-    aodv_db_unlock();
     return success;
 }
 
 int aodv_db_cleanup(struct timeval* timestamp) {
-    aodv_db_wlock();
     int success = true;
     aodv_db_wlock();
     success &= db_nt_cleanup(timestamp);
     success &= aodv_db_rt_cleanup(timestamp);
     success &= pb_cleanup(timestamp);
-    aodv_db_unlock();
     aodv_db_unlock();
     return success;
 }

@@ -30,6 +30,8 @@ For further information and questions please use the web site
 #include <linux/if_ether.h>
 #endif
 
+#include "../config.h"
+
 /** initialize all tables of routing database */
 int aodv_db_init();
 

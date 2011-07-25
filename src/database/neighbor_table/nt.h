@@ -36,6 +36,7 @@ int db_nt_init();
 
 int db_nt_reset();
 
+
 /**
  * Take a record that the given neighbor seems to be
  * 1 hop bidirectional neighbor
