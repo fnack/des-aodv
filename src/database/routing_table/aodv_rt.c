@@ -233,12 +233,10 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
                       EXPLODE_ARRAY6(destination_host), destination_sequence_number);
 
         HASH_ADD_KEYPTR(hh, rt.entrys, rt_entry->destination_host, ETH_ALEN, rt_entry);
-        db_nt_reset_rssi(destination_host_next_hop, output_iface, timestamp);
     }
-    else {
-        //this is a routing update, so reset the max rssi val of the next hop
-        db_nt_reset_rssi(rt_entry->destination_host_next_hop, rt_entry->output_iface, timestamp);
-    }
+
+     //this is a routing update, so reset the max rssi val of the next hop
+    db_nt_reset_rssi(destination_host_next_hop, output_iface, timestamp);
 
     int u = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
     int a = hf_comp_u32(rt_entry->destination_sequence_number, destination_sequence_number);
