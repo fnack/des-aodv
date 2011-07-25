@@ -56,7 +56,7 @@ dessert_per_result_t aodv_periodic_cleanup_database(void* data, struct timeval* 
     }
 }
 
-dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count) {
+dessert_msg_t* aodv_create_rerr(aodv_on_link_break_element_t** head, uint16_t count) {
     if(*head == NULL || count == 0) {
         return NULL;
     }
@@ -108,7 +108,7 @@ dessert_msg_t* aodv_create_rerr(_onlb_element_t** head, uint16_t count) {
         uint8_t* end = ext->data + dl_len * ETH_ALEN;
 
         for(iter = ext->data; iter < end; iter += ETH_ALEN) {
-            _onlb_element_t* el = *head;
+            aodv_on_link_break_element_t* el = *head;
             memcpy(iter, el->dhost_ether, ETH_ALEN);
             DL_DELETE(*head, el);
             free(el);
@@ -154,13 +154,13 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
 
             uint16_t dest_count = 0;
             uint8_t dhost_ether[ETH_ALEN];
-            _onlb_element_t* curr_el = NULL;
-            _onlb_element_t* head = NULL;
+            aodv_on_link_break_element_t* curr_el = NULL;
+            aodv_on_link_break_element_t* head = NULL;
 
             while(aodv_db_invroute(ether_addr, dhost_ether) == true) {
                 dessert_debug("invalidate route to " MAC, EXPLODE_ARRAY6(dhost_ether));
                 dest_count++;
-                curr_el = malloc(sizeof(_onlb_element_t));
+                curr_el = malloc(sizeof(aodv_on_link_break_element_t));
                 memcpy(curr_el->dhost_ether, dhost_ether, ETH_ALEN);
                 curr_el->next = curr_el->prev = NULL;
                 DL_APPEND(head, curr_el);
