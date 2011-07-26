@@ -144,7 +144,7 @@ void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_m
     }
 
     dessert_trace("add task to repeat RREQ");
-    msg->ttl = msg->ttl + TTL_INCREMENT;
+    msg->ttl += TTL_INCREMENT;
     uint32_t rep_time = (msg->ttl > TTL_THRESHOLD) ? NET_TRAVERSAL_TIME : (2 * NODE_TRAVERSAL_TIME * (msg->ttl));
     struct timeval rreq_repeat_time;
     rreq_repeat_time.tv_sec = rep_time / 1000;
@@ -227,14 +227,14 @@ int aodv_handle_hello(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, 
         // hello req
         memcpy(msg->l2h.ether_dhost, msg->l2h.ether_shost, ETH_ALEN);
         dessert_meshsend(msg, iface);
-        //	dessert_trace("got hello-req from " MAC, EXPLODE_ARRAY6(msg->l2h.ether_shost));
+        // dessert_trace("got hello-req from " MAC, EXPLODE_ARRAY6(msg->l2h.ether_shost));
     }
     else {
         //hello rep
         if(memcmp(iface->hwaddr, msg->l2h.ether_dhost, ETH_ALEN) == 0) {
             struct timeval ts;
             gettimeofday(&ts, NULL);
-            //		dessert_trace("got hello-rep from " MAC, EXPLODE_ARRAY6(msg->l2h.ether_dhost));
+            // dessert_trace("got hello-rep from " MAC, EXPLODE_ARRAY6(msg->l2h.ether_dhost));
             aodv_db_cap2Dneigh(msg->l2h.ether_shost, iface, &ts);
         }
     }
@@ -251,11 +251,11 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
 
     struct ether_header* l25h = dessert_msg_getl25ether(msg);
 
-    msg->ttl--;
-
     if(msg->ttl <= 0) {
         return DESSERT_MSG_DROP;
     }
+
+    msg->ttl--;
 
     struct timeval ts;
 
@@ -409,12 +409,12 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
 
     struct ether_header* l25h = dessert_msg_getl25ether(msg);
 
-    msg->ttl--;
-
     if(msg->ttl <= 0) {
         dessert_debug("got RREP from " MAC " but TTL ist <= 0", EXPLODE_ARRAY6(l25h->ether_dhost));
         return DESSERT_MSG_DROP;
     }
+
+    msg->ttl--;
 
     struct aodv_msg_rrep* rrep_msg = (struct aodv_msg_rrep*) rrep_ext->data;
 
