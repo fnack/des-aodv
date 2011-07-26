@@ -80,7 +80,7 @@ void fl_push_packet(fifo_list_t* fl, dessert_msg_t* msg) {
 	fifo_list_el_t* new_el = malloc(sizeof(fifo_list_el_t));
 	if (new_el == NULL) return;
 	dessert_msg_t* msg_copy;
-	dessert_msg_clone(&msg_copy, msg, 0);
+	dessert_msg_clone(&msg_copy, msg, 1);
 	new_el->msg = msg_copy;
 	new_el->next = NULL;
 	if (fl->head == NULL) {

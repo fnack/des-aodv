@@ -18,7 +18,7 @@ FILE_DEFAULT = etc/$(DAEMONNAME).default
 FILE_ETC = etc/$(DAEMONNAME).conf
 FILE_INIT = etc/$(DAEMONNAME).init
 
-LIBS = dessert dessert-extra pthread cli
+LIBS = dessert pthread cli
 CFLAGS += -ggdb -Wall -DTARGET_$(UNAME) -D_GNU_SOURCE -I/usr/include -I/usr/local/include
 LDFLAGS += $(addprefix -l,$(LIBS))
 
@@ -45,7 +45,7 @@ build: $(addsuffix .o,$(MODULES))
 
 android: CC=android-gcc
 android: CFLAGS=-I$(DESSERT_LIB)/include
-android: LDFLAGS=-L$(DESSERT_LIB)/lib -Wl,-rpath-link=$(DESSERT_LIB)/lib -ldessert -ldessert-extra
+android: LDFLAGS=-L$(DESSERT_LIB)/lib -Wl,-rpath-link=$(DESSERT_LIB)/lib -ldessert
 android: build package
 
 package:

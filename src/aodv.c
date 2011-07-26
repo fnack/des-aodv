@@ -25,7 +25,6 @@ For further information and questions please use the web site
 #ifndef ANDROID
 #include <printf.h>
 #endif
-#include <dessert-extra.h>
 
 #include "config.h"
 #include "cli/aodv_cli.h"
@@ -72,7 +71,7 @@ int main(int argc, char** argv) {
     if ((argc == 2) && (strcmp(argv[1], "-nondaemonize") == 0)) {
             dessert_info("starting AODV in non daemonize mode");
             dessert_init("AODV", 0x03, DESSERT_OPT_NODAEMONIZE);
-            char cfg_file_name[] = "/etc/des-aodv.conf";
+            char cfg_file_name[] = "./des-aodv.cli";
             cfg = fopen(cfg_file_name, "r");
             if (cfg == NULL) {
                     printf("Config file '%s' not found. Exit ...\n", cfg_file_name);
@@ -94,13 +93,12 @@ int main(int argc, char** argv) {
     cli_register_command(dessert_cli, dessert_cli_cfg_iface, "sys", dessert_cli_cmd_addsysif, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "initialize sys interface");
     cli_register_command(dessert_cli, dessert_cli_cfg_iface, "mesh", dessert_cli_cmd_addmeshif, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "initialize mesh interface");
 
-    struct cli_command* cli_cfg_set = cli_register_command(dessert_cli, NULL, "set", NULL, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set variable");
-    cli_register_command(dessert_cli, cli_cfg_set, "hello_size", cli_set_hello_size, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set HELLO packet size");
-    cli_register_command(dessert_cli, cli_cfg_set, "hello_interval", cli_set_hello_interval, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set HELLO packet interval");
-    cli_register_command(dessert_cli, cli_cfg_set, "rreq_size", cli_set_rreq_size, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set RREQ packet size");
-    cli_register_command(dessert_cli, cli_cfg_set, "verbose", cli_set_verbose, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set verbose mode");
-    cli_register_command(dessert_cli, cli_cfg_set, "multipath", cli_set_multipath, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set multipath variant");
-    cli_register_command(dessert_cli, cli_cfg_set, "routing_log", cli_set_routing_log, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set path to routing logging file");
+    cli_register_command(dessert_cli, dessert_cli_set, "hello_size", cli_set_hello_size, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set HELLO packet size");
+    cli_register_command(dessert_cli, dessert_cli_set, "hello_interval", cli_set_hello_interval, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set HELLO packet interval");
+    cli_register_command(dessert_cli, dessert_cli_set, "rreq_size", cli_set_rreq_size, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set RREQ packet size");
+    cli_register_command(dessert_cli, dessert_cli_set, "verbose", cli_set_verbose, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set verbose mode");
+    cli_register_command(dessert_cli, dessert_cli_set, "multipath", cli_set_multipath, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set multipath variant");
+    cli_register_command(dessert_cli, dessert_cli_set, "routing_log", cli_set_routing_log, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set path to routing logging file");
 
     cli_register_command(dessert_cli, dessert_cli_show, "hello_size", cli_show_hello_size, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show HELLO packet size");
     cli_register_command(dessert_cli, dessert_cli_show, "hello_interval", cli_show_hello_interval, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show HELLO packet interval");

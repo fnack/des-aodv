@@ -229,10 +229,10 @@ void aodv_send_packets_from_buffer(u_int8_t ether_dhost[ETH_ALEN], u_int8_t next
 int aodv_drop_errors(dessert_msg_t* msg, size_t len,
 		dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id){
 	// drop packets sent by myself.
-	if (proc->lflags & DESSERT_LFLAG_PREVHOP_SELF) {
+	if (proc->lflags & DESSERT_RX_FLAG_L2_SRC) {
 		return DESSERT_MSG_DROP;
 	}
-	if (proc->lflags & DESSERT_LFLAG_SRC_SELF) {
+	if (proc->lflags & DESSERT_RX_FLAG_L25_SRC) {
 		return DESSERT_MSG_DROP;
 	}
 	/**
@@ -522,12 +522,12 @@ int aodv_fwd2dest(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, cons
 		}
 	}
 
-	if (proc->lflags & DESSERT_LFLAG_DST_BROADCAST || proc->lflags & DESSERT_LFLAG_DST_MULTICAST) { // BROADCAST
+	if (proc->lflags & DESSERT_RX_FLAG_L25_BROADCAST || proc->lflags & DESSERT_RX_FLAG_L25_MULTICAST) { // BROADCAST
 		dessert_meshsend_fast(msg, NULL);
 		return DESSERT_MSG_KEEP;
-	} else if (((proc->lflags & DESSERT_LFLAG_NEXTHOP_SELF
-			&& !(proc->lflags & DESSERT_LFLAG_NEXTHOP_SELF_OVERHEARD)) || proc->lflags & DESSERT_LFLAG_NEXTHOP_BROADCAST)
-			&& !(proc->lflags & DESSERT_LFLAG_DST_SELF)){ // Directed message
+	} else if (((proc->lflags & DESSERT_RX_FLAG_L2_DST
+			&& !(proc->lflags & DESSERT_RX_FLAG_L2_OVERHEARD)) || proc->lflags & DESSERT_RX_FLAG_L2_BROADCAST)
+			&& !(proc->lflags & DESSERT_RX_FLAG_L25_DST)){ // Directed message
 		u_int8_t dhost_next_hop[ETH_ALEN];
 		const dessert_meshif_t* output_iface;
 		struct timeval timestamp;
@@ -619,9 +619,9 @@ int aodv_sys2rp (dessert_msg_t *msg, size_t len, dessert_msg_proc_t *proc, desse
  * Forward packets addressed to me to tun pipeline
  */
 int rp2sys(dessert_msg_t* msg, size_t len, dessert_msg_proc_t *proc, const dessert_meshif_t *iface, dessert_frameid_t id) {
-	if((proc->lflags & DESSERT_LFLAG_DST_SELF&& !(proc->lflags & DESSERT_LFLAG_DST_SELF_OVERHEARD))
-				|| proc->lflags & DESSERT_LFLAG_DST_BROADCAST || proc->lflags & DESSERT_LFLAG_DST_MULTICAST ) {
-		if (routing_log_file && !(proc->lflags & DESSERT_LFLAG_DST_BROADCAST) && !(proc->lflags & DESSERT_LFLAG_DST_MULTICAST)) {
+	if((proc->lflags & DESSERT_RX_FLAG_L25_DST&& !(proc->lflags & DESSERT_RX_FLAG_L25_OVERHEARD))
+				|| proc->lflags & DESSERT_RX_FLAG_L25_BROADCAST || proc->lflags & DESSERT_RX_FLAG_L25_MULTICAST ) {
+		if (routing_log_file && !(proc->lflags & DESSERT_RX_FLAG_L25_BROADCAST) && !(proc->lflags & DESSERT_RX_FLAG_L25_MULTICAST)) {
 			struct ether_header* l25h = dessert_msg_getl25ether(msg);
 			dessert_ext_t* rl_ext;
 			u_int32_t rl_seq_num = 0;
