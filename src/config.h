@@ -94,4 +94,18 @@ extern uint16_t 					rreq_size;
 extern double 						gossipp;
 extern int 							dest_only;
 
+typedef struct aodv_link_break_element {
+    uint8_t host[ETH_ALEN];
+    uint32_t sequence_number;
+    struct aodv_link_break_element* next;
+    struct aodv_link_break_element* prev;
+} aodv_link_break_element_t;
+
+typedef struct aodv_mac_seq {
+    uint8_t host[ETH_ALEN];
+    uint32_t sequence_number;
+} __attribute__((__packed__)) aodv_mac_seq_t;
+
+#define MAX_MAC_SEQ_PER_EXT (DESSERT_MAXEXTDATALEN / sizeof(aodv_mac_seq_t))
+
 #endif

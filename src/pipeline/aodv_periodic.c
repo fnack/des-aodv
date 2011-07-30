@@ -56,8 +56,8 @@ dessert_per_result_t aodv_periodic_cleanup_database(void* data, struct timeval* 
     }
 }
 
-dessert_msg_t* aodv_create_rerr(aodv_on_link_break_element_t** head, uint16_t count) {
-    if(*head == NULL || count == 0) {
+dessert_msg_t* aodv_create_rerr(aodv_link_break_element_t** destlist) {
+    if(*destlist == NULL) {
         return NULL;
     }
 
@@ -95,28 +95,31 @@ dessert_msg_t* aodv_create_rerr(aodv_on_link_break_element_t** head, uint16_t co
     MESHIFLIST_ITERATOR_STOP;
 
     rerr_msg->iface_addr_count = ifaces_count;
-    uint8_t max_dl_len = DESSERT_MAXEXTDATALEN / ETH_ALEN;
 
-    while(count) {
-        int dl_len = (count >= max_dl_len) ? max_dl_len : count;
+    while(*destlist) {
+        unsigned long dl_len = 0;
 
-        if(dessert_msg_addext(msg, &ext, RERRDL_EXT_TYPE, dl_len * ETH_ALEN) != DESSERT_OK) {
+        //count the length of destlist up to MAX_MAC_SEQ_PER_EXT elements
+        aodv_link_break_element_t* count_iter;
+
+        for(count_iter = *destlist;
+            (dl_len <= MAX_MAC_SEQ_PER_EXT) && count_iter;
+            ++dl_len, count_iter = count_iter->next) {
+        }
+
+        if(dessert_msg_addext(msg, &ext, RERRDL_EXT_TYPE, dl_len * sizeof(struct aodv_mac_seq)) != DESSERT_OK) {
             break;
         }
 
-        uint8_t* iter;
-        uint8_t* end = ext->data + dl_len * ETH_ALEN;
+        struct aodv_mac_seq* start = (struct aodv_mac_seq*) ext->data, *iter;
 
-        for(iter = ext->data; iter < end; iter += ETH_ALEN) {
-            aodv_on_link_break_element_t* el = *head;
-            memcpy(iter, el->dhost_ether, ETH_ALEN);
-            DL_DELETE(*head, el);
+        for(iter = start; iter < start + dl_len; ++iter) {
+            aodv_link_break_element_t* el = *destlist;
+            memcpy(iter->host, el->host, ETH_ALEN);
+            iter->sequence_number = el->sequence_number;
+
+            DL_DELETE(*destlist, el);
             free(el);
-            --count;
-
-            if(!count) {
-                break;
-            }
         }
     }
 
@@ -141,7 +144,7 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
             break;
         }
         case AODV_SC_REPEAT_RREQ: {
-            aodv_send_rreq(ether_addr, &timestamp, (dessert_msg_t*)(schedule_param), 0/*send rreq without initial hop_count*/);
+            aodv_send_rreq(ether_addr, &timestamp, (dessert_msg_t*)(schedule_param), 0);
             break;
         }
         case AODV_SC_SEND_OUT_RERR: {
@@ -152,31 +155,26 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
                 return DESSERT_PER_KEEP;
             }
 
-            uint16_t dest_count = 0;
-            uint8_t dhost_ether[ETH_ALEN];
-            aodv_on_link_break_element_t* curr_el = NULL;
-            aodv_on_link_break_element_t* head = NULL;
-
-            while(aodv_db_invroute(ether_addr, dhost_ether) == true) {
-                dessert_debug("invalidate route to " MAC, EXPLODE_ARRAY6(dhost_ether));
-                dest_count++;
-                curr_el = malloc(sizeof(aodv_on_link_break_element_t));
-                memcpy(curr_el->dhost_ether, dhost_ether, ETH_ALEN);
-                curr_el->next = curr_el->prev = NULL;
-                DL_APPEND(head, curr_el);
+            if(!aodv_db_inv_over_nexthop(ether_addr)) {
+                return 0; //nexthop not in nht
             }
 
-            if(dest_count > 0) {
-                while(head != NULL) {
-                    dessert_msg_t* rerr_msg = aodv_create_rerr(&head, dest_count);
+            aodv_link_break_element_t* destlist = NULL;
 
-                    if(rerr_msg != NULL) {
-                        dessert_debug("link to " MAC " break -> send RERR", EXPLODE_ARRAY6(dhost_ether));
-                        dessert_meshsend(rerr_msg, NULL);
-                        dessert_msg_destroy(rerr_msg);
-                        aodv_db_putrerr(&timestamp);
-                    }
+            if(!aodv_db_get_destlist(ether_addr, &destlist)) {
+                return 0; //nexthop not in nht
+            }
+
+            while(true) {
+                dessert_msg_t* rerr_msg = aodv_create_rerr(&destlist);
+
+                if(!rerr_msg) {
+                    break;
                 }
+
+                dessert_meshsend(rerr_msg, NULL);
+                dessert_msg_destroy(rerr_msg);
+                aodv_db_putrerr(&timestamp);
             }
 
             break;

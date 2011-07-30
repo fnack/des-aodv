@@ -287,6 +287,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
             //we have a routte to this dest and
             //we have never info
             // i know route to destination that have seq_num greater then that of source (route is newer)
+
             uint8_t last_hop_count_orginator;
             aodv_db_get_orginator_hop_count(l25h->ether_dhost, l25h->ether_shost, &last_hop_count_orginator);
             dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_destination_sequence_number /*this is what we know*/ , AODV_FLAGS_RREP_A, last_hop_count_orginator);
@@ -350,28 +351,30 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
     dessert_ext_t* rerrdl_ext;
 
     while(dessert_msg_getext(msg, &rerrdl_ext, RERRDL_EXT_TYPE, rerrdl_num++) > 0) {
-        int i;
-        void* dhost_pointer = rerrdl_ext->data;
+        struct aodv_mac_seq* iter;
 
-        for(i = 0; i < rerrdl_ext->len / ETH_ALEN; i++) {
+        for(iter = (struct aodv_mac_seq*) rerrdl_ext->data;
+            iter < (struct aodv_mac_seq*) rerrdl_ext->data + rerrdl_ext->len;
+            ++iter) {
+
             uint8_t dhost_ether[ETH_ALEN];
-            // get the MAC address of destination that is no more reachable
-            memcpy(dhost_ether, dhost_pointer + i * ETH_ALEN, ETH_ALEN);
+            memcpy(dhost_ether, iter->host, ETH_ALEN);
+            uint32_t destination_sequence_number = iter->sequence_number;
 
             uint8_t dhost_next_hop[ETH_ALEN];
-            // get next hop towards this destination
-            int a = aodv_db_getnexthop(dhost_ether, dhost_next_hop);
 
-            if(a == true) {
-                // if found, compare with entrys in interface-list this RRER.
-                // If equals then this this route is affected and must be invalidated!
-                int iface_num;
+            if(!aodv_db_getnexthop(dhost_ether, dhost_next_hop)) {
+                continue;
+            }
 
-                for(iface_num = 0; iface_num < rerr_msg->iface_addr_count; iface_num++) {
-                    if(memcmp(rerr_msg->ifaces + iface_num * ETH_ALEN, dhost_next_hop, ETH_ALEN) == 0) {
-                        rebroadcast_rerr = true;
-                        aodv_db_markrouteinv(dhost_ether);
-                    }
+            // if found, compare with entrys in interface-list this RRER.
+            // If equals then this this route is affected and must be invalidated!
+            int iface_num;
+
+            for(iface_num = 0; iface_num < rerr_msg->iface_addr_count; iface_num++) {
+                if(memcmp(rerr_msg->ifaces + iface_num * ETH_ALEN, dhost_next_hop, ETH_ALEN) == 0) {
+                    rebroadcast_rerr = true;
+                    aodv_db_markrouteinv(dhost_ether, destination_sequence_number);
                 }
             }
         }
@@ -518,13 +521,13 @@ int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, desse
         }
 
         // route unknown -> send rerr towards source
-        aodv_on_link_break_element_t* head, *curr_el;
-
-        curr_el = malloc(sizeof(aodv_on_link_break_element_t));
-        memcpy(curr_el->dhost_ether, l25h->ether_dhost, ETH_ALEN);
-        head = NULL;
-        DL_APPEND(head, curr_el);
-        dessert_msg_t* rerr_msg = aodv_create_rerr(&head, 1);
+        aodv_link_break_element_t* head = NULL;
+        aodv_link_break_element_t* entry = malloc(sizeof(aodv_link_break_element_t));
+        memset(entry, 0x0, sizeof(aodv_link_break_element_t));
+        memcpy(entry->host, l25h->ether_dhost, ETH_ALEN);
+        entry->sequence_number = UINT32_MAX;
+        DL_APPEND(head, entry);
+        dessert_msg_t* rerr_msg = aodv_create_rerr(&head);
 
         if(rerr_msg != NULL) {
             dessert_meshsend(rerr_msg, NULL);

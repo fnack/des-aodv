@@ -113,8 +113,10 @@ int aodv_db_rt_get_originator_sequence_number(uint8_t destination_host[ETH_ALEN]
 
 int aodv_db_rt_get_orginator_hop_count(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t* last_hop_count_orginator_out);
 
-int aodv_db_rt_markrouteinv(uint8_t destination_host[ETH_ALEN]);
-int aodv_db_rt_inv_route(uint8_t destination_host_next_hop[ETH_ALEN], uint8_t destination_host_out[ETH_ALEN]);
+int aodv_db_rt_markrouteinv(uint8_t destination_host[ETH_ALEN], uint32_t destination_sequence_number);
+int aodv_db_rt_remove_nexthop(uint8_t next_hop[ETH_ALEN]);
+int aodv_db_rt_inv_over_nexthop(uint8_t next_hop[ETH_ALEN]);
+int aodv_db_rt_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], aodv_link_break_element_t** destlist);
 
 int aodv_db_rt_cleanup(struct timeval* timestamp);
 
