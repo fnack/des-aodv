@@ -110,9 +110,9 @@ int aodv_db_capt_rrep(uint8_t destination_host[ETH_ALEN], uint8_t destination_ho
     return result;
 }
 
-int aodv_db_getroute2dest(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN], dessert_meshif_t** output_iface_out, struct timeval* timestamp) {
+int aodv_db_getroute2dest(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN], dessert_meshif_t** output_iface_out, struct timeval* timestamp, uint8_t flags) {
     aodv_db_wlock();
-    int result =  aodv_db_rt_getroute2dest(dhost_ether, dhost_next_hop_out, output_iface_out, timestamp);
+    int result =  aodv_db_rt_getroute2dest(dhost_ether, dhost_next_hop_out, output_iface_out, timestamp, flags);
     aodv_db_unlock();
     return result;
 }
@@ -180,6 +180,13 @@ int aodv_db_markrouteinv(uint8_t dhost_ether[ETH_ALEN]) {
 int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]) {
     pthread_rwlock_wrlock(&db_rwlock);
     int result =  aodv_db_rt_inv_route(dhost_next_hop, dhost_ether_out);
+    pthread_rwlock_unlock(&db_rwlock);
+    return result;
+}
+
+int aodv_db_get_active_routes(aodv_link_break_element_t** head) {
+    pthread_rwlock_wrlock(&db_rwlock);
+    int result = aodv_db_rt_get_active_routes(head);
     pthread_rwlock_unlock(&db_rwlock);
     return result;
 }
