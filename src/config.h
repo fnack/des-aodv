@@ -84,9 +84,11 @@ For further information and questions please use the web site
 #define AODV_SIGNAL_STRENGTH_INIT		-120
 
 // --- Database Flags
+#define AODV_FLAGS_UNUSED				0
 #define AODV_FLAGS_ROUTE_INVALID 		1
 #define AODV_FLAGS_NEXT_HOP_UNKNOWN		(1 << 1)
 #define AODV_FLAGS_ROUTE_WARN			(1 << 2)
+#define AODV_FLAGS_ROUTE_LOCAL_USED		(1 << 3)
 
 #define MAX_MESH_IFACES_COUNT			8
 

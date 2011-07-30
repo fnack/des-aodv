@@ -70,7 +70,7 @@ int aodv_db_capt_rrep(uint8_t destination_host[ETH_ALEN],
  * that has produces an RREQ to destination with dhost_ether address
  */
 int aodv_db_getroute2dest(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN],
-                          dessert_meshif_t** output_iface_out, struct timeval* timestamp);
+                          dessert_meshif_t** output_iface_out, struct timeval* timestamp, uint8_t flags);
 
 int aodv_db_getnexthop(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN]);
 
@@ -91,6 +91,8 @@ int aodv_db_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], aodv_link_break_eleme
 
 int aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], aodv_link_break_element_t** head);
 int aodv_db_get_warn_status(uint8_t dhost_ether[ETH_ALEN]);
+
+int aodv_db_get_active_routes(aodv_link_break_element_t** head);
 
 /**
  * Take a record that the given neighbor seems to be

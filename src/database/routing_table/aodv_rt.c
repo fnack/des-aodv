@@ -316,13 +316,15 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
 }
 
 int aodv_db_rt_getroute2dest(uint8_t destination_host[ETH_ALEN], uint8_t destination_host_next_hop_out[ETH_ALEN],
-                             dessert_meshif_t** output_iface_out, struct timeval* timestamp) {
+                             dessert_meshif_t** output_iface_out, struct timeval* timestamp, uint8_t flags) {
     aodv_rt_entry_t* rt_entry;
     HASH_FIND(hh, rt.entrys, destination_host, ETH_ALEN, rt_entry);
 
     if(rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN || rt_entry->flags & AODV_FLAGS_ROUTE_INVALID) {
         return false;
     }
+
+    rt_entry->flags |= flags;
 
     memcpy(destination_host_next_hop_out, rt_entry->destination_host_next_hop, ETH_ALEN);
     *output_iface_out = rt_entry->output_iface;
@@ -543,6 +545,10 @@ int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ET
             continue;
         }
 
+        if(!(dest->rt_entry->flags & AODV_FLAGS_ROUTE_LOCAL_USED)) {
+            continue;
+        }
+
         dessert_debug("dest->rt_entry->flags = %u->%p", dest->rt_entry->flags, dest->rt_entry);
         aodv_link_break_element_t* curr_el = malloc(sizeof(aodv_link_break_element_t));
         memcpy(curr_el->host, dest->rt_entry->destination_host, ETH_ALEN);
@@ -563,6 +569,20 @@ int aodv_db_rt_get_warn_status(uint8_t dhost_ether[ETH_ALEN]) {
 
     dessert_debug("rt_entry->flags = %u->%p", rt_entry->flags, rt_entry);
     return ((rt_entry->flags & AODV_FLAGS_ROUTE_WARN) ? true : false);
+}
+
+int aodv_db_rt_get_active_routes(aodv_link_break_element_t** head) {
+    *head = NULL;
+    aodv_rt_entry_t* dest, *tmp;
+
+    HASH_ITER(hh, rt.entrys, dest, tmp) {
+
+        aodv_link_break_element_t* curr_el = malloc(sizeof(aodv_link_break_element_t));
+        memset(curr_el, 0x0, sizeof(aodv_link_break_element_t));
+        memcpy(curr_el->host, dest->destination_host, ETH_ALEN);
+        DL_APPEND(*head, curr_el);
+    }
+    return true;
 }
 
 int aodv_db_rt_cleanup(struct timeval* timestamp) {
