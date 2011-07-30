@@ -114,11 +114,6 @@ struct aodv_msg_rerr {
 struct aodv_msg_hello {
 } __attribute__((__packed__));
 
-typedef struct aodv_on_link_break_list_element {
-    uint8_t 							dhost_ether[ETH_ALEN];
-    struct aodv_on_link_break_list_element*		prev, *next;
-} aodv_on_link_break_element_t;
-
 // ------------- pipeline -----------------------------------------------------
 int aodv_handle_hello(dessert_msg_t* msg, size_t len,
                       dessert_msg_proc_t* proc, dessert_meshif_t* iface, dessert_frameid_t id);
@@ -165,12 +160,12 @@ dessert_per_result_t aodv_periodic_send_hello(void* data, struct timeval* schedu
 /** clean up database from old entrys */
 dessert_per_result_t aodv_periodic_cleanup_database(void* data, struct timeval* scheduled, struct timeval* interval);
 
-dessert_msg_t* aodv_create_rerr(aodv_on_link_break_element_t** head, uint16_t count);
+dessert_msg_t* aodv_create_rerr(aodv_link_break_element_t** destlist);
 
 dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* scheduled, struct timeval* interval);
 
 // ------------------------------ helper ------------------------------------------------------
 
-void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_msg_t* rreq_msg, uint8_t initial_path_weight);
+void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_msg_t* rreq_msg, uint8_t initial_hop_count, uint8_t initial_path_weight);
 
 #endif
