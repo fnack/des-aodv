@@ -25,6 +25,7 @@ For further information and questions please use the web site
 #include <dessert.h>
 
 #include "aodv_database.h"
+#include "../config.h"
 #include "routing_table/aodv_rt.h"
 #include "data_seq/data_seq.h"
 #include "neighbor_table/nt.h"
