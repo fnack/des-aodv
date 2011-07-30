@@ -144,7 +144,7 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
             break;
         }
         case AODV_SC_REPEAT_RREQ: {
-            aodv_send_rreq(ether_addr, &timestamp, (dessert_msg_t*)(schedule_param), 0/*send rreq without initial hop_count*/);
+            aodv_send_rreq(ether_addr, &timestamp, (dessert_msg_t*)(schedule_param), 0, 0);
             break;
         }
         case AODV_SC_SEND_OUT_RERR: {
@@ -188,7 +188,7 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
                 dessert_debug("AODV_SC_SEND_OUT_RWARN: " MAC " -> " MAC,
                               EXPLODE_ARRAY6(ether_addr),
                               EXPLODE_ARRAY6(dest->host));
-                aodv_send_rreq(dest->host, &timestamp, NULL, 0);
+                aodv_send_rreq(dest->host, &timestamp, NULL, 0, 0);
             }
             break;
         }

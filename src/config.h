@@ -99,7 +99,6 @@ extern uint16_t 					hello_interval;
 extern uint16_t 					rreq_size;
 extern double 						gossipp;
 extern int 							dest_only;
-extern int 							mobility;
 
 typedef struct aodv_link_break_element {
     uint8_t host[ETH_ALEN];
