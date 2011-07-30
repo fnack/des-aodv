@@ -128,6 +128,11 @@ int main(int argc, char** argv) {
     schedule_chec_interval.tv_usec = (SCHEDULE_CHECK_INTERVAL % 1000) * 1000;
     dessert_periodic_add(aodv_periodic_scexecute, NULL, NULL, &schedule_chec_interval);
 
+    struct timeval schedule_rreq_interval;
+    schedule_rreq_interval.tv_sec = PERIODIC_RREQ_INTERVAL / 1000;
+    schedule_rreq_interval.tv_usec = (PERIODIC_RREQ_INTERVAL % 1000) * 1000;
+    dessert_periodic_add(aodv_periodic_send_rreq, NULL, NULL, &schedule_rreq_interval);
+
     /* running cli & daemon */
     cli_file(dessert_cli, cfg, PRIVILEGE_PRIVILEGED, MODE_CONFIG);
     dessert_cli_run();
