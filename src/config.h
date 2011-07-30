@@ -90,7 +90,7 @@ enum aodv_bool {TRUE = 1, FALSE = 0};
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
-extern dessert_periodic_t *			periodic_send_hello;
+extern dessert_periodic_t* 			periodic_send_hello;
 extern int 							multipath;
 extern int 							verbose;
 extern char*						routing_log_file;

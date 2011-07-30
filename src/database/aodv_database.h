@@ -52,32 +52,32 @@ int aodv_db_add_brcid(u_int8_t shost_ether[ETH_ALEN], u_int32_t rreq_id, struct 
  * this destination. All messages to source (example: RREP) must be send
  * over shost_prev_hop (nodes output interface: output_iface).
  */
-int aodv_db_capt_rreq (u_int8_t dhost_ether[ETH_ALEN], u_int8_t shost_ether[ETH_ALEN],
-		u_int8_t shost_prev_hop[ETH_ALEN], const dessert_meshif_t* output_iface,
-		u_int32_t shost_seq_num, struct timeval* timestamp);
+int aodv_db_capt_rreq(u_int8_t dhost_ether[ETH_ALEN], u_int8_t shost_ether[ETH_ALEN],
+                      u_int8_t shost_prev_hop[ETH_ALEN], const dessert_meshif_t* output_iface,
+                      u_int32_t shost_seq_num, struct timeval* timestamp);
 
-int aodv_db_capt_rrep (u_int8_t dhost_ether[ETH_ALEN], u_int8_t dhost_next_hop[ETH_ALEN],
-		const dessert_meshif_t* output_iface, u_int32_t dhost_seq_num,
-		u_int8_t hop_count, struct timeval* timestamp);
+int aodv_db_capt_rrep(u_int8_t dhost_ether[ETH_ALEN], u_int8_t dhost_next_hop[ETH_ALEN],
+                      const dessert_meshif_t* output_iface, u_int32_t dhost_seq_num,
+                      u_int8_t hop_count, struct timeval* timestamp);
 
 /**
  * gets prev_hop adress and output_iface towards source with shost_ether address
  * that has produces an RREQ to destination with dhost_ether address
  */
 int aodv_db_getroute2dest(u_int8_t dhost_ether[ETH_ALEN], u_int8_t dhost_next_hop_out[ETH_ALEN],
-		const dessert_meshif_t** output_iface_out, struct timeval* timestamp);
+                          const dessert_meshif_t** output_iface_out, struct timeval* timestamp);
 
 int aodv_db_getnexthop(u_int8_t dhost_ether[ETH_ALEN], u_int8_t dhost_next_hop_out[ETH_ALEN]);
 
 int aodv_db_getprevhop(u_int8_t dhost_ether[ETH_ALEN], u_int8_t shost_ether[ETH_ALEN],
-		u_int8_t shost_next_hop_out[ETH_ALEN], const dessert_meshif_t** output_iface_out);
+                       u_int8_t shost_next_hop_out[ETH_ALEN], const dessert_meshif_t** output_iface_out);
 
 int aodv_db_getrouteseqnum(u_int8_t dhost_ether[ETH_ALEN], u_int32_t* dhost_seq_num_out);
 
 int aodv_db_getlastrreqseq(u_int8_t dhost_ether[ETH_ALEN],
-		u_int8_t shost_ether[ETH_ALEN], u_int32_t* shost_seq_num_out);
+                           u_int8_t shost_ether[ETH_ALEN], u_int32_t* shost_seq_num_out);
 
-int aodv_db_markrouteinv (u_int8_t dhost_ether[ETH_ALEN]);
+int aodv_db_markrouteinv(u_int8_t dhost_ether[ETH_ALEN]);
 
 int aodv_db_invroute(u_int8_t dhost_next_hop[ETH_ALEN], u_int8_t dhost_ether_out[ETH_ALEN]);
 

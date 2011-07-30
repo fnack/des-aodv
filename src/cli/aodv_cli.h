@@ -32,7 +32,7 @@ int cli_set_hello_interval(struct cli_def* cli, char* command, char* argv[], int
 int cli_set_rreq_size(struct cli_def* cli, char* command, char* argv[], int argc);
 int cli_set_verbose(struct cli_def* cli, char* command, char* argv[], int argc);
 int cli_set_multipath(struct cli_def* cli, char* command, char* argv[], int argc);
-int cli_set_routing_log(struct cli_def *cli, char *command, char *argv[], int argc);
+int cli_set_routing_log(struct cli_def* cli, char* command, char* argv[], int argc);
 
 int cli_show_hello_size(struct cli_def* cli, char* command, char* argv[], int argc);
 int cli_show_hello_interval(struct cli_def* cli, char* command, char* argv[], int argc);

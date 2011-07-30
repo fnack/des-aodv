@@ -27,44 +27,56 @@ For further information and questions please use the web site
 #include "rl_seq.h"
 
 typedef struct rl_packet_id {
-	u_int8_t src_dest_addr[ETH_ALEN * 2]; // key
-	u_int32_t seq_num;
-	UT_hash_handle hh;
+    u_int8_t src_dest_addr[ETH_ALEN * 2]; // key
+    u_int32_t seq_num;
+    UT_hash_handle hh;
 } rl_packet_id_t;
 
 rl_packet_id_t* entrys = NULL;
 
 u_int32_t rl_get_nextseq(u_int8_t src_addr[ETH_ALEN], u_int8_t dest_addr[ETH_ALEN]) {
-	u_int8_t key[ETH_ALEN * 2];
-	memcpy(key, src_addr, ETH_ALEN);
-	memcpy(key + ETH_ALEN, dest_addr, ETH_ALEN);
-	rl_packet_id_t* entry;
-	HASH_FIND(hh, entrys, key, ETH_ALEN * 2, entry);
-	if (entry == NULL) {
-		entry = malloc(sizeof(rl_packet_id_t));
-		if (entry == NULL) return 0;
-		memcpy(entry->src_dest_addr, key, ETH_ALEN * 2);
-		entry->seq_num = 0;
-		HASH_ADD_KEYPTR(hh, entrys, entry->src_dest_addr, ETH_ALEN * 2, entry);
-	}
-	entry->seq_num++;
-	return entry->seq_num;
+    u_int8_t key[ETH_ALEN * 2];
+    memcpy(key, src_addr, ETH_ALEN);
+    memcpy(key + ETH_ALEN, dest_addr, ETH_ALEN);
+    rl_packet_id_t* entry;
+    HASH_FIND(hh, entrys, key, ETH_ALEN * 2, entry);
+
+    if(entry == NULL) {
+        entry = malloc(sizeof(rl_packet_id_t));
+
+        if(entry == NULL) {
+            return 0;
+        }
+
+        memcpy(entry->src_dest_addr, key, ETH_ALEN * 2);
+        entry->seq_num = 0;
+        HASH_ADD_KEYPTR(hh, entrys, entry->src_dest_addr, ETH_ALEN * 2, entry);
+    }
+
+    entry->seq_num++;
+    return entry->seq_num;
 }
 
 void rl_set_seq(u_int8_t src_addr[ETH_ALEN], u_int8_t dest_addr[ETH_ALEN], u_int32_t seq_num) {
-	u_int8_t key[ETH_ALEN * 2];
-	memcpy(key, src_addr, ETH_ALEN);
-	memcpy(key + ETH_ALEN, dest_addr, ETH_ALEN);
-	rl_packet_id_t* entry = NULL;
-	HASH_FIND(hh, entrys, key, ETH_ALEN * 2, entry);
-	if (entry == NULL) {
-		entry = malloc(sizeof(rl_packet_id_t));
-		if (entry == NULL) return;
-		memcpy(entry->src_dest_addr, key, ETH_ALEN * 2);
-		HASH_ADD_KEYPTR(hh, entrys, entry->src_dest_addr, ETH_ALEN * 2, entry);
-		entry->seq_num = seq_num;
-	}
-	if ((entry->seq_num - seq_num > (1<<30)) || (entry->seq_num < seq_num)) {
-		entry->seq_num = seq_num;
-	}
+    u_int8_t key[ETH_ALEN * 2];
+    memcpy(key, src_addr, ETH_ALEN);
+    memcpy(key + ETH_ALEN, dest_addr, ETH_ALEN);
+    rl_packet_id_t* entry = NULL;
+    HASH_FIND(hh, entrys, key, ETH_ALEN * 2, entry);
+
+    if(entry == NULL) {
+        entry = malloc(sizeof(rl_packet_id_t));
+
+        if(entry == NULL) {
+            return;
+        }
+
+        memcpy(entry->src_dest_addr, key, ETH_ALEN * 2);
+        HASH_ADD_KEYPTR(hh, entrys, entry->src_dest_addr, ETH_ALEN * 2, entry);
+        entry->seq_num = seq_num;
+    }
+
+    if((entry->seq_num - seq_num > (1 << 30)) || (entry->seq_num < seq_num)) {
+        entry->seq_num = seq_num;
+    }
 }
