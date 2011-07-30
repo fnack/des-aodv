@@ -132,7 +132,7 @@ int cli_set_gossipp(struct cli_def* cli, char* command, char* argv[], int argc) 
 int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
 
     if(argc != 2) {
-        cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_path_weight]\n", command);
+        cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_hop_count] [initial_path_weight]\n", command);
         return CLI_ERROR_ARG;
     }
 
@@ -140,20 +140,23 @@ int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
     int ok = dessert_parse_mac(argv[0], &host);
 
     if(ok != 0) {
-        cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_path_weight]\n", command);
+        cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_hop_count] [initial_path_weight]\n", command);
         return CLI_ERROR_ARG;
     }
 
-    uint8_t initial_path_weight = 0;
-    sscanf(argv[1], "%hhu", &initial_path_weight);
+    uint8_t initial_hop_count = 0;
+    sscanf(argv[1], "%hhu", &initial_hop_count);
 
-    cli_print(cli, MAC " -> using %u as initial_path_weight\n", EXPLODE_ARRAY6(host), initial_path_weight);
+    uint8_t initial_path_weight = 0;
+    sscanf(argv[2], "%hhu", &initial_path_weight);
+
+    cli_print(cli, MAC " -> using %u as initial_hop_count and %u as initial_path_weight\n", EXPLODE_ARRAY6(host), initial_hop_count, initial_path_weight);
 
     struct timeval ts;
 
     gettimeofday(&ts, NULL);
 
-    aodv_send_rreq(host, &ts, NULL, initial_path_weight);
+    aodv_send_rreq(host, &ts, NULL, initial_hop_count, initial_path_weight);
 
     return CLI_OK;
 }
