@@ -31,7 +31,6 @@ For further information and questions please use the web site
 #endif
 
 #include "../config.h"
-#include "../pipeline/aodv_pipeline.h"
 
 /** initialize all tables of routing database */
 int aodv_db_init();
