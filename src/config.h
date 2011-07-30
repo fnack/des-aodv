@@ -55,7 +55,6 @@ For further information and questions please use the web site
 #define SCHEDULE_CHECK_INTERVAL		20 /* ms not in rfc */
 
 #define HELLO_INTERVAL				1000 /* ms rfc=1000 */
-#define PERIODIC_RREQ_INTERVAL		1000 /* ms */
 
 #define HELLO_SIZE					128 /* bytes */
 #define RREQ_SIZE					128 /* bytes */
@@ -80,10 +79,8 @@ For further information and questions please use the web site
 #define AODV_SC_SEND_OUT_RERR		3
 
 // --- Database Flags
-#define AODV_FLAGS_UNUSED				0
 #define AODV_FLAGS_ROUTE_INVALID 		1
 #define AODV_FLAGS_NEXT_HOP_UNKNOWN		(1 << 1)
-#define AODV_FLAGS_ROUTE_LOCAL_USED		(1 << 2)
 
 #define MAX_MESH_IFACES_COUNT			8
 

@@ -31,7 +31,6 @@ For further information and questions please use the web site
 #endif
 
 #include "../config.h"
-#include "../pipeline/aodv_pipeline.h"
 
 /** initialize all tables of routing database */
 int aodv_db_init();
@@ -71,7 +70,7 @@ int aodv_db_capt_rrep(uint8_t destination_host[ETH_ALEN],
  * that has produces an RREQ to destination with dhost_ether address
  */
 int aodv_db_getroute2dest(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN],
-                          dessert_meshif_t** output_iface_out, struct timeval* timestamp, uint8_t flags);
+                          dessert_meshif_t** output_iface_out, struct timeval* timestamp);
 
 int aodv_db_getnexthop(uint8_t dhost_ether[ETH_ALEN], uint8_t dhost_next_hop_out[ETH_ALEN]);
 
@@ -87,8 +86,6 @@ int aodv_db_get_orginator_path_weight(uint8_t dhost_ether[ETH_ALEN], uint8_t sho
 
 int aodv_db_markrouteinv(uint8_t dhost_ether[ETH_ALEN]);
 int aodv_db_invroute(uint8_t dhost_next_hop[ETH_ALEN], uint8_t dhost_ether_out[ETH_ALEN]);
-
-int aodv_db_get_active_routes(aodv_link_break_element_t** head);
 
 /**
  * Take a record that the given neighbor seems to be
