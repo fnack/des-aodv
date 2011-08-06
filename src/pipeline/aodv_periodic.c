@@ -40,6 +40,7 @@ dessert_per_result_t aodv_periodic_send_rreq(void* data, struct timeval* schedul
 
     aodv_link_break_element_t* dest, *tmp;
     DL_FOREACH_SAFE(head, dest, tmp) {
+        dessert_info("periodic send rreq to: " MAC, EXPLODE_ARRAY6(dest->host));
         aodv_send_rreq(dest->host, &timestamp, NULL, 0, 0);
     }
     return DESSERT_PER_KEEP;
