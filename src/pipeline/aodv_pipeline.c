@@ -356,7 +356,7 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
 
     int rerrdl_num = 0;
 
-    uint8_t rebroadcast_rerr = false;
+    int rebroadcast_rerr = false;
 
     dessert_ext_t* rerrdl_ext;
 
@@ -376,15 +376,13 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
             if(!aodv_db_getnexthop(dhost_ether, dhost_next_hop)) {
                 continue;
             }
-
             // if found, compare with entrys in interface-list this RRER.
             // If equals then this this route is affected and must be invalidated!
             int iface_num;
 
             for(iface_num = 0; iface_num < rerr_msg->iface_addr_count; iface_num++) {
                 if(memcmp(rerr_msg->ifaces + iface_num * ETH_ALEN, dhost_next_hop, ETH_ALEN) == 0) {
-                    rebroadcast_rerr = true;
-                    aodv_db_markrouteinv(dhost_ether, destination_sequence_number);
+                    rebroadcast_rerr |= aodv_db_markrouteinv(dhost_ether, destination_sequence_number);
                 }
             }
         }
