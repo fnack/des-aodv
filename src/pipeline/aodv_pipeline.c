@@ -431,16 +431,9 @@ int aodv_handle_rrep(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
     rrep_msg->hop_count++;
 
     struct avg_node_result sample = dessert_rssi_avg(msg->l2h.ether_shost, iface);
-
     uint8_t interval = hf_rssi2interval(sample.avg_rssi);
-
-    if(interval < 0) {
-        dessert_crit("rssi is not in [-128, 0], this must be a bug in dessert_monitor");
-    }
-    else {
-        dessert_debug("incomming path_weight=%" PRIu8 ", add %" PRIu8 " (rssi=%" PRId8 ") for the last hop " MAC, rrep_msg->path_weight, interval, sample.avg_rssi, EXPLODE_ARRAY6(msg->l2h.ether_shost));
-        rrep_msg->path_weight += interval;
-    }
+    dessert_debug("incomming path_weight=%" PRIu8 ", add %" PRIu8 " (rssi=%" PRId8 ") for the last hop " MAC, rrep_msg->path_weight, interval, sample.avg_rssi, EXPLODE_ARRAY6(msg->l2h.ether_shost));
+    rrep_msg->path_weight += interval;
 
     int x = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->destination_sequence_number, rrep_msg->hop_count, rrep_msg->path_weight, &ts);
 
