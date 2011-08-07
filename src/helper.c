@@ -76,6 +76,11 @@ int hf_add_tv(struct timeval* tv1, struct timeval* tv2, struct timeval* sum) {
 
 /* rssi is typicaly in [-128, 0] */
 uint8_t hf_rssi2interval(int8_t rssi) {
+
+    if(rssi == 0) {
+        return 8;
+    }
+
     if(rssi > -40) {
         return 1;
     }
@@ -103,5 +108,5 @@ int hf_comp_u8(uint8_t i, uint8_t j) {
     }
 
     return -1;
-
 }
+

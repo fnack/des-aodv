@@ -268,16 +268,10 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
     rreq_msg->hop_count++;
 
     struct avg_node_result sample = dessert_rssi_avg(msg->l2h.ether_shost, iface);
-
     uint8_t interval = hf_rssi2interval(sample.avg_rssi);
+    dessert_debug("incomming path_weight=%u, add %u (rssi=%d) for the last hop " MAC, rreq_msg->path_weight, interval, sample.avg_rssi, EXPLODE_ARRAY6(msg->l2h.ether_shost));
+    rreq_msg->path_weight += interval;
 
-    if(interval < 0) {
-        dessert_crit("rssi is not in [-128, 0], this must be a bug in dessert_monitor");
-    }
-    else {
-        dessert_debug("incomming path_weight=%u, add %u (rssi=%d) for the last hop " MAC, rreq_msg->path_weight, interval, sample.avg_rssi, EXPLODE_ARRAY6(msg->l2h.ether_shost));
-        rreq_msg->path_weight += interval;
-    }
 
     if(memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) != 0) {  // RREQ not for me
         int x = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->originator_sequence_number, rreq_msg->hop_count, rreq_msg->path_weight, &ts);
