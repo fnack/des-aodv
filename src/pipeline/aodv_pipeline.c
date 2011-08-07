@@ -609,11 +609,11 @@ int aodv_local_unicast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc,
         struct ether_header* l25h = dessert_msg_getl25ether(msg);
 
         if(true == aodv_db_data_capt_data_seq(l25h->ether_shost, msg->u16)) {
-            dessert_trace("data packet from mesh - from " MAC " over " MAC " id=%u", EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost), msg->u16);
+            dessert_trace("data packet from mesh - from " MAC " over " MAC " id=%" PRIu16 "", EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost), msg->u16);
             dessert_syssend_msg(msg);
         }
         else {
-            dessert_trace("data packet from mesh - from " MAC " over " MAC " id=%u -> DUP", EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost), msg->u16);
+            dessert_trace("data packet from mesh - from " MAC " over " MAC " id=%" PRIu16 " -> DUP", EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost), msg->u16);
         }
     }
 
