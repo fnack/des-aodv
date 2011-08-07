@@ -499,11 +499,12 @@ int aodv_db_rt_get_active_routes(aodv_link_break_element_t** head) {
     aodv_rt_entry_t* dest, *tmp;
 
     HASH_ITER(hh, rt.entrys, dest, tmp) {
-
-        aodv_link_break_element_t* curr_el = malloc(sizeof(aodv_link_break_element_t));
-        memset(curr_el, 0x0, sizeof(aodv_link_break_element_t));
-        memcpy(curr_el->host, dest->destination_host, ETH_ALEN);
-        DL_APPEND(*head, curr_el);
+        if(dest->flags & AODV_FLAGS_ROUTE_LOCAL_USED) {
+            aodv_link_break_element_t* curr_el = malloc(sizeof(aodv_link_break_element_t));
+            memset(curr_el, 0x0, sizeof(aodv_link_break_element_t));
+            memcpy(curr_el->host, dest->destination_host, ETH_ALEN);
+            DL_APPEND(*head, curr_el);
+        }
     }
     return true;
 }
