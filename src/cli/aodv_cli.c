@@ -35,7 +35,7 @@ For further information and questions please use the web site
 int cli_set_shortcut(struct cli_def* cli, char* command, char* argv[], int argc) {
     uint32_t mode;
 
-    if(argc != 1 || sscanf(argv[0], "%u", &mode) != 1 || (mode != 0 && mode != 1)) {
+    if(argc != 1 || sscanf(argv[0], ""PRIu32"", &mode) != 1 || (mode != 0 && mode != 1)) {
         cli_print(cli, "usage of %s command [0, 1]\n", command);
         return CLI_ERROR_ARG;
     }
@@ -58,7 +58,7 @@ int cli_set_hello_size(struct cli_def* cli, char* command, char* argv[], int arg
 
     if(argc != 1) {
     label_out_usage:
-        cli_print(cli, "usage %s [%u..1500]\n", command, min_size);
+        cli_print(cli, "usage %s ["PRIu16"..1500]\n", command, min_size);
         return CLI_ERROR;
     }
 
@@ -69,7 +69,7 @@ int cli_set_hello_size(struct cli_def* cli, char* command, char* argv[], int arg
     }
 
     hello_size = psize;
-    dessert_notice("setting HELLO size to %u", hello_size);
+    dessert_notice("setting HELLO size to "PRIu16"", hello_size);
     return CLI_OK;
 }
 
@@ -86,7 +86,7 @@ int cli_set_hello_interval(struct cli_def* cli, char* command, char* argv[], int
     hello_interval_t.tv_sec = hello_interval / 1000;
     hello_interval_t.tv_usec = (hello_interval % 1000) * 1000;
     periodic_send_hello = dessert_periodic_add(aodv_periodic_send_hello, NULL, NULL, &hello_interval_t);
-    dessert_notice("setting HELLO interval to %u", hello_interval);
+    dessert_notice("setting HELLO interval to "PRIu16"", hello_interval);
     return CLI_OK;
 }
 
@@ -95,7 +95,7 @@ int cli_set_rreq_size(struct cli_def* cli, char* command, char* argv[], int argc
 
     if(argc != 1) {
     label_out_usage:
-        cli_print(cli, "usage %s [%u..1500]\n", command, min_size);
+        cli_print(cli, "usage %s ["PRIu16"..1500]\n", command, min_size);
         return CLI_ERROR;
     }
 
@@ -106,7 +106,7 @@ int cli_set_rreq_size(struct cli_def* cli, char* command, char* argv[], int argc
     }
 
     rreq_size = psize;
-    dessert_notice("setting RREQ size to %u", rreq_size);
+    dessert_notice("setting RREQ size to "PRIu16"", rreq_size);
     return CLI_OK;
 }
 
@@ -150,7 +150,7 @@ int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
     uint8_t initial_path_weight = 0;
     sscanf(argv[2], "%hhu", &initial_path_weight);
 
-    cli_print(cli, MAC " -> using %u as initial_hop_count and %u as initial_path_weight\n", EXPLODE_ARRAY6(host), initial_hop_count, initial_path_weight);
+    cli_print(cli, MAC " -> using "PRIu8" as initial_hop_count and "PRIu8" as initial_path_weight\n", EXPLODE_ARRAY6(host), initial_hop_count, initial_path_weight);
 
     struct timeval ts;
 
@@ -162,17 +162,17 @@ int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
 }
 
 int cli_show_hello_size(struct cli_def* cli, char* command, char* argv[], int argc) {
-    cli_print(cli, "HELLO size = %u bytes\n", hello_size);
+    cli_print(cli, "HELLO size = "PRIu16" bytes\n", hello_size);
     return CLI_OK;
 }
 
 int cli_show_hello_interval(struct cli_def* cli, char* command, char* argv[], int argc) {
-    cli_print(cli, "HELLO interval = %u millisec\n", hello_interval);
+    cli_print(cli, "HELLO interval = "PRIu16" millisec\n", hello_interval);
     return CLI_OK;
 }
 
 int cli_show_rreq_size(struct cli_def* cli, char* command, char* argv[], int argc) {
-    cli_print(cli, "RREQ size = %u bytes\n", rreq_size);
+    cli_print(cli, "RREQ size = "PRIu16" bytes\n", rreq_size);
     return CLI_OK;
 }
 
