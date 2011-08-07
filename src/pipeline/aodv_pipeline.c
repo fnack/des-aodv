@@ -332,17 +332,6 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
         dessert_msg_destroy(rrep_msg);
         dessert_debug("incoming RREQ from " MAC " over " MAC " for me originator_sequence_number=%u -> answer with RREP destination_sequence_number_copy=%u",
                       EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost), rreq_msg->originator_sequence_number, destination_sequence_number_copy);
-
-        /* RREQ gives route to his source. Process RREQ also as RREP */
-        int y = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->destination_sequence_number, rreq_msg->hop_count, rreq_msg->path_weight, &ts);
-
-        if(y == true) {
-            // no need to search for next hop. Next hop is RREQ.msg->l2h.ether_shost
-            aodv_send_packets_from_buffer(l25h->ether_shost, msg->l2h.ether_shost, iface);
-        }
-        else {
-            dessert_debug(MAC ": we know a better route already", EXPLODE_ARRAY6(l25h->ether_shost));
-        }
     }
 
     return DESSERT_MSG_DROP;
