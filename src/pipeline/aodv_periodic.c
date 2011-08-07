@@ -117,7 +117,7 @@ dessert_msg_t* aodv_create_rerr(aodv_link_break_element_t** destlist) {
             aodv_link_break_element_t* el = *destlist;
             memcpy(iter->host, el->host, ETH_ALEN);
             iter->sequence_number = el->sequence_number;
-
+            dessert_info("create rerr to: " MAC " seq=%" PRIu32 "", EXPLODE_ARRAY6(iter->host), iter->sequence_number);
             DL_DELETE(*destlist, el);
             free(el);
         }
@@ -181,7 +181,7 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
 
         }
         default: {
-            dessert_crit("unknown schedule type=%u", schedule_type);
+            dessert_crit("unknown schedule type=%" PRIu8 "", schedule_type);
         }
     }
 
