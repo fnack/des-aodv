@@ -190,7 +190,7 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
 
     int a = hf_comp_u32(srclist_entry->originator_sequence_number, originator_sequence_number);
     //	int b = hf_comp_u8(srclist_entry->hop_count, hop_count); // METRIC
-    int b = hf_comp_u8(srclist_entry->path_weight, path_weight); // METRC
+    int b = hf_comp_u8(srclist_entry->path_weight, path_weight); // METRIC
 
     if(a < 0 || (a == 0 && b >= 0)) {
 
