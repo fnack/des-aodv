@@ -73,6 +73,8 @@ dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl, uint8_t 
 
     rreq_msg->destination_sequence_number = last_destination_sequence_number;
 
+    dessert_debug("create rreq to " MAC ": o=%u d=%u", EXPLODE_ARRAY6(dhost_ether), rreq_msg->originator_sequence_number, rreq_msg->destination_sequence_number);
+
     dessert_msg_dummy_payload(msg, rreq_size);
 
     return msg;
@@ -277,7 +279,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
         int x = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->originator_sequence_number, rreq_msg->hop_count, rreq_msg->path_weight, &ts);
 
         if(!x) {
-            dessert_debug("got RREQ for " MAC "  -> don't answer with RREP is OLD", EXPLODE_ARRAY6(l25h->ether_dhost));
+            dessert_debug("got RREQ for " MAC " from " MAC " seq=%u hop=%u weight=%u ttl=%u -> don't rebroadcast it is OLD", EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(l25h->ether_shost), rreq_msg->originator_sequence_number, rreq_msg->hop_count, rreq_msg->path_weight, msg->ttl);
             return DESSERT_MSG_DROP;
         }
 
@@ -355,7 +357,7 @@ int aodv_handle_rerr(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
 
     struct aodv_msg_rerr* rerr_msg = (struct aodv_msg_rerr*) rerr_ext->data;
 
-    dessert_debug("got RERR for me flags=%u",  rerr_msg->flags);
+    dessert_info("got RERR: flags=%u",  rerr_msg->flags);
 
     int rerrdl_num = 0;
 

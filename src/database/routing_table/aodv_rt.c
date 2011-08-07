@@ -316,6 +316,7 @@ int aodv_db_rt_getroute2dest(uint8_t destination_host[ETH_ALEN], uint8_t destina
     HASH_FIND(hh, rt.entrys, destination_host, ETH_ALEN, rt_entry);
 
     if(rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN || rt_entry->flags & AODV_FLAGS_ROUTE_INVALID) {
+        dessert_info("route to " MAC " is invalid", EXPLODE_ARRAY6(destination_host));
         return false;
     }
 
@@ -449,11 +450,11 @@ int aodv_db_rt_markrouteinv(uint8_t destination_host[ETH_ALEN], uint32_t destina
     }
 
     if(rt_entry->destination_sequence_number > destination_sequence_number) {
-        dessert_debug("route to " MAC " seq=%u NOT marked as invalid", EXPLODE_ARRAY6(destination_host), destination_sequence_number);
+        dessert_info("route to " MAC " seq=%u:%u NOT marked as invalid", EXPLODE_ARRAY6(destination_host), rt_entry->destination_sequence_number, destination_sequence_number);
         return false;
     }
 
-    dessert_debug("route to " MAC " seq=%u marked as invalid", EXPLODE_ARRAY6(destination_host), destination_sequence_number);
+    dessert_info("route to " MAC " seq=%u:%u marked as invalid", EXPLODE_ARRAY6(destination_host), rt_entry->destination_sequence_number, destination_sequence_number);
     rt_entry->flags |= AODV_FLAGS_ROUTE_INVALID;
     return true;
 }
