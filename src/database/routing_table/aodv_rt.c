@@ -195,10 +195,10 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
     if(a < 0 || (a == 0 && b >= 0)) {
 
         if(a == 0 && b > 0) {
-            dessert_info("METRIC HIT: originator_sequence_number="PRIu32":"PRIu32" - path_weight="PRIu8":"PRIu8"", srclist_entry->originator_sequence_number, originator_sequence_number, srclist_entry->path_weight, path_weight);
+            dessert_info("METRIC HIT: originator_sequence_number=%" PRIu32 ":%" PRIu32 " - path_weight=%" PRIu8 ":%" PRIu8 "", srclist_entry->originator_sequence_number, originator_sequence_number, srclist_entry->path_weight, path_weight);
         }
 
-        dessert_debug("get rreq from " MAC ": originator_sequence_number="PRIu32":"PRIu32"",
+        dessert_debug("get rreq from " MAC ": originator_sequence_number=%" PRIu32 ":%" PRIu32 "",
                       EXPLODE_ARRAY6(originator_host), srclist_entry->originator_sequence_number, originator_sequence_number);
 
         // overwrite several fields of source entry if source seq_num is newer
@@ -211,7 +211,7 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
         return true;
     }
 
-    dessert_debug("get OLD rreq from " MAC ": originator_sequence_number="PRIu32":"PRIu32"",
+    dessert_debug("get OLD rreq from " MAC ": originator_sequence_number=%" PRIu32 ":%" PRIu32 "",
                   EXPLODE_ARRAY6(originator_host), srclist_entry->originator_sequence_number, originator_sequence_number);
     return false;
 }
@@ -235,7 +235,7 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
             return false;
         }
 
-        dessert_debug("create route to " MAC ": destination_sequence_number="PRIu32"",
+        dessert_debug("create route to " MAC ": destination_sequence_number=%" PRIu32 "",
                       EXPLODE_ARRAY6(destination_host), destination_sequence_number);
 
         HASH_ADD_KEYPTR(hh, rt.entrys, rt_entry->destination_host, ETH_ALEN, rt_entry);
@@ -243,7 +243,7 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
 
     int u = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
     int a = hf_comp_u32(rt_entry->destination_sequence_number, destination_sequence_number);
-    dessert_trace("destination_sequence_number="PRIu32":"PRIu32" - path_weight="PRIu8":"PRIu8"", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->path_weight, path_weight);
+    dessert_trace("destination_sequence_number=%" PRIu32 ":%" PRIu32 " - path_weight=%" PRIu8 ":%" PRIu8 "", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->path_weight, path_weight);
 
     if(u || a <= 0) {
 
@@ -304,7 +304,7 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
         return true;
     }
 
-    dessert_debug("get OLD rrep from " MAC ": destination_sequence_number="PRIu32":"PRIu32"",
+    dessert_debug("get OLD rrep from " MAC ": destination_sequence_number=%" PRIu32 ":%" PRIu32 "",
                   EXPLODE_ARRAY6(destination_host), rt_entry->destination_sequence_number, destination_sequence_number);
 
     return false;
@@ -450,11 +450,11 @@ int aodv_db_rt_markrouteinv(uint8_t destination_host[ETH_ALEN], uint32_t destina
     }
 
     if(rt_entry->destination_sequence_number > destination_sequence_number) {
-        dessert_info("route to " MAC " seq="PRIu32":"PRIu32" NOT marked as invalid", EXPLODE_ARRAY6(destination_host), rt_entry->destination_sequence_number, destination_sequence_number);
+        dessert_info("route to " MAC " seq=%" PRIu32 ":%" PRIu32 " NOT marked as invalid", EXPLODE_ARRAY6(destination_host), rt_entry->destination_sequence_number, destination_sequence_number);
         return false;
     }
 
-    dessert_info("route to " MAC " seq="PRIu32":"PRIu32" marked as invalid", EXPLODE_ARRAY6(destination_host), rt_entry->destination_sequence_number, destination_sequence_number);
+    dessert_info("route to " MAC " seq=%" PRIu32 ":%" PRIu32 " marked as invalid", EXPLODE_ARRAY6(destination_host), rt_entry->destination_sequence_number, destination_sequence_number);
     rt_entry->flags |= AODV_FLAGS_ROUTE_INVALID;
     return true;
 }
