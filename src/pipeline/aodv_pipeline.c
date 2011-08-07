@@ -285,7 +285,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
         int x = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->originator_sequence_number, rreq_msg->hop_count, rreq_msg->path_weight, &ts);
 
         if(!x) {
-            dessert_debug("got RREQ for " MAC "  -> don't rebroadcast it is OLD", EXPLODE_ARRAY6(l25h->ether_dhost));
+            dessert_debug("got RREQ for " MAC " from " MAC " seq=%u hop=%u weight=%u ttl=%u -> don't rebroadcast it is OLD", EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(l25h->ether_shost), rreq_msg->originator_sequence_number, rreq_msg->hop_count, rreq_msg->path_weight, msg->ttl);
             return DESSERT_MSG_DROP;
         }
 

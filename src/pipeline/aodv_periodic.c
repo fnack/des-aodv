@@ -136,7 +136,7 @@ dessert_msg_t* aodv_create_rerr(aodv_link_break_element_t** destlist) {
             aodv_link_break_element_t* el = *destlist;
             memcpy(iter->host, el->host, ETH_ALEN);
             iter->sequence_number = el->sequence_number;
-
+            dessert_info("create rerr to: " MAC " seq=%u", EXPLODE_ARRAY6(iter->host), iter->sequence_number);
             DL_DELETE(*destlist, el);
             free(el);
         }
