@@ -98,7 +98,7 @@ int rt_srclist_entry_create(aodv_rt_srclist_entry_t** srclist_entry_out,
     return true;
 }
 
-int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out, uint8_t destination_host[ETH_ALEN]) {
+int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out, uint8_t destination_host[ETH_ALEN], struct timeval* timestamp) {
 
     aodv_rt_entry_t* rt_entry = malloc(sizeof(aodv_rt_entry_t));
 
@@ -113,6 +113,8 @@ int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out, uint8_t destination_host[
     rt_entry->destination_sequence_number = 0; //we know nothing about the destination
     rt_entry->hop_count = UINT8_MAX; //initial
     rt_entry->path_weight = UINT8_MAX; //initial
+
+    timeslot_addobject(rt.ts, timestamp, rt_entry);
 
     *rreqt_entry_out = rt_entry;
     return true;
@@ -167,7 +169,7 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
 
     if(rt_entry == NULL) {
         // if not found -> create routing entry
-        if(!rt_entry_create(&rt_entry, destination_host)) {
+        if(!rt_entry_create(&rt_entry, destination_host, timestamp)) {
             return false;
         }
 
@@ -205,7 +207,7 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
         srclist_entry->originator_sequence_number = originator_sequence_number;
         srclist_entry->hop_count = hop_count;
         srclist_entry->path_weight = path_weight;
-        timeslot_addobject(rt.ts, timestamp, rt_entry);
+
         return true;
     }
 
@@ -229,7 +231,7 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
 
     if(rt_entry == NULL) {
         // if not found -> create routing entry
-        if(!rt_entry_create(&rt_entry, destination_host)) {
+        if(!rt_entry_create(&rt_entry, destination_host, timestamp)) {
             return false;
         }
 
@@ -299,8 +301,6 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
 
         destlist_entry->rt_entry = rt_entry;
 
-        // set/change timestamp of this routing entry
-        timeslot_addobject(rt.ts, timestamp, rt_entry);
         return true;
     }
 
