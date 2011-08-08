@@ -510,6 +510,33 @@ int aodv_db_rt_get_active_routes(aodv_link_break_element_t** head) {
     return true;
 }
 
+int aodv_db_rt_capt_data_seq(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint16_t shost_data_seq_num) {
+
+    aodv_rt_entry_t* rt_entry;
+    HASH_FIND(hh, rt.entrys, destination_host, ETH_ALEN, rt_entry);
+
+    if(rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN) {
+        return false;
+    }
+
+    aodv_rt_srclist_entry_t* src_entry;
+    HASH_FIND(hh, rt_entry->src_list, originator_host, ETH_ALEN, src_entry);
+
+    if(src_entry == NULL) {
+        return false;
+    }
+
+    //data source is known
+    if((src_entry->data_sequence_number - shost_data_seq_num > (1 << 15)) || (src_entry->data_sequence_number < shost_data_seq_num)) {
+        //data packet is newer
+        src_entry->data_sequence_number = shost_data_seq_num;
+        return true;
+    }
+
+    //data packet is old
+    return false;
+}
+
 int aodv_db_rt_cleanup(struct timeval* timestamp) {
     return timeslot_purgeobjects(rt.ts, timestamp);
 }
