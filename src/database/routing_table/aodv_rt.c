@@ -474,6 +474,7 @@ int aodv_db_rt_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], aodv_link_break_el
         aodv_link_break_element_t* el = malloc(sizeof(aodv_link_break_element_t));
         memcpy(el->host, dest->rt_entry->destination_host, ETH_ALEN);
         el->sequence_number = dest->rt_entry->destination_sequence_number;
+        dessert_info("createERR: " MAC " seq=%" PRIu32 "", EXPLODE_ARRAY6(el->host), el->sequence_number);
         DL_APPEND(*destlist, el);
     }
 
