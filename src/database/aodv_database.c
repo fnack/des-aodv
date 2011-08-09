@@ -264,9 +264,9 @@ void aodv_db_getrerrcount(struct timeval* timestamp, uint32_t* count_out) {
     aodv_db_unlock();
 }
 
-int aodv_db_capt_data_seq(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint16_t shost_data_seq_num) {
+int aodv_db_capt_data_seq(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t originator_host_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint16_t shost_data_seq_num, struct timeval* timestamp) {
     aodv_db_wlock();
-    int result =  aodv_db_capt_data_seq(destination_host, originator_host, shost_data_seq_num);
+    int result = aodv_db_rt_capt_data_seq(destination_host, originator_host, originator_host_prev_hop, output_iface, shost_data_seq_num, timestamp);
     aodv_db_unlock();
     return result;
 }
