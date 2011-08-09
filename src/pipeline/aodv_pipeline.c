@@ -316,7 +316,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, d
         pthread_rwlock_unlock(&pp_rwlock);
 
         dessert_debug("incoming RREQ from " MAC " over " MAC " for me originator_sequence_number=%" PRIu32 " -> answer with RREP destination_sequence_number_copy=%" PRIu32 "",
-              EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost), rreq_msg->originator_sequence_number, destination_sequence_number_copy);
+                      EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost), rreq_msg->originator_sequence_number, destination_sequence_number_copy);
 
         dessert_msg_t* rrep_msg = _create_rrep(dessert_l25_defsrc, l25h->ether_shost, msg->l2h.ether_shost, destination_sequence_number_copy, AODV_FLAGS_RREP_A, 0);
         dessert_meshsend(rrep_msg, iface);
@@ -485,6 +485,7 @@ int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, desse
     }
 
     struct timeval timestamp;
+
     gettimeofday(&timestamp, NULL);
 
     struct ether_header* l25h = dessert_msg_getl25ether(msg);
@@ -496,6 +497,7 @@ int aodv_forward(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, desse
 
     dessert_meshif_t* output_iface;
     uint8_t next_hop[ETH_ALEN];
+
     if(aodv_db_getroute2dest(l25h->ether_dhost, next_hop, &output_iface, &timestamp, AODV_FLAGS_UNUSED)) {
         memcpy(msg->l2h.ether_dhost, next_hop, ETH_ALEN);
         dessert_meshsend(msg, output_iface);
@@ -614,10 +616,9 @@ int aodv_local_unicast(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc,
         gettimeofday(&timestamp, NULL);
 
         if(false == aodv_db_capt_data_seq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, msg->u16, &timestamp)) {
-            dessert_trace("data packet from mesh - from " MAC " over " MAC " id=%" PRIu16 " -> DUP", EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost), msg->u16);
+            return DESSERT_MSG_DROP;
         }
 
-        dessert_trace("data packet from mesh - from " MAC " over " MAC " id=%" PRIu16 "", EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost), msg->u16);
         dessert_syssend_msg(msg);
     }
 

@@ -547,14 +547,17 @@ int aodv_db_rt_capt_data_seq(uint8_t destination_host[ETH_ALEN],
     }
 
     if((srclist_entry->flags & AODV_FLAGS_ROUTE_NEW) ||
-       (srclist_entry->data_sequence_number - shost_data_seq_num > (1 << 15)) || 
+       (srclist_entry->data_sequence_number - shost_data_seq_num > (1 << 15)) ||
        (srclist_entry->data_sequence_number < shost_data_seq_num)) {
+
         //data packet is newer
+        dessert_trace("data packet from mesh - from " MAC " over " MAC " id=%" PRIu16 ":%" PRIu16 "", EXPLODE_ARRAY6(originator_host), EXPLODE_ARRAY6(destination_host), srclist_entry->data_sequence_number, shost_data_seq_num);
         srclist_entry->data_sequence_number = shost_data_seq_num;
         return true;
     }
 
     //data packet is old
+    dessert_trace("DUP: data packet from mesh - from " MAC " over " MAC " id=%" PRIu16 ":%" PRIu16 "", EXPLODE_ARRAY6(originator_host), EXPLODE_ARRAY6(destination_host), srclist_entry->data_sequence_number, shost_data_seq_num);
     return false;
 }
 
