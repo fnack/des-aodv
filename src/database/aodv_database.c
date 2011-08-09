@@ -27,6 +27,7 @@ For further information and questions please use the web site
 #include "aodv_database.h"
 #include "../config.h"
 #include "routing_table/aodv_rt.h"
+#include "data_seq/data_seq.h"
 #include "neighbor_table/nt.h"
 #include "packet_buffer/packet_buffer.h"
 #include "schedule_table/aodv_st.h"
@@ -264,13 +265,12 @@ void aodv_db_getrerrcount(struct timeval* timestamp, uint32_t* count_out) {
     aodv_db_unlock();
 }
 
-int aodv_db_capt_data_seq(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint16_t shost_data_seq_num) {
+int aodv_db_data_capt_data_seq(uint8_t shost_ether[ETH_ALEN], uint16_t shost_seq_num) {
     aodv_db_wlock();
-    int result =  aodv_db_capt_data_seq(destination_host, originator_host, shost_data_seq_num);
+    int result =  aodv_db_ds_data_capt_data_seq(shost_ether, shost_seq_num);
     aodv_db_unlock();
     return result;
 }
-
 // --------------------------------------- reporting ---------------------------------------------------------------
 
 int aodv_db_view_routing_table(char** str_out) {
