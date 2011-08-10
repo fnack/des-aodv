@@ -476,7 +476,7 @@ int aodv_handle_rrep(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t* proc,
     if(x != true) {
         // capture and re-send only if route is unknown OR
         // sequence number is greater then that in database OR
-        // if seq_nums are equals and known hop count is greater than that in RREP -- METRIC
+        // if seq_nums are equals and known metric is greater than that in RREP -- METRIC
         return DESSERT_MSG_DROP;
     }
 
