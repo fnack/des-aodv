@@ -11,7 +11,7 @@ DIR_INIT = $(DIR_ETC)/init.d
 
 MODULES = src/aodv src/helper src/cli/aodv_cli src/database/aodv_database src/database/timeslot src/database/neighbor_table/nt \
 	src/database/packet_buffer/packet_buffer src/database/rerr_log/rerr_log src/database/routing_table/aodv_rt src/database/rreq_log/rreq_log \
-	src/database/schedule_table/aodv_st src/pipeline/aodv_periodic src/pipeline/aodv_pipeline
+	src/database/schedule_table/aodv_st src/pipeline/aodv_periodic src/pipeline/aodv_pipeline src/pipeline/aodv_metric
 
 UNAME = $(shell uname | tr 'a-z' 'A-Z')
 TARFILES = src etc Makefile ChangeLog android.files icon.*

@@ -160,6 +160,10 @@ dessert_msg_t* aodv_create_rerr(aodv_link_break_element_t** destlist);
 
 dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* scheduled, struct timeval* interval);
 
+// ------------------------------ metric ----------------------------------------------------
+
+int aodv_metric_do(metric_t* metric);
+
 // ------------------------------ helper ------------------------------------------------------
 
 void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_msg_t* rreq_msg, metric_t initial_metric);
