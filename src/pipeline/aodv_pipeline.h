@@ -162,7 +162,7 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
 
 // ------------------------------ metric ----------------------------------------------------
 
-int aodv_metric_do(metric_t* metric);
+int aodv_metric_do(metric_t* metric, uint8_t last_hop[ETH_ALEN], dessert_meshif_t* iface);
 
 // ------------------------------ helper ------------------------------------------------------
 

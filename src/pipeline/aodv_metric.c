@@ -22,9 +22,10 @@ For further information and questions please use the web site
 *******************************************************************************/
 
 #include "../config.h"
+#include "../helper.h"
 #include "aodv_pipeline.h"
 
-int aodv_metric_do(metric_t* metric) {
+int aodv_metric_do(metric_t* metric, uint8_t last_hop[ETH_ALEN], dessert_meshif_t* iface) {
 
     switch(metric_type) {
         case AODV_METRIC_HOP_COUNT: {
@@ -32,8 +33,10 @@ int aodv_metric_do(metric_t* metric) {
             break;
         }
         case AODV_METRIC_RSSI: {
-            dessert_crit("AODV_METRIC_RSSI -> not implemented! -> using AODV_METRIC_HOP_COUNT as fallback");
-            (*metric)++; /* HOP_COUNT */
+            struct avg_node_result sample = dessert_rssi_avg(last_hop, iface);
+            uint8_t interval = hf_rssi2interval(sample.avg_rssi);
+            dessert_trace("incomming path_weight=%" AODV_PRI_METRIC ", add %" PRIu8 " (rssi=%" PRId8 ") for the last hop " MAC, metric, interval, sample.avg_rssi, EXPLODE_ARRAY6(last_hop));
+            (*metric) += interval;
             break;
         }
         case AODV_METRIC_ETX: {

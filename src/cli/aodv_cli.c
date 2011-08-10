@@ -176,8 +176,7 @@ int cli_set_metric(struct cli_def* cli, char* command, char* argv[], int argc) {
     int rssi = strcmp(metric_string, "AODV_METRIC_RSSI");
 
     if(rssi == 0) {
-        metric_string = "AODV_METRIC_RSSI -> not implemented!  -> using AODV_METRIC_HOP_COUNT as fallback";
-        metric_type = AODV_METRIC_HOP_COUNT;
+        metric_type = AODV_METRIC_RSSI;
     }
 
     int etx = strcmp(metric_string, "AODV_METRIC_ETX");
@@ -212,7 +211,7 @@ int cli_show_metric(struct cli_def* cli, char* command, char* argv[], int argc) 
             break;
         }
         case AODV_METRIC_RSSI: {
-            metric_string = "AODV_METRIC_RSSI -> not implemented!  -> using AODV_METRIC_HOP_COUNT as fallback";
+            metric_string = "AODV_METRIC_RSSI";
             break;
         }
         case AODV_METRIC_ETX: {

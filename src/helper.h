@@ -80,4 +80,7 @@ int hf_add_tv(struct timeval* tv1, struct timeval* tv2, struct timeval* sum);
 
 /******************************************************************************/
 
+/** Return value between 1 and 5 for rssi values */
+uint8_t hf_rssi2interval(int8_t rssi);
+
 #endif
