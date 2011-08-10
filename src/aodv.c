@@ -35,7 +35,8 @@ uint16_t hello_size = HELLO_SIZE;
 uint16_t hello_interval = HELLO_INTERVAL;
 uint16_t rreq_size = RREQ_SIZE;
 double gossipp = GOSSIPP;
-int dest_only = DESTONLY;
+bool dest_only = DESTONLY;
+uint8_t metric = AODV_METRIC;
 
 dessert_periodic_t* periodic_send_hello;
 

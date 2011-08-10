@@ -62,6 +62,12 @@ For further information and questions please use the web site
 #define GOSSIPP						1 /* flooding */
 #define DESTONLY					false
 
+#define AODV_METRIC_HOP_COUNT		1
+#define AODV_METRIC_RSSI			2
+#define AODV_METRIC_ETX				3
+#define AODV_METRIC_ETT				4
+#define AODV_METRIC					AODV_METRIC_HOP_COUNT /* DEFAULT */
+
 /**
  * Schedule type = send out packets from FIFO puffer for
  * destination with ether_addr
@@ -95,7 +101,8 @@ extern uint16_t 					hello_size;
 extern uint16_t 					hello_interval;
 extern uint16_t 					rreq_size;
 extern double 						gossipp;
-extern int 							dest_only;
+extern bool							dest_only;
+extern uint8_t						metric;
 
 typedef struct aodv_link_break_element {
     uint8_t host[ETH_ALEN];
