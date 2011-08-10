@@ -84,7 +84,9 @@ int main(int argc, char** argv) {
     cli_register_command(dessert_cli, dessert_cli_set, "rreq_size", cli_set_rreq_size, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set RREQ packet size");
     cli_register_command(dessert_cli, dessert_cli_set, "gossip_p", cli_set_gossipp, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set p for gossip  p in [0.0,...,1.0]");
     cli_register_command(dessert_cli, dessert_cli_set, "shortcut", cli_set_shortcut, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set shortcut mode");
+    cli_register_command(dessert_cli, dessert_cli_set, "metric", cli_set_metric, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set metric (1=hop_count | 2=rssi)");
 
+    cli_register_command(dessert_cli, dessert_cli_show, "metric", cli_show_metric, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show metric (1=hop_count | 2=rssi)");
     cli_register_command(dessert_cli, dessert_cli_show, "hello_size", cli_show_hello_size, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show HELLO packet size");
     cli_register_command(dessert_cli, dessert_cli_show, "hello_interval", cli_show_hello_interval, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show HELLO packet interval");
     cli_register_command(dessert_cli, dessert_cli_show, "rreq_size", cli_show_rreq_size, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show RREQ packet size");

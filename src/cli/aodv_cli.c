@@ -158,6 +158,77 @@ int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
     return CLI_OK;
 }
 
+int cli_set_metric(struct cli_def* cli, char* command, char* argv[], int argc) {
+
+    if(argc != 1) {
+        cli_print(cli, "usage of %s command [metric (1=hop_count | 2=rssi)]\n", command);
+        return CLI_ERROR_ARG;
+    }
+
+    char* metric_string = argv[0];
+
+    int hop = strcmp(metric_string, "AODV_METRIC_HOP_COUNT");
+
+    if(hop == 0) {
+        metric_type = AODV_METRIC_HOP_COUNT;
+    }
+
+    int rssi = strcmp(metric_string, "AODV_METRIC_RSSI");
+
+    if(rssi == 0) {
+        metric_string = "AODV_METRIC_RSSI -> not implemented!  -> using AODV_METRIC_HOP_COUNT as fallback";
+        metric_type = AODV_METRIC_HOP_COUNT;
+    }
+
+    int etx = strcmp(metric_string, "AODV_METRIC_ETX");
+
+    if(etx == 0) {
+        metric_string = "AODV_METRIC_ETX -> not implemented! -> using AODV_METRIC_HOP_COUNT as fallback";
+        metric_type = AODV_METRIC_HOP_COUNT;
+    }
+
+    int ett = strcmp(metric_string, "AODV_METRIC_ETT");
+
+    if(ett == 0) {
+        metric_string = "AODV_METRIC_ETT -> not implemented! -> using AODV_METRIC_HOP_COUNT as fallback";
+        metric_type = AODV_METRIC_HOP_COUNT;
+    }
+
+    cli_print(cli, "metric set to %s", metric_string);
+
+    return CLI_OK;
+}
+
+int cli_show_metric(struct cli_def* cli, char* command, char* argv[], int argc) {
+
+    char* metric_string = NULL;
+
+    switch(metric_type) {
+        case AODV_METRIC_HOP_COUNT: {
+            metric_string = "AODV_METRIC_HOP_COUNT";
+            break;
+        }
+        case AODV_METRIC_RSSI: {
+            metric_string = "AODV_METRIC_RSSI -> not implemented!  -> using AODV_METRIC_HOP_COUNT as fallback";
+            break;
+        }
+        case AODV_METRIC_ETX: {
+            metric_string = "AODV_METRIC_ETX -> not implemented! -> using AODV_METRIC_HOP_COUNT as fallback";
+            break;
+        }
+        case AODV_METRIC_ETT: {
+            metric_string = "AODV_METRIC_ETT -> not implemented! -> using AODV_METRIC_HOP_COUNT as fallback";
+            break;
+        }
+        default: {
+            metric_string = "UNKNOWN METRIC -> you have some serious problems -> using AODV_METRIC_HOP_COUNT as fallback";
+        }
+    }
+
+    cli_print(cli, "metric is set to %s", metric_string);
+    return CLI_OK;
+}
+
 int cli_show_hello_size(struct cli_def* cli, char* command, char* argv[], int argc) {
     cli_print(cli, "HELLO size = %" PRIu16 " bytes\n", hello_size);
     return CLI_OK;

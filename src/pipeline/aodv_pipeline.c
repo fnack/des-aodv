@@ -291,6 +291,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t* proc,
             rreq_msg->metric++; /* HOP_COUNT */
         }
     }
+
     /********** METRIC *************/
 
     int x = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->originator_sequence_number, rreq_msg->metric, &ts);
@@ -469,6 +470,7 @@ int aodv_handle_rrep(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t* proc,
             rrep_msg->metric++; /* HOP_COUNT */
         }
     }
+
     /********** METRIC *************/
 
     int x = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->destination_sequence_number, rrep_msg->metric, &ts);
