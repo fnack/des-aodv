@@ -561,6 +561,20 @@ int aodv_db_rt_capt_data_seq(uint8_t destination_host[ETH_ALEN],
     return false;
 }
 
+int aodv_db_rt_routing_reset(uint32_t* count_out) {
+
+    *count_out = 0;
+
+    aodv_rt_entry_t* dest = NULL;
+    aodv_rt_entry_t* tmp = NULL;
+    HASH_ITER(hh, rt.entrys, dest, tmp) {
+        dest->flags |= AODV_FLAGS_ROUTE_INVALID;
+        dessert_debug("routing table reset: " MAC " is now invalid!", EXPLODE_ARRAY6(dest->destination_host));
+        (*count_out)++;
+    }
+    return true;
+}
+
 int aodv_db_rt_cleanup(struct timeval* timestamp) {
     return timeslot_purgeobjects(rt.ts, timestamp);
 }

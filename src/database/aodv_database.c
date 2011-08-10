@@ -191,6 +191,13 @@ int aodv_db_get_active_routes(aodv_link_break_element_t** head) {
     return result;
 }
 
+int aodv_db_routing_reset(uint32_t* count_out) {
+    pthread_rwlock_wrlock(&db_rwlock);
+    int result = aodv_db_rt_routing_reset(count_out);
+    pthread_rwlock_unlock(&db_rwlock);
+    return result;
+}
+
 /**
  * Take a record that the given neighbor seems to be
  * the 1 hop bidirectional neighbor

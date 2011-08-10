@@ -88,6 +88,8 @@ int aodv_db_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], aodv_link_break_eleme
 
 int aodv_db_get_active_routes(aodv_link_break_element_t** head);
 
+int aodv_db_routing_reset(uint32_t* count_out);
+
 /**
  * Take a record that the given neighbor seems to be
  * the 1 hop bidirectional neighbor

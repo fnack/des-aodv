@@ -125,6 +125,7 @@ int aodv_db_rt_get_active_routes(aodv_link_break_element_t** head);
 int aodv_db_rt_capt_data_seq(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t originator_host_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint16_t shost_data_seq_num, struct timeval* timestamp);
 
 int aodv_db_rt_cleanup(struct timeval* timestamp);
+int aodv_db_rt_routing_reset(uint32_t* count_out);
 
 int aodv_db_rt_report(char** str_out);
 

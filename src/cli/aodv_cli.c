@@ -194,8 +194,11 @@ int cli_set_metric(struct cli_def* cli, char* command, char* argv[], int argc) {
         metric_type = AODV_METRIC_HOP_COUNT;
     }
 
-    cli_print(cli, "metric set to %s", metric_string);
+    uint32_t count_out = 0;
+    aodv_db_routing_reset(&count_out);
 
+    cli_print(cli, "metric set to %s....resetting routing table: %" PRIu32 " entries invalidated!", metric_string, count_out);
+    dessert_notice("metric set to %s....resetting routing table: %" PRIu32 " entries invalidated!", metric_string, count_out);
     return CLI_OK;
 }
 
