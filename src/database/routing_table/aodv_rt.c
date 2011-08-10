@@ -91,7 +91,7 @@ int rt_srclist_entry_create(aodv_rt_srclist_entry_t** srclist_entry_out,
     memcpy(srclist_entry->originator_host_prev_hop, originator_host_prev_hop, ETH_ALEN);
     srclist_entry->output_iface = output_iface;
     srclist_entry->originator_sequence_number = 0; //initial
-    srclist_entry->hop_count = UINT8_MAX; //initial
+    srclist_entry->metric = UINT8_MAX; //initial
     srclist_entry->flags = AODV_FLAGS_ROUTE_NEW;
 
     *srclist_entry_out = srclist_entry;
@@ -111,7 +111,7 @@ int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out, uint8_t destination_host[
     rt_entry->flags = AODV_FLAGS_NEXT_HOP_UNKNOWN | AODV_FLAGS_ROUTE_INVALID;
     rt_entry->src_list = NULL;
     rt_entry->destination_sequence_number = 0; //we know nothing about the destination
-    rt_entry->hop_count = UINT8_MAX; //initial
+    rt_entry->metric = UINT8_MAX; //initial
 
     timeslot_addobject(rt.ts, timestamp, rt_entry);
 
@@ -156,7 +156,7 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
                          uint8_t originator_host_prev_hop[ETH_ALEN],
                          dessert_meshif_t* output_iface,
                          uint32_t originator_sequence_number,
-                         uint8_t hop_count,
+                         uint8_t metric,
                          struct timeval* timestamp) {
 
     aodv_rt_entry_t* rt_entry;
@@ -187,12 +187,12 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
     }
 
     int a = hf_comp_u32(srclist_entry->originator_sequence_number, originator_sequence_number);
-    int b = hf_comp_u8(srclist_entry->hop_count, hop_count); // METRIC
+    int b = hf_comp_u8(srclist_entry->metric, metric); // METRIC
 
     if(a < 0 || (a == 0 && b >= 0)) {
 
         if(a == 0 && b > 0) {
-            dessert_info("METRIC HIT: originator_sequence_number=%" PRIu32 ":%" PRIu32 " - hop_count=%" PRIu8 ":%" PRIu8 "", srclist_entry->originator_sequence_number, originator_sequence_number, srclist_entry->hop_count, hop_count);
+            dessert_info("METRIC HIT: originator_sequence_number=%" PRIu32 ":%" PRIu32 " - metric=%" PRIu8 ":%" PRIu8 "", srclist_entry->originator_sequence_number, originator_sequence_number, srclist_entry->metric, metric);
         }
 
         dessert_debug("get rreq from " MAC ": originator_sequence_number=%" PRIu32 ":%" PRIu32 "",
@@ -202,7 +202,7 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
         memcpy(srclist_entry->originator_host_prev_hop, originator_host_prev_hop, ETH_ALEN);
         srclist_entry->output_iface = output_iface;
         srclist_entry->originator_sequence_number = originator_sequence_number;
-        srclist_entry->hop_count = hop_count;
+        srclist_entry->metric = metric;
         srclist_entry->flags &= ~AODV_FLAGS_ROUTE_NEW;
 
         return true;
@@ -219,7 +219,7 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
                          uint8_t destination_host_next_hop[ETH_ALEN],
                          dessert_meshif_t* output_iface,
                          uint32_t destination_sequence_number,
-                         uint8_t hop_count,
+                         uint8_t metric,
                          struct timeval* timestamp) {
 
     aodv_rt_entry_t* rt_entry;
@@ -239,7 +239,7 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
 
     int u = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
     int a = hf_comp_u32(rt_entry->destination_sequence_number, destination_sequence_number);
-    dessert_trace("destination_sequence_number=%" PRIu32 ":%" PRIu32 " - hop_count=%" PRIu8 ":%" PRIu8 "", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->hop_count, hop_count);
+    dessert_trace("destination_sequence_number=%" PRIu32 ":%" PRIu32 " - metric=%" PRIu8 ":%" PRIu8 "", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->metric, metric);
 
     if(u || a <= 0) {
 
@@ -269,7 +269,7 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
         memcpy(rt_entry->destination_host_next_hop, destination_host_next_hop, ETH_ALEN);
         rt_entry->output_iface = output_iface;
         rt_entry->destination_sequence_number = destination_sequence_number;
-        rt_entry->hop_count = hop_count;
+        rt_entry->metric = metric;
         rt_entry->flags &= ~AODV_FLAGS_NEXT_HOP_UNKNOWN;
         rt_entry->flags &= ~AODV_FLAGS_ROUTE_INVALID;
 
@@ -392,12 +392,12 @@ int aodv_db_rt_get_originator_sequence_number(uint8_t dhost_ether[ETH_ALEN], uin
     return true;
 }
 
-int aodv_db_rt_get_orginator_hop_count(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t* last_hop_count_orginator_out) {
+int aodv_db_rt_get_orginator_metric(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t* last_metric_orginator_out) {
     aodv_rt_entry_t* rt_entry;
     HASH_FIND(hh, rt.entrys, destination_host, ETH_ALEN, rt_entry);
 
     if(rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN) {
-        *last_hop_count_orginator_out = UINT8_MAX;
+        *last_metric_orginator_out = UINT8_MAX;
         return false;
     }
 
@@ -405,11 +405,11 @@ int aodv_db_rt_get_orginator_hop_count(uint8_t destination_host[ETH_ALEN], uint8
     HASH_FIND(hh, rt_entry->src_list, originator_host, ETH_ALEN, src_entry);
 
     if(src_entry == NULL) {
-        *last_hop_count_orginator_out = UINT8_MAX;
+        *last_metric_orginator_out = UINT8_MAX;
         return false;
     }
 
-    *last_hop_count_orginator_out = src_entry->hop_count;
+    *last_metric_orginator_out = src_entry->metric;
     return true;
 
 }

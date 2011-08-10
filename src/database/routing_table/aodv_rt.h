@@ -41,7 +41,7 @@ typedef struct aodv_rt_srclist_entry {
     uint8_t				originator_host_prev_hop[ETH_ALEN];
     dessert_meshif_t*	output_iface;
     uint32_t			originator_sequence_number;
-    uint32_t			hop_count;
+    uint32_t			metric;
     uint16_t			data_sequence_number;
     uint8_t				flags;
     UT_hash_handle		hh;
@@ -52,7 +52,7 @@ typedef struct aodv_rt_entry {
     uint8_t				destination_host_next_hop[ETH_ALEN];
     dessert_meshif_t*	output_iface;
     uint32_t			destination_sequence_number;
-    uint8_t				hop_count;
+    uint8_t				metric;
     /**
      * flags format: 0 0 0 0 0 0 U I
      * I - Invalid flag; route is invalid due of link breakage
@@ -91,14 +91,14 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
                          uint8_t originator_host_prev_hop[ETH_ALEN],
                          dessert_meshif_t* output_iface,
                          uint32_t originator_sequence_number,
-                         uint8_t hop_count,
+                         uint8_t metric,
                          struct timeval* timestamp);
 
 int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
                          uint8_t destination_host_next_hop[ETH_ALEN],
                          dessert_meshif_t* output_iface,
                          uint32_t destination_sequence_number,
-                         uint8_t hop_count,
+                         uint8_t metric,
                          struct timeval* timestamp);
 
 int aodv_db_rt_getroute2dest(uint8_t destination_host[ETH_ALEN], uint8_t destination_host_next_hop_out[ETH_ALEN],
@@ -113,7 +113,7 @@ int aodv_db_rt_get_destination_sequence_number(uint8_t destination_host[ETH_ALEN
 
 int aodv_db_rt_get_originator_sequence_number(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint32_t* originator_sequence_number_out);
 
-int aodv_db_rt_get_orginator_hop_count(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t* last_hop_count_orginator_out);
+int aodv_db_rt_get_orginator_metric(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t* last_metric_orginator_out);
 
 int aodv_db_rt_markrouteinv(uint8_t destination_host[ETH_ALEN], uint32_t destination_sequence_number);
 int aodv_db_rt_remove_nexthop(uint8_t next_hop[ETH_ALEN]);

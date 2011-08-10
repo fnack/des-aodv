@@ -132,7 +132,7 @@ int cli_set_gossipp(struct cli_def* cli, char* command, char* argv[], int argc) 
 int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
 
     if(argc != 2) {
-        cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_hop_count]\n", command);
+        cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_metric]\n", command);
         return CLI_ERROR_ARG;
     }
 
@@ -140,20 +140,20 @@ int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
     int ok = dessert_parse_mac(argv[0], &host);
 
     if(ok != 0) {
-        cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_hop_count]\n", command);
+        cli_print(cli, "usage of %s command [hardware address as XX:XX:XX:XX:XX:XX] [initial_metric]\n", command);
         return CLI_ERROR_ARG;
     }
 
-    uint8_t initial_hop_count = 0;
-    sscanf(argv[1], "%hhu", &initial_hop_count);
+    uint8_t initial_metric = 0;
+    sscanf(argv[1], "%hhu", &initial_metric);
 
-    cli_print(cli, MAC " -> using %" PRIu8 " as initial_hop_count\n", EXPLODE_ARRAY6(host), initial_hop_count);
+    cli_print(cli, MAC " -> using %" PRIu8 " as initial_metric\n", EXPLODE_ARRAY6(host), initial_metric);
 
     struct timeval ts;
 
     gettimeofday(&ts, NULL);
 
-    aodv_send_rreq(host, &ts, NULL, initial_hop_count);
+    aodv_send_rreq(host, &ts, NULL, initial_metric);
 
     return CLI_OK;
 }
