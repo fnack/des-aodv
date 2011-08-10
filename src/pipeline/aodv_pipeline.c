@@ -577,21 +577,19 @@ int aodv_sys2rp(dessert_msg_t* msg, size_t len, dessert_msg_proc_t* proc, desser
         int a = aodv_db_getroute2dest(l25h->ether_dhost, dhost_next_hop, &output_iface, &ts, AODV_FLAGS_ROUTE_LOCAL_USED);
 
         if(a == true) {
-            uint16_t data_seq_copy = 0;
             pthread_rwlock_wrlock(&data_seq_lock);
-            data_seq_copy = ++data_seq_global;
+            msg->u16 = ++data_seq_global;
             pthread_rwlock_unlock(&data_seq_lock);
-            msg->u16 = data_seq_copy;
 
             memcpy(msg->l2h.ether_dhost, dhost_next_hop, ETH_ALEN);
             dessert_meshsend(msg, output_iface);
 
-            dessert_trace("send data packet to mesh - to " MAC " over " MAC " id=%" PRIu16 " route is known", EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(dhost_next_hop), data_seq_global);
+            dessert_trace("send data packet to mesh - to " MAC " over " MAC " id=%" PRIu16 " route is known", EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(dhost_next_hop), msg->u16);
         }
         else {
             aodv_db_push_packet(l25h->ether_dhost, msg, &ts);
             aodv_send_rreq(l25h->ether_dhost, &ts, NULL, 0); // create and send RREQ - without initial hop_count
-            dessert_trace("send data packet to mesh - to " MAC " id=%" PRIu16 " but route is unknown -> push packet to FIFO and send RREQ", EXPLODE_ARRAY6(l25h->ether_dhost), data_seq_global);
+            dessert_trace("try to send data packet to mesh - to " MAC ", but route is unknown -> push packet to FIFO and send RREQ", EXPLODE_ARRAY6(l25h->ether_dhost));
         }
     }
 
