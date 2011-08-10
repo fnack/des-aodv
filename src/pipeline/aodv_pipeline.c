@@ -37,7 +37,7 @@ pthread_rwlock_t data_seq_lock = PTHREAD_RWLOCK_INITIALIZER;
 
 // ---------------------------- help functions ---------------------------------------
 
-dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl, uint8_t initial_metric) {
+dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl, metric_t initial_metric) {
     dessert_msg_t* msg;
     dessert_ext_t* ext;
     dessert_msg_new(&msg);
@@ -80,7 +80,7 @@ dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl, uint8_t 
 }
 
 
-dessert_msg_t* _create_rrep(uint8_t route_dest[ETH_ALEN], uint8_t route_source[ETH_ALEN], uint8_t rrep_next_hop[ETH_ALEN], uint32_t destination_sequence_number, uint8_t flags, uint8_t initial_metric) {
+dessert_msg_t* _create_rrep(uint8_t route_dest[ETH_ALEN], uint8_t route_source[ETH_ALEN], uint8_t rrep_next_hop[ETH_ALEN], uint32_t destination_sequence_number, uint8_t flags, metric_t initial_metric) {
     dessert_msg_t* msg;
     dessert_ext_t* ext;
     dessert_msg_new(&msg);
@@ -106,7 +106,7 @@ dessert_msg_t* _create_rrep(uint8_t route_dest[ETH_ALEN], uint8_t route_source[E
     return msg;
 }
 
-void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_msg_t* msg, uint8_t initial_metric) {
+void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_msg_t* msg, metric_t initial_metric) {
     if(msg == NULL) {
         // rreq_msg == NULL means: this is a first try from RREQ_RETRIES
         if(aodv_db_schedule_exists(dhost_ether, AODV_SC_REPEAT_RREQ)) {
@@ -266,28 +266,28 @@ int aodv_handle_rreq(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t* proc,
     struct aodv_msg_rreq* rreq_msg = (struct aodv_msg_rreq*) rreq_ext->data;
 
     /********** METRIC *************/
-    switch(metric) {
+    switch(metric_type) {
         case AODV_METRIC_HOP_COUNT: {
             rreq_msg->metric++;
             break;
         }
         case AODV_METRIC_RSSI: {
-            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric);
+            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric_type);
             rreq_msg->metric++; /* HOP_COUNT */
             break;
         }
         case AODV_METRIC_ETX: {
-            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric);
+            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric_type);
             rreq_msg->metric++; /* HOP_COUNT */
             break;
         }
         case AODV_METRIC_ETT: {
-            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric);
+            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric_type);
             rreq_msg->metric++; /* HOP_COUNT */
             break;
         }
         default: {
-            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric);
+            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric_type);
             rreq_msg->metric++; /* HOP_COUNT */
         }
     }
@@ -317,7 +317,7 @@ int aodv_handle_rreq(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t* proc,
             //we have never info
             // i know route to destination that have seq_num greater then that of source (route is newer)
 
-            uint8_t last_metric_orginator;
+            metric_t last_metric_orginator;
             aodv_db_get_orginator_metric(l25h->ether_dhost, l25h->ether_shost, &last_metric_orginator);
             dessert_msg_t* rrep_msg = _create_rrep(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, last_destination_sequence_number /*this is what we know*/ , AODV_FLAGS_RREP_A, last_metric_orginator);
             dessert_debug("repair link to " MAC, EXPLODE_ARRAY6(l25h->ether_dhost));
@@ -444,28 +444,28 @@ int aodv_handle_rrep(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t* proc,
     gettimeofday(&ts, NULL);
 
     /********** METRIC *************/
-    switch(metric) {
+    switch(metric_type) {
         case AODV_METRIC_HOP_COUNT: {
             rrep_msg->metric++;
             break;
         }
         case AODV_METRIC_RSSI: {
-            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric);
+            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric_type);
             rrep_msg->metric++; /* HOP_COUNT */
             break;
         }
         case AODV_METRIC_ETX: {
-            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric);
+            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric_type);
             rrep_msg->metric++; /* HOP_COUNT */
             break;
         }
         case AODV_METRIC_ETT: {
-            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric);
+            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric_type);
             rrep_msg->metric++; /* HOP_COUNT */
             break;
         }
         default: {
-            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric);
+            dessert_crit("unknown metric=%" PRIu8 " -> using HOP_COUNT as fallback", metric_type);
             rrep_msg->metric++; /* HOP_COUNT */
         }
     }

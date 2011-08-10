@@ -67,6 +67,9 @@ For further information and questions please use the web site
 #define AODV_METRIC_ETX				3
 #define AODV_METRIC_ETT				4
 #define AODV_METRIC					AODV_METRIC_HOP_COUNT /* DEFAULT */
+typedef uint16_t metric_t;
+#define AODV_PRI_METRIC				PRIu16
+#define AODV_MAX_METRIC				UINT16_MAX /* the type of the variable in the packets -> u16 it is the maximum value of a metric */
 
 /**
  * Schedule type = send out packets from FIFO puffer for
@@ -102,7 +105,7 @@ extern uint16_t 					hello_interval;
 extern uint16_t 					rreq_size;
 extern double 						gossipp;
 extern bool							dest_only;
-extern uint8_t						metric;
+extern uint8_t						metric_type;
 
 typedef struct aodv_link_break_element {
     uint8_t host[ETH_ALEN];

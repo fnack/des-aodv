@@ -65,7 +65,7 @@ struct aodv_msg_rreq {
      */
     uint16_t		flags;
     /** The number of hops from the originator to the node habdling the request */
-    uint8_t		metric;
+    metric_t		metric;
 
     uint32_t		destination_sequence_number;
 
@@ -82,7 +82,7 @@ struct aodv_msg_rrep {
     uint8_t		flags;
 
     /**  Hop Count: The number of hops from the originator to destination */
-    uint8_t		metric;
+    metric_t		metric;
 
     uint32_t		destination_sequence_number;
     /**
@@ -162,6 +162,6 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
 
 // ------------------------------ helper ------------------------------------------------------
 
-void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_msg_t* rreq_msg, uint8_t initial_metric);
+void aodv_send_rreq(uint8_t dhost_ether[ETH_ALEN], struct timeval* ts, dessert_msg_t* rreq_msg, metric_t initial_metric);
 
 #endif

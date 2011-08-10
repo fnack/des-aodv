@@ -144,10 +144,10 @@ int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
         return CLI_ERROR_ARG;
     }
 
-    uint8_t initial_metric = 0;
-    sscanf(argv[1], "%hhu", &initial_metric);
+    metric_t initial_metric = 0;
+    initial_metric = atoi(argv[1]);
 
-    cli_print(cli, MAC " -> using %" PRIu8 " as initial_metric\n", EXPLODE_ARRAY6(host), initial_metric);
+    cli_print(cli, MAC " -> using %" AODV_PRI_METRIC " as initial_metric\n", EXPLODE_ARRAY6(host), initial_metric);
 
     struct timeval ts;
 
