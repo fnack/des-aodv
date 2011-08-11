@@ -52,7 +52,6 @@ int cli_set_shortcut(struct cli_def* cli, char* command, char* argv[], int argc)
     return CLI_OK;
 }
 
-
 int cli_set_hello_size(struct cli_def* cli, char* command, char* argv[], int argc) {
     uint16_t min_size = sizeof(dessert_msg_t) + sizeof(struct ether_header) + 2;
 
@@ -81,11 +80,14 @@ int cli_set_hello_interval(struct cli_def* cli, char* command, char* argv[], int
 
     hello_interval = (uint16_t) strtoul(argv[0], NULL, 10);
     aodv_db_neighbor_table_reset();
-    dessert_periodic_del(periodic_send_hello);
+
+    dessert_periodic_del(send_hello_periodic);
+    send_hello_periodic = NULL;
+
     struct timeval hello_interval_t;
     hello_interval_t.tv_sec = hello_interval / 1000;
     hello_interval_t.tv_usec = (hello_interval % 1000) * 1000;
-    periodic_send_hello = dessert_periodic_add(aodv_periodic_send_hello, NULL, NULL, &hello_interval_t);
+    send_hello_periodic = dessert_periodic_add(aodv_periodic_send_hello, NULL, NULL, &hello_interval_t);
     dessert_notice("setting HELLO interval to %" PRIu16 "", hello_interval);
     return CLI_OK;
 }
@@ -161,7 +163,7 @@ int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc) {
 int cli_set_metric(struct cli_def* cli, char* command, char* argv[], int argc) {
 
     if(argc != 1) {
-        cli_print(cli, "usage of %s command [metric (1=hop_count | 2=rssi)]\n", command);
+        cli_print(cli, "usage of %s command [metric]\n", command);
         return CLI_ERROR_ARG;
     }
 
@@ -198,6 +200,48 @@ int cli_set_metric(struct cli_def* cli, char* command, char* argv[], int argc) {
 
     cli_print(cli, "metric set to %s....resetting routing table: %" PRIu32 " entries invalidated!", metric_string, count_out);
     dessert_notice("metric set to %s....resetting routing table: %" PRIu32 " entries invalidated!", metric_string, count_out);
+    return CLI_OK;
+}
+
+int cli_set_periodic_rreq_interval(struct cli_def* cli, char* command, char* argv[], int argc) {
+
+    if(argc != 1) {
+        cli_print(cli, "usage %s [interval in ms]\n", command);
+        return CLI_ERROR;
+    }
+
+    uint16_t rreq_interval = strtol(argv[0], NULL, 10);
+
+    dessert_periodic_del(send_rreq_periodic);
+    send_rreq_periodic = NULL;
+
+    if(rreq_interval == 0) {
+        cli_print(cli, "periodic RREQ is off");
+        return CLI_OK;
+    }
+
+    struct timeval schedule_rreq_interval;
+
+    schedule_rreq_interval.tv_sec = rreq_interval / 1000;
+
+    schedule_rreq_interval.tv_usec = (rreq_interval % 1000) * 1000;
+
+    send_rreq_periodic = dessert_periodic_add(aodv_periodic_send_rreq, NULL, NULL, &schedule_rreq_interval);
+
+    cli_print(cli, "periodic RREQ Interval set to %" PRIu16 " ms\n", rreq_interval);
+
+    return CLI_OK;
+}
+
+int cli_show_periodic_rreq_interval(struct cli_def* cli, char* command, char* argv[], int argc) {
+
+    if(rreq_interval == 0) {
+        cli_print(cli, "periodic RREQ is off");
+    }
+    else {
+        cli_print(cli, "periodic RREQ Interval = %" PRIu16 " ms\n", rreq_interval);
+    }
+
     return CLI_OK;
 }
 

@@ -147,6 +147,7 @@ int aodv_drop_errors(dessert_msg_t* msg, uint32_t len,
 // ------------------------------ periodic ----------------------------------------------------
 
 dessert_per_result_t aodv_periodic_send_hello(void* data, struct timeval* scheduled, struct timeval* interval);
+dessert_per_result_t aodv_periodic_send_rreq(void* data, struct timeval* scheduled, struct timeval* interval);
 
 /** clean up database from old entrys */
 dessert_per_result_t aodv_periodic_cleanup_database(void* data, struct timeval* scheduled, struct timeval* interval);

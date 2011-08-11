@@ -71,6 +71,8 @@ typedef uint16_t metric_t;
 #define AODV_PRI_METRIC				PRIu16
 #define AODV_MAX_METRIC				UINT16_MAX /* the type of the variable in the packets -> u16 it is the maximum value of a metric */
 
+#define RREQ_INTERVAL				0 /* off */
+
 /**
  * Schedule type = send out packets from FIFO puffer for
  * destination with ether_addr
@@ -99,7 +101,11 @@ typedef uint16_t metric_t;
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
-extern dessert_periodic_t* 			periodic_send_hello;
+extern dessert_periodic_t* 			send_hello_periodic;
+
+extern dessert_periodic_t* 			send_rreq_periodic;
+extern uint16_t 					rreq_interval;
+
 extern uint16_t 					hello_size;
 extern uint16_t 					hello_interval;
 extern uint16_t 					rreq_size;
