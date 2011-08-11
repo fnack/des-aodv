@@ -130,8 +130,8 @@ int db_nt_init() {
     return true;
 }
 
-int db_nt_reset() {
-    return db_nt_init();
+int aodv_db_nt_neighbor_reset(uint32_t* count_out) {
+    return false; //TODO
 }
 
 int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], uint16_t hello_seq, dessert_meshif_t* iface, struct timeval* timestamp) {
@@ -154,7 +154,12 @@ int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], uint16_t hello_seq, 
     }
 
     curr_entry->last_hello_seq = hello_seq;
-    aodv_db_sc_addschedule(timestamp, curr_entry->ether_neighbor, AODV_SC_UPDATE_RSSI, (void*) iface);
+
+    if(signal_strength_threshold > 0) {
+        /* preemptive rreq is turned on */
+        aodv_db_sc_addschedule(timestamp, curr_entry->ether_neighbor, AODV_SC_UPDATE_RSSI, (void*) iface);
+    }
+
     timeslot_addobject(nt.ts, timestamp, curr_entry);
     return true;
 }

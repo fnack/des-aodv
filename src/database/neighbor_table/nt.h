@@ -34,7 +34,7 @@ For further information and questions please use the web site
 /** initialize neighbor table */
 int db_nt_init();
 
-int db_nt_reset();
+int aodv_db_nt_neighbor_reset(uint32_t* count_out);
 
 int db_nt_reset_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp);
 

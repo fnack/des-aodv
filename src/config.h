@@ -91,7 +91,7 @@ typedef uint16_t metric_t;
 #define AODV_SC_SEND_OUT_RWARN		4
 #define AODV_SC_UPDATE_RSSI			5
 
-#define AODV_SIGNAL_STRENGTH_THRESHOLD	15 /* dbm */
+#define AODV_SIGNAL_STRENGTH_THRESHOLD	0 /* dbm (off)*/
 #define AODV_SIGNAL_STRENGTH_INIT		-120
 
 // --- Database Flags
@@ -118,6 +118,7 @@ extern uint16_t 					rreq_size;
 extern double 						gossipp;
 extern bool							dest_only;
 extern uint8_t						metric_type;
+extern int8_t						signal_strength_threshold;
 
 typedef struct aodv_link_break_element {
     uint8_t host[ETH_ALEN];

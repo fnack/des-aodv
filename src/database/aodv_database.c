@@ -69,13 +69,12 @@ int aodv_db_cleanup(struct timeval* timestamp) {
     return success;
 }
 
-int aodv_db_neighbor_table_reset() {
-    aodv_db_wlock();
-    int success = db_nt_reset();
-    aodv_db_unlock();
-    return success;
+int aodv_db_neighbor_reset(uint32_t* count_out) {
+    pthread_rwlock_wrlock(&db_rwlock);
+    int result = aodv_db_nt_neighbor_reset(count_out);
+    pthread_rwlock_unlock(&db_rwlock);
+    return result;
 }
-
 
 void aodv_db_push_packet(uint8_t dhost_ether[ETH_ALEN], dessert_msg_t* msg, struct timeval* timestamp) {
     aodv_db_wlock();

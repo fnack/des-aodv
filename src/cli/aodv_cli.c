@@ -79,7 +79,9 @@ int cli_set_hello_interval(struct cli_def* cli, char* command, char* argv[], int
     }
 
     hello_interval = (uint16_t) strtoul(argv[0], NULL, 10);
-    aodv_db_neighbor_table_reset();
+
+    uint32_t count = 0;
+    aodv_db_neighbor_reset(&count);
 
     dessert_periodic_del(send_hello_periodic);
     send_hello_periodic = NULL;
@@ -88,7 +90,7 @@ int cli_set_hello_interval(struct cli_def* cli, char* command, char* argv[], int
     hello_interval_t.tv_sec = hello_interval / 1000;
     hello_interval_t.tv_usec = (hello_interval % 1000) * 1000;
     send_hello_periodic = dessert_periodic_add(aodv_periodic_send_hello, NULL, NULL, &hello_interval_t);
-    dessert_notice("setting HELLO interval to %" PRIu16 "", hello_interval);
+    dessert_notice("setting HELLO interval to %" PRIu16 " - " PRIu32 " neighbors invalidated...", hello_interval, count);
     return CLI_OK;
 }
 
@@ -240,6 +242,40 @@ int cli_show_periodic_rreq_interval(struct cli_def* cli, char* command, char* ar
     }
     else {
         cli_print(cli, "periodic RREQ Interval = %" PRIu16 " ms\n", rreq_interval);
+    }
+
+    return CLI_OK;
+}
+
+int cli_set_preemptive_rreq_signal_strength_threshold(struct cli_def* cli, char* command, char* argv[], int argc) {
+
+    if(argc != 1) {
+        cli_print(cli, "usage %s [threshold in dbm]\n", command);
+        return CLI_ERROR;
+    }
+
+    uint32_t count_out = 0;
+    aodv_db_neighbor_reset(&count_out);
+
+    signal_strength_threshold = strtol(argv[0], NULL, 10);
+
+    if(signal_strength_threshold == 0) {
+        cli_print(cli, "preemptive RREQ is off - %" PRIu32 " neighbors invalidated...", count_out);
+    }
+    else {
+        cli_print(cli, "preemptive RREQ treshold is %" PRId8 " dbm - %" PRIu32 " neighbors invalidated...", signal_strength_threshold, count_out);
+    }
+
+    return CLI_OK;
+}
+
+int cli_show_preemptive_rreq_signal_strength_threshold(struct cli_def* cli, char* command, char* argv[], int argc) {
+
+    if(signal_strength_threshold == 0) {
+        cli_print(cli, "preemptive RREQ is off");
+    }
+    else {
+        cli_print(cli, "preemptive RREQ treshold is %" PRId8 " dbm", signal_strength_threshold);
     }
 
     return CLI_OK;
