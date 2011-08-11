@@ -534,6 +534,11 @@ int aodv_db_rt_capt_data_seq(uint8_t destination_host[ETH_ALEN],
         HASH_ADD_KEYPTR(hh, rt.entrys, rt_entry->destination_host, ETH_ALEN, rt_entry);
     }
 
+    if(memcmp(dessert_l25_defsrc, l25h->ether_dhost, ETH_ALEN) == 0) {
+        // fix for local packets, we need to refresh route to me for data seq
+        timeslot_addobject(rt.ts, timestamp, rt_entry);
+    }
+
     // find srclist_entry with shost_ether address
     HASH_FIND(hh, rt_entry->src_list, originator_host, ETH_ALEN, srclist_entry);
 
