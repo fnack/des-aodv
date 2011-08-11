@@ -28,19 +28,26 @@ For further information and questions please use the web site
 #include <pthread.h>
 #include <utlist.h>
 
+uint16_t seq_num_hello = 0;
+pthread_rwlock_t hello_rwlock = PTHREAD_RWLOCK_INITIALIZER;
+
 dessert_per_result_t aodv_periodic_send_hello(void* data, struct timeval* scheduled, struct timeval* interval) {
     // create new HELLO message with hello_ext.
-    dessert_msg_t* hello_msg;
-    dessert_msg_new(&hello_msg);
-    hello_msg->ttl = 2;
+    dessert_msg_t* msg;
+    dessert_msg_new(&msg);
+    msg->ttl = 2;
+
+    pthread_rwlock_wrlock(&hello_rwlock);
+    msg->u16 = seq_num_hello++;
+    pthread_rwlock_unlock(&hello_rwlock);
 
     dessert_ext_t* ext;
-    dessert_msg_addext(hello_msg, &ext, HELLO_EXT_TYPE, sizeof(struct aodv_msg_hello));
+    dessert_msg_addext(msg, &ext, HELLO_EXT_TYPE, sizeof(struct aodv_msg_hello));
 
-    dessert_msg_dummy_payload(hello_msg, hello_size);
+    dessert_msg_dummy_payload(msg, hello_size);
 
-    dessert_meshsend(hello_msg, NULL);
-    dessert_msg_destroy(hello_msg);
+    dessert_meshsend(msg, NULL);
+    dessert_msg_destroy(msg);
     return DESSERT_PER_KEEP;
 }
 

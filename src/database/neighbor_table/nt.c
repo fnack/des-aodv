@@ -30,6 +30,7 @@ typedef struct neighbor_entry {
     struct __attribute__((__packed__)) {  // key
         uint8_t             ether_neighbor[ETH_ALEN];
         dessert_meshif_t*   iface;
+        uint16_t            last_hello_seq;
     };
     UT_hash_handle          hh;
 } neighbor_entry_t;
@@ -51,6 +52,7 @@ neighbor_entry_t* db_neighbor_entry_create(uint8_t ether_neighbor_addr[ETH_ALEN]
 
     memcpy(new_entry->ether_neighbor, ether_neighbor_addr, ETH_ALEN);
     new_entry->iface = iface;
+    new_entry->last_hello_seq = 0; /* initial */
     return new_entry;
 }
 
@@ -83,7 +85,7 @@ int db_nt_reset() {
     return db_nt_init();
 }
 
-int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
+int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], uint16_t hello_seq, dessert_meshif_t* iface, struct timeval* timestamp) {
     neighbor_entry_t* curr_entry = NULL;
     uint8_t addr_sum[ETH_ALEN + sizeof(void*)];
     memcpy(addr_sum, ether_neighbor_addr, ETH_ALEN);
@@ -102,6 +104,7 @@ int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* if
         dessert_debug("%s <=====> " MAC, iface->if_name, EXPLODE_ARRAY6(ether_neighbor_addr));
     }
 
+    curr_entry->last_hello_seq = hello_seq;
     timeslot_addobject(nt.ts, timestamp, curr_entry);
     return true;
 }
