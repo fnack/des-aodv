@@ -407,7 +407,7 @@ int aodv_handle_rrep(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t* proc,
     struct ether_header* l25h = dessert_msg_getl25ether(msg);
 
     if(msg->ttl <= 0) {
-        dessert_debug("got RREP from " MAC " but TTL ist <= 0", EXPLODE_ARRAY6(l25h->ether_dhost));
+        dessert_debug("got RREP from " MAC " but TTL is <= 0", EXPLODE_ARRAY6(l25h->ether_dhost));
         return DESSERT_MSG_DROP;
     }
 
