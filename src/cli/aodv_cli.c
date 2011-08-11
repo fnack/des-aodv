@@ -219,6 +219,7 @@ int cli_set_periodic_rreq_interval(struct cli_def* cli, char* command, char* arg
 
     if(rreq_interval == 0) {
         cli_print(cli, "periodic RREQ is off");
+        dessert_notice("periodic RREQ is off");
         return CLI_OK;
     }
 
@@ -231,6 +232,8 @@ int cli_set_periodic_rreq_interval(struct cli_def* cli, char* command, char* arg
     send_rreq_periodic = dessert_periodic_add(aodv_periodic_send_rreq, NULL, NULL, &schedule_rreq_interval);
 
     cli_print(cli, "periodic RREQ Interval set to %" PRIu16 " ms\n", rreq_interval);
+
+    dessert_notice("periodic RREQ Interval set to %" PRIu16 " ms\n", rreq_interval);
 
     return CLI_OK;
 }
@@ -254,17 +257,19 @@ int cli_set_preemptive_rreq_signal_strength_threshold(struct cli_def* cli, char*
         return CLI_ERROR;
     }
 
-    uint32_t count_out = 0;
-    aodv_db_neighbor_reset(&count_out);
-
     signal_strength_threshold = strtol(argv[0], NULL, 10);
 
     if(signal_strength_threshold == 0) {
-        cli_print(cli, "preemptive RREQ is off - %" PRIu32 " neighbors invalidated...", count_out);
+        cli_print(cli, "preemptive RREQ is off");
+        dessert_notice("preemptive RREQ is off");
+        return CLI_OK;
     }
-    else {
-        cli_print(cli, "preemptive RREQ treshold is %" PRId8 " dbm - %" PRIu32 " neighbors invalidated...", signal_strength_threshold, count_out);
-    }
+
+    uint32_t count_out = 0;
+    aodv_db_neighbor_reset(&count_out);
+
+    cli_print(cli, "preemptive RREQ treshold is %" PRId8 " dbm - %" PRIu32 " neighbors invalidated...", signal_strength_threshold, count_out);
+    dessert_notice("preemptive RREQ treshold is %" PRId8 " dbm - %" PRIu32 " neighbors invalidated...", signal_strength_threshold, count_out);
 
     return CLI_OK;
 }
