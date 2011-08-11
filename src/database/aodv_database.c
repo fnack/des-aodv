@@ -184,6 +184,20 @@ int aodv_db_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], aodv_link_break_eleme
     return result;
 }
 
+int aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], aodv_link_break_element_t** head) {
+    aodv_db_wlock();
+    int result = aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(neighbor, head);
+    aodv_db_unlock();
+    return result;
+}
+
+int aodv_db_get_warn_status(uint8_t dhost_ether[ETH_ALEN]) {
+    aodv_db_wlock();
+    int result = aodv_db_rt_get_warn_status(dhost_ether);
+    aodv_db_unlock();
+    return result;
+}
+
 int aodv_db_get_active_routes(aodv_link_break_element_t** head) {
     pthread_rwlock_wrlock(&db_rwlock);
     int result = aodv_db_rt_get_active_routes(head);
@@ -215,6 +229,20 @@ int aodv_db_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], uint16_t hello_seq
 int aodv_db_check2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
     aodv_db_wlock();
     int result =  db_nt_check2Dneigh(ether_neighbor_addr, iface, timestamp);
+    aodv_db_unlock();
+    return result;
+}
+
+int aodv_db_reset_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
+    aodv_db_wlock();
+    int result = db_nt_reset_rssi(ether_neighbor_addr, iface, timestamp);
+    aodv_db_unlock();
+    return result;
+}
+
+int8_t aodv_db_update_rssi(uint8_t ether_neighbor[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
+    aodv_db_wlock();
+    int result = db_nt_update_rssi(ether_neighbor, iface, timestamp);
     aodv_db_unlock();
     return result;
 }

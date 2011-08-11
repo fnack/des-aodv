@@ -86,6 +86,9 @@ int aodv_db_remove_nexthop(uint8_t next_hop[ETH_ALEN]);
 int aodv_db_inv_over_nexthop(uint8_t next_hop[ETH_ALEN]);
 int aodv_db_get_destlist(uint8_t dhost_next_hop[ETH_ALEN], aodv_link_break_element_t** destlist);
 
+int aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], aodv_link_break_element_t** head);
+int aodv_db_get_warn_status(uint8_t dhost_ether[ETH_ALEN]);
+
 int aodv_db_get_active_routes(aodv_link_break_element_t** head);
 
 int aodv_db_routing_reset(uint32_t* count_out);
@@ -100,6 +103,10 @@ int aodv_db_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], uint16_t hello_seq
  * Check whether given neighbor is 1 hop bidirectional neighbor
  */
 int aodv_db_check2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp);
+
+int aodv_db_reset_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp);
+
+int8_t aodv_db_update_rssi(uint8_t ether_neighbor[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp);
 
 int aodv_db_addschedule(struct timeval* execute_ts, uint8_t ether_addr[ETH_ALEN], uint8_t type, void* param);
 

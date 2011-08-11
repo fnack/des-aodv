@@ -88,11 +88,17 @@ typedef uint16_t metric_t;
  * Schedule type = send out route error for given next hop
  */
 #define AODV_SC_SEND_OUT_RERR		3
+#define AODV_SC_SEND_OUT_RWARN		4
+#define AODV_SC_UPDATE_RSSI			5
+
+#define AODV_SIGNAL_STRENGTH_THRESHOLD	15 /* dbm */
+#define AODV_SIGNAL_STRENGTH_INIT		-120
 
 // --- Database Flags
 #define AODV_FLAGS_UNUSED				0
 #define AODV_FLAGS_ROUTE_INVALID 		1
 #define AODV_FLAGS_NEXT_HOP_UNKNOWN		(1 << 1)
+#define AODV_FLAGS_ROUTE_WARN			(1 << 2)
 #define AODV_FLAGS_ROUTE_LOCAL_USED		(1 << 3)
 #define AODV_FLAGS_ROUTE_NEW	    	(1 << 4)
 

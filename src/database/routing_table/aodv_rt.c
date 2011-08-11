@@ -22,6 +22,7 @@ For further information and questions please use the web site
 *******************************************************************************/
 
 #include "aodv_rt.h"
+#include "../neighbor_table/nt.h"
 
 #define REPORT_RT_STR_LEN 150
 
@@ -237,6 +238,9 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
         HASH_ADD_KEYPTR(hh, rt.entrys, rt_entry->destination_host, ETH_ALEN, rt_entry);
     }
 
+    //this is a routing update, so reset the max rssi val of the next hop
+    db_nt_reset_rssi(destination_host_next_hop, output_iface, timestamp);
+
     int u = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
     int a = hf_comp_u32(rt_entry->destination_sequence_number, destination_sequence_number);
     dessert_trace("destination_sequence_number=%" PRIu32 ":%" PRIu32 " - metric=%" AODV_PRI_METRIC ":%" AODV_PRI_METRIC "", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->metric, metric);
@@ -272,6 +276,7 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
         rt_entry->metric = metric;
         rt_entry->flags &= ~AODV_FLAGS_NEXT_HOP_UNKNOWN;
         rt_entry->flags &= ~AODV_FLAGS_ROUTE_INVALID;
+        rt_entry->flags &= ~AODV_FLAGS_ROUTE_WARN;
 
         // map also this routing entry to next hop
         HASH_FIND(hh, nht, destination_host_next_hop, ETH_ALEN, nht_entry);
@@ -495,6 +500,50 @@ int aodv_db_rt_remove_nexthop(uint8_t next_hop[ETH_ALEN]) {
     HASH_DEL(nht, nht_entry);
     free(nht_entry);
     return true;
+}
+
+//get all routes over one neighbor
+int aodv_db_rt_get_warn_endpoints_from_neighbor_and_set_warn(uint8_t neighbor[ETH_ALEN], aodv_link_break_element_t** head) {
+    // find appropriate routing entry
+    nht_entry_t* nht_entry;
+    HASH_FIND(hh, nht, neighbor, ETH_ALEN, nht_entry);
+
+    if((nht_entry == NULL) || (nht_entry->dest_list == NULL)) {
+        return false;
+    }
+
+    *head = NULL;
+    struct nht_destlist_entry* dest, *tmp;
+
+    HASH_ITER(hh, nht_entry->dest_list, dest, tmp) {
+        if(dest->rt_entry->flags & AODV_FLAGS_ROUTE_WARN) {
+            continue;
+        }
+
+        if(!(dest->rt_entry->flags & AODV_FLAGS_ROUTE_LOCAL_USED)) {
+            continue;
+        }
+
+        dessert_debug("dest->rt_entry->flags = %" PRIu8 "->%p", dest->rt_entry->flags, dest->rt_entry);
+        aodv_link_break_element_t* curr_el = malloc(sizeof(aodv_link_break_element_t));
+        memcpy(curr_el->host, dest->rt_entry->destination_host, ETH_ALEN);
+        curr_el->sequence_number = dest->rt_entry->destination_sequence_number;
+        DL_APPEND(*head, curr_el);
+        dest->rt_entry->flags |= AODV_FLAGS_ROUTE_WARN;
+    }
+    return true;
+}
+
+int aodv_db_rt_get_warn_status(uint8_t dhost_ether[ETH_ALEN]) {
+    aodv_rt_entry_t* rt_entry;
+    HASH_FIND(hh, rt.entrys, dhost_ether, ETH_ALEN, rt_entry);
+
+    if(rt_entry == NULL || rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN) {
+        return false;
+    }
+
+    dessert_debug("rt_entry->flags = %" PRIu8 "->%p", rt_entry->flags, rt_entry);
+    return ((rt_entry->flags & AODV_FLAGS_ROUTE_WARN) ? true : false);
 }
 
 int aodv_db_rt_get_active_routes(aodv_link_break_element_t** head) {

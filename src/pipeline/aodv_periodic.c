@@ -206,7 +206,31 @@ dessert_per_result_t aodv_periodic_scexecute(void* data, struct timeval* schedul
             }
 
             break;
+        }
+        case AODV_SC_SEND_OUT_RWARN: {
+            aodv_link_break_element_t* head = NULL;
+            aodv_db_get_warn_endpoints_from_neighbor_and_set_warn(ether_addr, &head);
 
+            aodv_link_break_element_t* dest, *tmp;
+            DL_FOREACH_SAFE(head, dest, tmp) {
+                dessert_debug("AODV_SC_SEND_OUT_RWARN: " MAC " -> " MAC,
+                              EXPLODE_ARRAY6(ether_addr),
+                              EXPLODE_ARRAY6(dest->host));
+                aodv_send_rreq(dest->host, &timestamp, NULL, 0);
+            }
+            break;
+        }
+        case AODV_SC_UPDATE_RSSI: {
+            dessert_meshif_t* iface = (dessert_meshif_t*)(schedule_param);
+            int8_t diff = aodv_db_update_rssi(ether_addr, iface, &timestamp);
+
+            if(diff > AODV_SIGNAL_STRENGTH_THRESHOLD) {
+                //walking away -> we need to send a new warn
+                dessert_debug("%s <= W => " MAC, iface->if_name, EXPLODE_ARRAY6(ether_addr));
+                aodv_db_addschedule(&timestamp, ether_addr, AODV_SC_SEND_OUT_RWARN, 0);
+            }
+
+            break;
         }
         default: {
             dessert_crit("unknown schedule type=%" PRIu8 "", schedule_type);

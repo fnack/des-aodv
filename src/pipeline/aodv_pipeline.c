@@ -72,6 +72,12 @@ dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl, metric_t
 
     rreq_msg->destination_sequence_number = last_destination_sequence_number;
 
+    int d = aodv_db_get_warn_status(dhost_ether);
+
+    if(d == true) {
+        rreq_msg->flags |= AODV_FLAGS_RREQ_D;
+    }
+
     dessert_debug("create rreq to " MAC ": o=%" PRIu32 " d=%" PRIu32 "", EXPLODE_ARRAY6(dhost_ether), rreq_msg->originator_sequence_number, rreq_msg->destination_sequence_number);
 
     dessert_msg_dummy_payload(msg, rreq_size);
