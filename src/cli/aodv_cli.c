@@ -210,7 +210,7 @@ int cli_set_periodic_rreq_interval(struct cli_def* cli, char* command, char* arg
         return CLI_ERROR;
     }
 
-    uint16_t rreq_interval = strtol(argv[0], NULL, 10);
+    rreq_interval = strtol(argv[0], NULL, 10);
 
     dessert_periodic_del(send_rreq_periodic);
     send_rreq_periodic = NULL;
