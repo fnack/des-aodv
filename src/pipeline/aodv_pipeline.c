@@ -53,7 +53,7 @@ dessert_msg_t* _create_rreq(uint8_t dhost_ether[ETH_ALEN], uint8_t ttl, metric_t
     // add RREQ ext
     dessert_msg_addext(msg, &ext, RREQ_EXT_TYPE, sizeof(struct aodv_msg_rreq));
     struct aodv_msg_rreq* rreq_msg = (struct aodv_msg_rreq*) ext->data;
-    rreq_msg->metric = initial_metric;
+    msg->u16 = initial_metric;
     rreq_msg->flags = 0;
     pthread_rwlock_wrlock(&pp_rwlock);
     rreq_msg->originator_sequence_number = ++seq_num_global;
@@ -100,7 +100,7 @@ dessert_msg_t* _create_rrep(uint8_t route_dest[ETH_ALEN], uint8_t route_source[E
     dessert_msg_addext(msg, &ext, RREP_EXT_TYPE, sizeof(struct aodv_msg_rrep));
     struct aodv_msg_rrep* rrep_msg = (struct aodv_msg_rrep*) ext->data;
     rrep_msg->flags = flags;
-    rrep_msg->metric = initial_metric;
+    msg->u16 = initial_metric;
     rrep_msg->lifetime = 0;
     rrep_msg->destination_sequence_number = destination_sequence_number;
     return msg;
@@ -266,13 +266,13 @@ int aodv_handle_rreq(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t* proc,
     struct aodv_msg_rreq* rreq_msg = (struct aodv_msg_rreq*) rreq_ext->data;
 
     /********** METRIC *************/
-    aodv_metric_do(&(rreq_msg->metric), msg->l2h.ether_shost, iface);
+    aodv_metric_do(&(msg->u16), msg->l2h.ether_shost, iface);
     /********** METRIC *************/
 
-    int x = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->originator_sequence_number, rreq_msg->metric, &ts);
+    int x = aodv_db_capt_rreq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, rreq_msg->originator_sequence_number, msg->u16, &ts);
 
     if(x == false) {
-        dessert_debug("got RREQ for " MAC " from " MAC " seq=%" PRIu32 " hop=%" PRIu8 " ttl=%" PRIu8 " -> drop it: it is OLD", EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(l25h->ether_shost), rreq_msg->originator_sequence_number, rreq_msg->metric, msg->ttl);
+        dessert_debug("got RREQ for " MAC " from " MAC " seq=%" PRIu32 " hop=%" PRIu8 " ttl=%" PRIu8 " -> drop it: it is OLD", EXPLODE_ARRAY6(l25h->ether_dhost), EXPLODE_ARRAY6(l25h->ether_shost), rreq_msg->originator_sequence_number, msg->u16, msg->ttl);
         return DESSERT_MSG_DROP;
     }
 
@@ -420,10 +420,10 @@ int aodv_handle_rrep(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t* proc,
     gettimeofday(&ts, NULL);
 
     /********** METRIC *************/
-    aodv_metric_do(&(rrep_msg->metric), msg->l2h.ether_shost, iface);
+    aodv_metric_do(&(msg->u16), msg->l2h.ether_shost, iface);
     /********** METRIC *************/
 
-    int x = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->destination_sequence_number, rrep_msg->metric, &ts);
+    int x = aodv_db_capt_rrep(l25h->ether_shost, msg->l2h.ether_shost, iface, rrep_msg->destination_sequence_number, msg->u16, &ts);
 
     if(x != true) {
         // capture and re-send only if route is unknown OR

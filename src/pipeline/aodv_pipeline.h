@@ -64,8 +64,6 @@ struct aodv_msg_rreq {
      * U - Unknown sequence number; indicates the destination sequence number is unknown
      */
     uint16_t		flags;
-    /** The number of hops from the originator to the node habdling the request */
-    metric_t		metric;
 
     uint32_t		destination_sequence_number;
 
@@ -80,9 +78,6 @@ struct aodv_msg_rrep {
      * A - acknowledgement required;
      */
     uint8_t		flags;
-
-    /**  Hop Count: The number of hops from the originator to destination */
-    metric_t		metric;
 
     uint32_t		destination_sequence_number;
     /**
