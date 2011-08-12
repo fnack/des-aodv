@@ -139,6 +139,7 @@ int aodv_db_nt_neighbor_destroy(uint32_t* count_out) {
         aodv_db_sc_dropschedule(neigh->ether_neighbor, AODV_SC_UPDATE_RSSI);
         HASH_DEL(nt.entrys, neigh);
         free(neigh);
+        (*count_out)++;
     }
     return true;
 }
