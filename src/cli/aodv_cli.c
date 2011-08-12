@@ -90,7 +90,7 @@ int cli_set_hello_interval(struct cli_def* cli, char* command, char* argv[], int
     hello_interval_t.tv_sec = hello_interval / 1000;
     hello_interval_t.tv_usec = (hello_interval % 1000) * 1000;
     send_hello_periodic = dessert_periodic_add(aodv_periodic_send_hello, NULL, NULL, &hello_interval_t);
-    dessert_notice("setting HELLO interval to %" PRIu16 " - " PRIu32 " neighbors invalidated...", hello_interval, count);
+    dessert_notice("setting HELLO interval to %" PRIu16 " - %" PRIu32 " neighbors invalidated...", hello_interval, count);
     return CLI_OK;
 }
 

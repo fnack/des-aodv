@@ -130,8 +130,27 @@ int db_nt_init() {
     return true;
 }
 
+int aodv_db_nt_neighbor_destroy(uint32_t* count_out) {
+    *count_out = 0;
+
+    neighbor_entry_t* neigh = NULL;
+    neighbor_entry_t* tmp = NULL;
+    HASH_ITER(hh, nt.entrys, neigh, tmp) {
+        aodv_db_sc_dropschedule(neigh->ether_neighbor, AODV_SC_UPDATE_RSSI);
+        HASH_DEL(nt.entrys, neigh);
+        free(neigh);
+    }
+    return true;
+}
+
 int aodv_db_nt_neighbor_reset(uint32_t* count_out) {
-    return false; //TODO
+
+    int result = true;
+    result &= aodv_db_nt_neighbor_destroy(count_out);
+    result &= timeslot_destroy(nt.ts);
+    result &= db_nt_init();
+
+    return result;
 }
 
 int db_nt_cap2Dneigh(uint8_t ether_neighbor_addr[ETH_ALEN], uint16_t hello_seq, dessert_meshif_t* iface, struct timeval* timestamp) {
