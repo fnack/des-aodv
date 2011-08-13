@@ -93,6 +93,7 @@ int rt_srclist_entry_create(aodv_rt_srclist_entry_t** srclist_entry_out,
     srclist_entry->output_iface = output_iface;
     srclist_entry->originator_sequence_number = 0; //initial
     srclist_entry->metric = AODV_MAX_METRIC; //initial
+    srclist_entry->hop_count = UINT8_MAX; //initial
     srclist_entry->flags = AODV_FLAGS_ROUTE_NEW;
 
     *srclist_entry_out = srclist_entry;
@@ -113,6 +114,7 @@ int rt_entry_create(aodv_rt_entry_t** rreqt_entry_out, uint8_t destination_host[
     rt_entry->src_list = NULL;
     rt_entry->destination_sequence_number = 0; //we know nothing about the destination
     rt_entry->metric = AODV_MAX_METRIC; //initial
+    rt_entry->hop_count = UINT8_MAX; //initial
 
     timeslot_addobject(rt.ts, timestamp, rt_entry);
 
@@ -197,21 +199,22 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
             dessert_info("METRIC HIT: originator_sequence_number=%" PRIu32 ":%" PRIu32 " - metric=%" AODV_PRI_METRIC ":%" AODV_PRI_METRIC "", srclist_entry->originator_sequence_number, originator_sequence_number, srclist_entry->metric, metric);
         }
 
-        dessert_debug("get rreq from " MAC ": originator_sequence_number=%" PRIu32 ":%" PRIu32 "",
-                      EXPLODE_ARRAY6(originator_host), srclist_entry->originator_sequence_number, originator_sequence_number);
+        dessert_debug("get rreq from " MAC ": originator_sequence_number=%" PRIu32 ":%" PRIu32 " hop_count=%" PRIu8 "",
+                      EXPLODE_ARRAY6(originator_host), srclist_entry->originator_sequence_number, originator_sequence_number, hop_count);
 
         // overwrite several fields of source entry if source seq_num is newer
         memcpy(srclist_entry->originator_host_prev_hop, originator_host_prev_hop, ETH_ALEN);
         srclist_entry->output_iface = output_iface;
         srclist_entry->originator_sequence_number = originator_sequence_number;
         srclist_entry->metric = metric;
+        srclist_entry->hop_count = hop_count;
         srclist_entry->flags &= ~AODV_FLAGS_ROUTE_NEW;
 
         return true;
     }
 
-    dessert_debug("get OLD rreq from " MAC ": originator_sequence_number=%" PRIu32 ":%" PRIu32 "",
-                  EXPLODE_ARRAY6(originator_host), srclist_entry->originator_sequence_number, originator_sequence_number);
+    dessert_debug("get OLD rreq from " MAC ": originator_sequence_number=%" PRIu32 ":%" PRIu32 " hop_count=%" PRIu8 "",
+                  EXPLODE_ARRAY6(originator_host), srclist_entry->originator_sequence_number, originator_sequence_number, hop_count);
     return false;
 }
 
@@ -276,6 +279,7 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
         rt_entry->output_iface = output_iface;
         rt_entry->destination_sequence_number = destination_sequence_number;
         rt_entry->metric = metric;
+        rt_entry->hop_count = hop_count;
         rt_entry->flags &= ~AODV_FLAGS_NEXT_HOP_UNKNOWN;
         rt_entry->flags &= ~AODV_FLAGS_ROUTE_INVALID;
         rt_entry->flags &= ~AODV_FLAGS_ROUTE_WARN;

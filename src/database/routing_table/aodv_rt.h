@@ -42,6 +42,7 @@ typedef struct aodv_rt_srclist_entry {
     dessert_meshif_t*	output_iface;
     uint32_t			originator_sequence_number;
     metric_t			metric;
+    uint8_t				hop_count;
     uint16_t			data_sequence_number;
     uint8_t				flags;
     UT_hash_handle		hh;
@@ -53,6 +54,7 @@ typedef struct aodv_rt_entry {
     dessert_meshif_t*	output_iface;
     uint32_t			destination_sequence_number;
     metric_t			metric;
+    uint8_t				hop_count;
     /**
      * flags format: 0 0 0 0 0 0 U I
      * I - Invalid flag; route is invalid due of link breakage
