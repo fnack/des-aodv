@@ -180,6 +180,7 @@ int aodv_sys_drop_multicast(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t
     }
 
     if(proc->lflags & DESSERT_RX_FLAG_L25_MULTICAST) {
+        dessert_debug("dropped Multicast packet in Ethernet frame");
         return DESSERT_MSG_DROP;
     }
 
