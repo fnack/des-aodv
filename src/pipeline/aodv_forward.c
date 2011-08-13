@@ -248,6 +248,14 @@ int aodv_local_unicast(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t* pro
         struct timeval timestamp;
         gettimeofday(&timestamp, NULL);
 
+        if(msg->ttl <= 0) {
+            dessert_trace("got data from " MAC " but TTL is <= 0", EXPLODE_ARRAY6(l25h->ether_dhost));
+            return DESSERT_MSG_DROP;
+        }
+
+        msg->ttl--;
+        msg->u8++; /*hop count */
+
         if(false == aodv_db_capt_data_seq(l25h->ether_shost, msg->u16, msg->u8, &timestamp)) {
             dessert_trace("data packet is known -> DUP");
             return DESSERT_MSG_DROP;
