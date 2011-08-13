@@ -90,7 +90,7 @@ int cli_set_hello_interval(struct cli_def* cli, char* command, char* argv[], int
     hello_interval_t.tv_sec = hello_interval / 1000;
     hello_interval_t.tv_usec = (hello_interval % 1000) * 1000;
     send_hello_periodic = dessert_periodic_add(aodv_periodic_send_hello, NULL, NULL, &hello_interval_t);
-    dessert_notice("setting HELLO interval to %" PRIu16 " - %" PRIu32 " neighbors invalidated...", hello_interval, count);
+    dessert_notice("setting HELLO interval to %" PRIu16 " ms - %" PRIu32 " neighbors invalidated...", hello_interval, count);
     return CLI_OK;
 }
 
@@ -231,9 +231,9 @@ int cli_set_periodic_rreq_interval(struct cli_def* cli, char* command, char* arg
 
     send_rreq_periodic = dessert_periodic_add(aodv_periodic_send_rreq, NULL, NULL, &schedule_rreq_interval);
 
-    cli_print(cli, "periodic RREQ Interval set to %" PRIu16 " ms\n", rreq_interval);
+    cli_print(cli, "periodic RREQ Interval set to %" PRIu16 " ms", rreq_interval);
 
-    dessert_notice("periodic RREQ Interval set to %" PRIu16 " ms\n", rreq_interval);
+    dessert_notice("periodic RREQ Interval set to %" PRIu16 " ms", rreq_interval);
 
     return CLI_OK;
 }
@@ -244,7 +244,7 @@ int cli_show_periodic_rreq_interval(struct cli_def* cli, char* command, char* ar
         cli_print(cli, "periodic RREQ is off");
     }
     else {
-        cli_print(cli, "periodic RREQ Interval = %" PRIu16 " ms\n", rreq_interval);
+        cli_print(cli, "periodic RREQ Interval = %" PRIu16 " ms", rreq_interval);
     }
 
     return CLI_OK;
