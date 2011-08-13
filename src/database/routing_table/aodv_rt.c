@@ -246,11 +246,12 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
     //this is a routing update, so reset the max rssi val of the next hop
     db_nt_reset_rssi(destination_host_next_hop, output_iface, timestamp);
 
+    int z = destination_sequence_number; /* == 0 -> force */
     int u = (rt_entry->flags & AODV_FLAGS_NEXT_HOP_UNKNOWN);
     int a = hf_comp_u32(rt_entry->destination_sequence_number, destination_sequence_number);
     dessert_trace("destination_sequence_number=%" PRIu32 ":%" PRIu32 " - metric=%" AODV_PRI_METRIC ":%" AODV_PRI_METRIC "", rt_entry->destination_sequence_number, destination_sequence_number, rt_entry->metric, metric);
 
-    if(u || a <= 0) {
+    if(z == 0 || u || a <= 0) {
 
         nht_entry_t* nht_entry;
         nht_destlist_entry_t* destlist_entry;
