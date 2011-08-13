@@ -144,6 +144,8 @@ int aodv_local_unicast(dessert_msg_t* msg, uint32_t len,
 int aodv_drop_errors(dessert_msg_t* msg, uint32_t len,
                      dessert_msg_proc_t* proc, dessert_meshif_t* iface, dessert_frameid_t id);
 
+void aodv_send_packets_from_buffer(uint8_t ether_dhost[ETH_ALEN], uint8_t next_hop[ETH_ALEN], dessert_meshif_t* iface);
+
 // ------------------------------ periodic ----------------------------------------------------
 
 dessert_per_result_t aodv_periodic_send_hello(void* data, struct timeval* scheduled, struct timeval* interval);
