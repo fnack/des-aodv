@@ -133,5 +133,6 @@ int aodv_db_capt_data_seq(uint8_t src_addr[ETH_ALEN], uint16_t data_seq_num, uin
 int aodv_db_view_routing_table(char** str_out);
 void aodv_db_neighbor_timeslot_report(char** str_out);
 void aodv_db_packet_buffer_timeslot_report(char** str_out);
+void aodv_db_data_seq_timeslot_report(char** str_out);
 
 #endif
