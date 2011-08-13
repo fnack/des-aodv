@@ -328,3 +328,9 @@ void aodv_db_packet_buffer_timeslot_report(char** str_out) {
     pb_report(str_out);
     aodv_db_unlock();
 }
+
+void aodv_db_data_seq_timeslot_report(char** str_out) {
+    aodv_db_rlock();
+    ds_report(str_out);
+    aodv_db_unlock();
+}

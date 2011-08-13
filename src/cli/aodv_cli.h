@@ -46,6 +46,7 @@ int cli_show_rt(struct cli_def* cli, char* command, char* argv[], int argc);
 
 int cli_show_neighbor_timeslot(struct cli_def* cli, char* command, char* argv[], int argc);
 int cli_show_packet_buffer_timeslot(struct cli_def* cli, char* command, char* argv[], int argc);
+int cli_show_data_seq_timeslot(struct cli_def* cli, char* command, char* argv[], int argc);
 
 int cli_send_rreq(struct cli_def* cli, char* command, char* argv[], int argc);
 

@@ -103,10 +103,11 @@ int main(int argc, char** argv) {
 
     cli_register_command(dessert_cli, dessert_cli_set, "gossip_p", cli_set_gossipp, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set p for gossip  p in [0.0,...,1.0]");
     cli_register_command(dessert_cli, dessert_cli_set, "shortcut", cli_set_shortcut, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set shortcut mode");
+
     cli_register_command(dessert_cli, dessert_cli_show, "rt", cli_show_rt, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show routing table");
     cli_register_command(dessert_cli, dessert_cli_show, "neighbor_timeslot", cli_show_neighbor_timeslot, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show neighbor table timeslot");
     cli_register_command(dessert_cli, dessert_cli_show, "packet_buffer_timeslot", cli_show_packet_buffer_timeslot, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show packet buffer timeslot");
-
+    cli_register_command(dessert_cli, dessert_cli_show, "data_seq_timeslot", cli_show_data_seq_timeslot, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "show data seq timeslot");
 
     cli_register_command(dessert_cli, NULL, "send_rreq", cli_send_rreq, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "send RREQ to destination");
 
