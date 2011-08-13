@@ -73,6 +73,8 @@ typedef uint16_t metric_t;
 
 #define RREQ_INTERVAL				0 /* off */
 
+#define AODV_DATA_SEQ_TIMEOUT		ACTIVE_ROUTE_TIMEOUT /* wait ACTIVE_ROUTE_TIMEOUT for dropping data seq information */
+
 /**
  * Schedule type = send out packets from FIFO puffer for
  * destination with ether_addr

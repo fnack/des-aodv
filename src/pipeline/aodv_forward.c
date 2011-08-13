@@ -71,6 +71,15 @@ int aodv_forward_broadcast(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t*
         msg->ttl--;
         msg->u8++; /*hop count */
 
+        struct timeval timestamp;
+
+        gettimeofday(&timestamp, NULL);
+
+        if(false == aodv_db_capt_data_seq(l25h->ether_shost, msg->u16, msg->u8, &timestamp)) {
+            dessert_trace("data packet is known -> DUP");
+            return DESSERT_MSG_DROP;
+        }
+
         dessert_trace("got BROADCAST from " MAC " over " MAC, EXPLODE_ARRAY6(l25h->ether_shost), EXPLODE_ARRAY6(msg->l2h.ether_shost));
         dessert_meshsend(msg, NULL); //forward to mesh
         dessert_syssend_msg(msg); //forward to sys
@@ -112,7 +121,7 @@ int aodv_forward(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t* proc, des
     msg->ttl--;
     msg->u8++; /*hop count */
 
-    if(false == aodv_db_capt_data_seq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, msg->u16, msg->u8, &timestamp)) {
+    if(false == aodv_db_capt_data_seq(l25h->ether_shost, msg->u16, msg->u8, &timestamp)) {
         dessert_trace("data packet is known -> DUP");
         return DESSERT_MSG_DROP;
     }
@@ -239,7 +248,8 @@ int aodv_local_unicast(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t* pro
         struct timeval timestamp;
         gettimeofday(&timestamp, NULL);
 
-        if(false == aodv_db_capt_data_seq(l25h->ether_dhost, l25h->ether_shost, msg->l2h.ether_shost, iface, msg->u16, msg->u8, &timestamp)) {
+        if(false == aodv_db_capt_data_seq(l25h->ether_shost, msg->u16, msg->u8, &timestamp)) {
+            dessert_trace("data packet is known -> DUP");
             return DESSERT_MSG_DROP;
         }
 

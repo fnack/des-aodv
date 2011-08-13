@@ -28,6 +28,7 @@ For further information and questions please use the web site
 #include "../config.h"
 #include "routing_table/aodv_rt.h"
 #include "neighbor_table/nt.h"
+#include "data_seq/ds.h"
 #include "packet_buffer/packet_buffer.h"
 #include "schedule_table/aodv_st.h"
 #include "rreq_log/rreq_log.h"
@@ -51,6 +52,7 @@ int aodv_db_init() {
     int success = true;
     aodv_db_wlock();
     success &= db_nt_init();
+    success &= db_ds_init();
     success &= aodv_db_rt_init();
     success &= pb_init();
     success &= aodv_db_rerrl_init();
@@ -63,6 +65,7 @@ int aodv_db_cleanup(struct timeval* timestamp) {
     int success = true;
     aodv_db_wlock();
     success &= db_nt_cleanup(timestamp);
+    success &= db_ds_cleanup(timestamp);
     success &= aodv_db_rt_cleanup(timestamp);
     success &= pb_cleanup(timestamp);
     aodv_db_unlock();
@@ -298,9 +301,9 @@ void aodv_db_getrerrcount(struct timeval* timestamp, uint32_t* count_out) {
     aodv_db_unlock();
 }
 
-int aodv_db_capt_data_seq(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t originator_host_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint16_t shost_data_seq_num, uint8_t hop_count, struct timeval* timestamp) {
+int aodv_db_capt_data_seq(uint8_t src_addr[ETH_ALEN], uint16_t data_seq_num, uint8_t hop_count, struct timeval* timestamp) {
     aodv_db_wlock();
-    int result = aodv_db_rt_capt_data_seq(destination_host, originator_host, originator_host_prev_hop, output_iface, shost_data_seq_num, hop_count, timestamp);
+    int result = aodv_db_ds_capt_data_seq(src_addr, data_seq_num, hop_count, timestamp);
     aodv_db_unlock();
     return result;
 }

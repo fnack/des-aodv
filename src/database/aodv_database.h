@@ -126,7 +126,7 @@ void aodv_db_putrerr(struct timeval* timestamp);
 
 void aodv_db_getrerrcount(struct timeval* timestamp, uint32_t* count_out);
 
-int aodv_db_capt_data_seq(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t originator_host_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint16_t shost_data_seq_num, uint8_t hop_count, struct timeval* timestamp);
+int aodv_db_capt_data_seq(uint8_t src_addr[ETH_ALEN], uint16_t data_seq_num, uint8_t hop_count, struct timeval* timestamp);
 
 // ----------------------------------- reporiting -------------------------------------------------------------------------
 
