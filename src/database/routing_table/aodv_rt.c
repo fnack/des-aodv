@@ -158,6 +158,7 @@ int aodv_db_rt_capt_rreq(uint8_t destination_host[ETH_ALEN],
                          dessert_meshif_t* output_iface,
                          uint32_t originator_sequence_number,
                          metric_t metric,
+                         uint8_t hop_count,
                          struct timeval* timestamp) {
 
     aodv_rt_entry_t* rt_entry;
@@ -221,6 +222,7 @@ int aodv_db_rt_capt_rrep(uint8_t destination_host[ETH_ALEN],
                          dessert_meshif_t* output_iface,
                          uint32_t destination_sequence_number,
                          metric_t metric,
+                         uint8_t hop_count,
                          struct timeval* timestamp) {
 
     aodv_rt_entry_t* rt_entry;
@@ -566,6 +568,7 @@ int aodv_db_rt_capt_data_seq(uint8_t destination_host[ETH_ALEN],
                              uint8_t originator_host_prev_hop[ETH_ALEN],
                              dessert_meshif_t* output_iface,
                              uint16_t shost_data_seq_num,
+                             uint8_t hop_count,
                              struct timeval* timestamp) {
 
     aodv_rt_entry_t* rt_entry;

@@ -94,16 +94,16 @@ dessert_msg_t* aodv_db_pop_packet(uint8_t dhost_ether[ETH_ALEN]) {
  * this destination. All messages to source (example: RREP) must be send
  * over shost_prev_hop (nodes output interface: output_iface).
  */
-int aodv_db_capt_rreq(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t originator_host_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint32_t originator_sequence_number, metric_t metric, struct timeval* timestamp) {
+int aodv_db_capt_rreq(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t originator_host_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint32_t originator_sequence_number, metric_t metric, uint8_t hop_count, struct timeval* timestamp) {
     aodv_db_wlock();
-    int result = aodv_db_rt_capt_rreq(destination_host, originator_host, originator_host_prev_hop, output_iface, originator_sequence_number, metric, timestamp);
+    int result = aodv_db_rt_capt_rreq(destination_host, originator_host, originator_host_prev_hop, output_iface, originator_sequence_number, metric, hop_count, timestamp);
     aodv_db_unlock();
     return result;
 }
 
-int aodv_db_capt_rrep(uint8_t destination_host[ETH_ALEN], uint8_t destination_host_next_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint32_t destination_sequence_number, metric_t metric, struct timeval* timestamp) {
+int aodv_db_capt_rrep(uint8_t destination_host[ETH_ALEN], uint8_t destination_host_next_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint32_t destination_sequence_number, metric_t metric, uint8_t hop_count, struct timeval* timestamp) {
     aodv_db_wlock();
-    int result =  aodv_db_rt_capt_rrep(destination_host, destination_host_next_hop, output_iface, destination_sequence_number, metric, timestamp);
+    int result =  aodv_db_rt_capt_rrep(destination_host, destination_host_next_hop, output_iface, destination_sequence_number, metric, hop_count, timestamp);
     aodv_db_unlock();
     return result;
 }
@@ -298,9 +298,9 @@ void aodv_db_getrerrcount(struct timeval* timestamp, uint32_t* count_out) {
     aodv_db_unlock();
 }
 
-int aodv_db_capt_data_seq(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t originator_host_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint16_t shost_data_seq_num, struct timeval* timestamp) {
+int aodv_db_capt_data_seq(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t originator_host_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint16_t shost_data_seq_num, uint8_t hop_count, struct timeval* timestamp) {
     aodv_db_wlock();
-    int result = aodv_db_rt_capt_data_seq(destination_host, originator_host, originator_host_prev_hop, output_iface, shost_data_seq_num, timestamp);
+    int result = aodv_db_rt_capt_data_seq(destination_host, originator_host, originator_host_prev_hop, output_iface, shost_data_seq_num, hop_count, timestamp);
     aodv_db_unlock();
     return result;
 }

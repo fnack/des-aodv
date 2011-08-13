@@ -55,6 +55,7 @@ int aodv_db_capt_rreq(uint8_t destination_host[ETH_ALEN],
                       dessert_meshif_t* output_iface,
                       uint32_t originator_sequence_number,
                       metric_t metric,
+                      uint8_t hop_count,
                       struct timeval* timestamp);
 
 int aodv_db_capt_rrep(uint8_t destination_host[ETH_ALEN],
@@ -62,6 +63,7 @@ int aodv_db_capt_rrep(uint8_t destination_host[ETH_ALEN],
                       dessert_meshif_t* output_iface,
                       uint32_t destination_sequence_number,
                       metric_t metric,
+                      uint8_t hop_count,
                       struct timeval* timestamp);
 /**
  * gets prev_hop adress and output_iface towards source with shost_ether address
@@ -124,7 +126,7 @@ void aodv_db_putrerr(struct timeval* timestamp);
 
 void aodv_db_getrerrcount(struct timeval* timestamp, uint32_t* count_out);
 
-int aodv_db_capt_data_seq(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t originator_host_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint16_t shost_data_seq_num, struct timeval* timestamp);
+int aodv_db_capt_data_seq(uint8_t destination_host[ETH_ALEN], uint8_t originator_host[ETH_ALEN], uint8_t originator_host_prev_hop[ETH_ALEN], dessert_meshif_t* output_iface, uint16_t shost_data_seq_num, uint8_t hop_count, struct timeval* timestamp);
 
 // ----------------------------------- reporiting -------------------------------------------------------------------------
 
