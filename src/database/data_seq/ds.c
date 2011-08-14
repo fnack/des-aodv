@@ -53,7 +53,7 @@ data_packet_id_t* ds_entry_create(uint8_t src_addr[ETH_ALEN], uint16_t seq_num) 
 
 void db_nt_on_ds_timeout(struct timeval* timestamp, void* src_object, void* object) {
     data_packet_id_t* curr_entry = object;
-    dessert_debug("data seq timeout:" MAC " last_seq_num=% " PRIu8 "", EXPLODE_ARRAY6(curr_entry->src_addr), curr_entry->seq_num);
+    dessert_debug("data seq timeout:" MAC " last_seq_num=% " PRIu16 "", EXPLODE_ARRAY6(curr_entry->src_addr), curr_entry->seq_num);
     HASH_DEL(ds.entrys, curr_entry);
 
     free(curr_entry);
@@ -90,7 +90,7 @@ int aodv_db_ds_capt_data_seq(uint8_t src_addr[ETH_ALEN], uint16_t data_seq_num, 
         }
 
         HASH_ADD_KEYPTR(hh, ds.entrys, curr_entry->src_addr, ETH_ALEN, curr_entry);
-        dessert_debug("data seq - new source: " MAC " last_data_seq=% " PRIu8 "", EXPLODE_ARRAY6(src_addr), data_seq_num);
+        dessert_debug("data seq - new source: " MAC " data_seq=% " PRIu16 "", EXPLODE_ARRAY6(src_addr), data_seq_num);
         timeslot_addobject(ds.ts, timestamp, curr_entry);
         return true;
     }

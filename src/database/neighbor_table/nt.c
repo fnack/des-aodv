@@ -69,7 +69,6 @@ void db_nt_on_neigbor_timeout(struct timeval* timestamp, void* src_object, void*
 }
 
 int db_nt_reset_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* iface, struct timeval* timestamp) {
-    dessert_debug("neighbor reset rssi: " MAC " -> %" PRId8 "", EXPLODE_ARRAY6(ether_neighbor_addr), AODV_SIGNAL_STRENGTH_INIT);
     neighbor_entry_t* curr_entry = NULL;
     uint8_t addr_sum[ETH_ALEN + sizeof(void*)];
     memcpy(addr_sum, ether_neighbor_addr, ETH_ALEN);
@@ -80,7 +79,9 @@ int db_nt_reset_rssi(uint8_t ether_neighbor_addr[ETH_ALEN], dessert_meshif_t* if
         return false;
     }
 
+    dessert_debug("neighbor reset rssi: " MAC " -> %" PRId8 ":%" PRId8 "", EXPLODE_ARRAY6(ether_neighbor_addr), curr_entry->max_rssi, AODV_SIGNAL_STRENGTH_INIT);
     curr_entry->max_rssi = AODV_SIGNAL_STRENGTH_INIT;
+
     return true;
 }
 
