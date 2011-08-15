@@ -328,7 +328,7 @@ int aodv_handle_rerr(dessert_msg_t* msg, uint32_t len, dessert_msg_proc_t* proc,
 
     struct aodv_msg_rerr* rerr_msg = (struct aodv_msg_rerr*) rerr_ext->data;
 
-    dessert_info("got RERR: flags=%" PRIu8 "",  rerr_msg->flags);
+    dessert_debug("got RERR: flags=%" PRIu8 "",  rerr_msg->flags);
 
     int rerrdl_num = 0;
 
